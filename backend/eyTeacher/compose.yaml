@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eyteacherdb
+      - SPRING_DATASOURCE_USERNAME=eyteacher
+      - SPRING_DATASOURCE_PASSWORD=eyteacher
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_SECURITY_USER_NAME=admin
+      - SPRING_SECURITY_USER_PASSWORD=admin
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=eyteacherdb'
+      - 'MYSQL_PASSWORD=eyteacher'
+      - 'MYSQL_ROOT_PASSWORD=eyteacher'
+      - 'MYSQL_USER=eyteacher'
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    environment:
+      - 'RABBITMQ_DEFAULT_PASS=eyteacher'
+      - 'RABBITMQ_DEFAULT_USER=eyteacher'
+    ports:
+      - '5672:5672'
+      - '15672:15672' # Panel de control de RabbitMQ
