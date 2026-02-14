@@ -12,22 +12,19 @@ src/
 main/java/es/leinadfonfria/eyteacher/
 ├── application
     ├── dtos
-    ├── services
+    ├── services [interfaces]
 ├── domain
     ├── entities
     ├── errors
     ├── events
     └── valueobjects
 ├── infrastructure
-    ├── controllers
-    ├── services
+    ├── controllers [REST Controllers]
+    ├── services [implementations]
     └── persistence
-        ├── entities
-        └── repositories
-        
+        ├── entities [JPA Entities]
+        └── repositories [JPA Repositories]
 └── shared
 test
 
-e2e/pages/*.ts, e2e/*.spec.ts
-.husky/{pre-commit,pre-push}
 ````

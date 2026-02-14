@@ -1,23 +1,23 @@
 <div class="container">
   <h2>Mis Alumnos</h2>
 
-  <table mat-table [dataSource]="alumnos" class="mat-elevation-z8">
+  <table mat-table [dataSource]="studentList" class="mat-elevation-z8">
     <ng-container matColumnDef="nombre">
-      <th mat-header-cell *matHeaderCellDef> Nombre </th>
-      <td mat-cell *matCellDef="let alumno"> {{alumno.nombre}} </td>
+      <th mat-header-cell *matHeaderCellDef> Nombre</th>
+      <td mat-cell *matCellDef="let alumno"> {{ alumno.nombre }}</td>
     </ng-container>
 
     <ng-container matColumnDef="email">
-      <th mat-header-cell *matHeaderCellDef> Email </th>
-      <td mat-cell *matCellDef="let alumno"> {{alumno.email}} </td>
+      <th mat-header-cell *matHeaderCellDef> Email</th>
+      <td mat-cell *matCellDef="let alumno"> {{ alumno.email }}</td>
     </ng-container>
 
     <ng-container matColumnDef="progreso">
-      <th mat-header-cell *matHeaderCellDef> Progreso </th>
+      <th mat-header-cell *matHeaderCellDef> Progreso</th>
       <td mat-cell *matCellDef="let alumno">
         <div class="progress-container">
           <mat-progress-bar mode="determinate" [value]="alumno.progreso"></mat-progress-bar>
-          <span class="progress-label">{{alumno.progreso}}%</span>
+          <span class="progress-label">{{ alumno.progreso }}%</span>
         </div>
       </td>
     </ng-container>

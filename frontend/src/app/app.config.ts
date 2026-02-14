@@ -1,13 +1,19 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import {ApplicationConfig, provideBrowserGlobalErrorListeners} from '@angular/core';
+import {provideRouter} from '@angular/router';
+import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
+import {provideHttpClient} from '@angular/common/http';
 
-import { routes } from './app.routes';
+import {routes} from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    provideHttpClient(),
+    {
+      provide: 'LOCALSTORAGE',
+      useFactory: () => (typeof window !== 'undefined' ? window.localStorage : null)
+    }
   ]
 };
