@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.application.dtos;
 
+import es.leinadfonfria.eyteacher.domain.entities.Role;
 import java.time.Instant;
 
 /**
@@ -13,6 +14,7 @@ import java.time.Instant;
  * @param expiration The expiration timestamp of the token.
  * @param firstName  The user's first name.
  * @param lastName   The user's last name.
+ * @param role       The role selected for the session.
  */
 public record AuthUserResponse(
         String token,
@@ -21,6 +23,7 @@ public record AuthUserResponse(
         String id,
         Instant expiration,
         String firstName,
-        String lastName
+        String lastName,
+        Role role
 ) {
 }

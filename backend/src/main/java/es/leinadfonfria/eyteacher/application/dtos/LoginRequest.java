@@ -1,16 +1,18 @@
 package es.leinadfonfria.eyteacher.application.dtos;
 
+import es.leinadfonfria.eyteacher.domain.entities.Role;
+
 /**
  * Data transfer object for login requests.
  * Captures the credentials provided by the user during the login process.
  *
  * @param email    The user's email address.
  * @param password The user's plain-text password.
- * @param role     Optional role reference used by the frontend.
+ * @param role     The role of the user (TEACHER or STUDENT).
  */
 public record LoginRequest(
         String email,
         String password,
-        String role // frontend-only reference
+        Role role
 ) {
 }

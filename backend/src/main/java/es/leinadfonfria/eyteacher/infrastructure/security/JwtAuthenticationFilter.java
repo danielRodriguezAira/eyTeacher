@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.security;
 
+import es.leinadfonfria.eyteacher.domain.entities.Role;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,11 +55,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!jwtService.isTokenExpired(jwt)) {
                 Claims claims = jwtService.validateToken(jwt);
                 String userId = claims.getSubject();
+                @SuppressWarnings("unchecked")
+                List<String> roles = claims.get("roles", List.class);
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userId,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        authorities
                 );
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

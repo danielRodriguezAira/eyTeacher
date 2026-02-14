@@ -1,5 +1,7 @@
 package es.leinadfonfria.eyteacher.application.dtos;
 
+import es.leinadfonfria.eyteacher.domain.entities.Role;
+
 /**
  * Data transfer object for user registration requests.
  * Captures all necessary information to create a new user account.

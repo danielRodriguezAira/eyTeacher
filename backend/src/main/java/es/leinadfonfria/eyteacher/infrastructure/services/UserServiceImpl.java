@@ -5,7 +5,9 @@ import es.leinadfonfria.eyteacher.application.dtos.LoginRequest;
 import es.leinadfonfria.eyteacher.application.dtos.RegisterRequest;
 import es.leinadfonfria.eyteacher.application.services.LoginUseCase;
 import es.leinadfonfria.eyteacher.application.services.RegisterUseCase;
+import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.entities.User;
+import es.leinadfonfria.eyteacher.domain.errors.UserException;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
@@ -14,6 +16,7 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.time.temporal.ChronoUnit;
  * Implementation of user-related use cases.
  * Orchestrates the login and registration processes using repositories, mappers, and security services.
  */
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements LoginUseCase, RegisterUseCase {
@@ -45,14 +49,15 @@ public class UserServiceImpl implements LoginUseCase, RegisterUseCase {
     @Transactional(readOnly = true)
     public AuthUserResponse login(LoginRequest request) {
         UserJpaEntity entity = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new UserException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), entity.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new UserException("Invalid credentials");
         }
 
         User domainUser = userMapper.toDomain(entity);
-        String token = jwtService.generateToken(domainUser);
+        Role selectedRole = request.role() != null ? request.role() : Role.STUDENT;
+        String token = jwtService.generateToken(domainUser, selectedRole);
 
         return new AuthUserResponse(
                 token,
@@ -61,7 +66,8 @@ public class UserServiceImpl implements LoginUseCase, RegisterUseCase {
                 domainUser.getId().value().toString(),
                 Instant.now().plus(24, ChronoUnit.HOURS),
                 domainUser.getFirstName().value(),
-                domainUser.getLastName().value()
+                domainUser.getLastName().value(),
+                selectedRole
         );
     }
 
@@ -70,13 +76,13 @@ public class UserServiceImpl implements LoginUseCase, RegisterUseCase {
      *
      * @param request The registration details.
      * @return UserId The identifier of the newly created user.
-     * @throws RuntimeException If the email is already in use.
+     * @throws UserException If the email is already in use.
      */
     @Override
     @Transactional
     public UserId register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already in use");
+            throw new UserException("Email already in use");
         }
 
         User user = User.create(

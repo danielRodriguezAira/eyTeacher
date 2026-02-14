@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.security;
 
+import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -26,13 +27,14 @@ public class JwtService {
     private String secretKey;
 
     /**
-     * Generates a JWT token for the given user.
+     * Generates a JWT token for the given user and selected role.
      * Includes user identity and claims such as email and admin status.
      *
      * @param user The user for whom the token is generated.
+     * @param role The role selected for the session.
      * @return String The generated JWT token.
      */
-    public String generateToken(User user) {
+    public String generateToken(User user, Role role) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
         Instant expiration = now.plus(24, ChronoUnit.HOURS);
@@ -42,7 +44,7 @@ public class JwtService {
                 .claim("email", user.getEmail().value())
                 .claim("name", user.getFirstName().value() + " " + user.getLastName().value())
                 .claim("admin", user.isAdmin())
-                .claim("roles", List.of("USER"))
+                .claim("roles", List.of("ROLE_" + role.name()))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(key, Jwts.SIG.HS512)

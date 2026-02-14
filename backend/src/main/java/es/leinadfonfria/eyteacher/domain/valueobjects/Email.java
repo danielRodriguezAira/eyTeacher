@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * @param value The raw email string.
  */
 public record Email(String value) {
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     /**
      * Validates and creates an Email instance.
