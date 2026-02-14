@@ -17,7 +17,7 @@ services:
         condition: service_started
 
   mysql:
-    image: 'mysql:latest'
+    image: 'mysql:9.2.0'
     environment:
       - 'MYSQL_DATABASE=eyteacherdb'
       - 'MYSQL_PASSWORD=eyteacher'
