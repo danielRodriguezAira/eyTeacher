@@ -58,7 +58,6 @@ export class AuthenticationService implements AuthenticationServicePort {
             isAdmin: !!matched.isAdmin,
             email: matched.email,
             id: matched.id,
-            alias: matched.email.split('@')[0],
             expiration: moment().add(1, 'days').toISOString(),
             firstName: matched.firstName,
             lastName: matched.lastName,

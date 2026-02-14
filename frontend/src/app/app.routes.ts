@@ -36,7 +36,7 @@ export const routes: Routes = [
     path: 'student-list',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./infrastructure/web/features/student-list/student-list').then(m => m.StudentList)
+      import('./infrastructure/web/features/students/student-list/student-list').then(m => m.StudentList)
   },
   {
     path: 'account',

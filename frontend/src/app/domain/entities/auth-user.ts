@@ -8,7 +8,6 @@ export interface AuthUser {
   isAdmin: boolean;
   email: string;
   id: string;
-  alias: string;
   expiration: string;
   firstName: string;
   lastName: string;
