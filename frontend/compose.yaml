@@ -6,4 +6,9 @@ services:
     container_name: angular-frontend
     ports:
       - "8081:80"
+      - "8444:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped

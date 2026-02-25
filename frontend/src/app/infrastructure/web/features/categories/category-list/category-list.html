@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="header">
+    <h2>
+      <button mat-icon-button [matMenuTriggerFor]="categoriesMenu" aria-label="Opciones de categorías">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <span>Categorías</span>
+    </h2>
+
+  </div>
+  <mat-menu #categoriesMenu="matMenu">
+    <button mat-menu-item routerLink="/category-add">
+      <mat-icon>add</mat-icon>
+      <span>Nueva categoría</span>
+    </button>
+  </mat-menu>
+  <div class="grid-container">
+    @for (category of categoryList; track category.id) {
+      <mat-card class="category-card" (click)="viewCategory(category)">
+        <mat-card-header>
+          <mat-card-title>
+            {{ category.name }}
+          </mat-card-title>
+          <span class="spacer"></span>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ category.description }}</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</div>
