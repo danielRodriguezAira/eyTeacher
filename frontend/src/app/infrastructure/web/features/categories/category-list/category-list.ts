@@ -7,7 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import {Router, RouterLink} from '@angular/router';
 import {Category} from '../../../../../domain/entities/category';
-import {CategoryService} from '../../../../services/category.service';
+import {CategoryService} from '../../../services/category.service';
 
 @Component({
   selector: 'app-category-list',

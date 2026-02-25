@@ -9,8 +9,8 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
-import {AuthenticationService} from './infrastructure/services/auth.service';
-import {CategoryService} from './infrastructure/services/category.service';
+import {AuthenticationService} from './infrastructure/web/services/auth.service';
+import {CategoryService} from './infrastructure/web/services/category.service';
 import {Category} from './domain/entities/category';
 
 @Component({
@@ -57,8 +57,16 @@ export class App implements OnInit {
     this.categories = this.categoryService.getCategories();
   }
 
-  isLoginRoute(): boolean {
-    return this.router.url.startsWith('/login');
+  isPublicRoute(): boolean {
+    const url = this.router.url;
+    if (url.startsWith('/login')) {
+      return true;
+    }
+    // Para '/account', solo es pública (sin layout) si el usuario NO está logueado
+    if (url.startsWith('/account')) {
+      return !this.auth.getCurrentUser();
+    }
+    return false;
   }
 
   onLogout() {

@@ -1,5 +1,5 @@
 import {Routes} from '@angular/router';
-import {authGuard} from './infrastructure/guards/auth.guard';
+import {authGuard} from './infrastructure/web/guards/auth.guard';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'category-list', pathMatch: 'full'},
@@ -40,7 +40,6 @@ export const routes: Routes = [
   },
   {
     path: 'account',
-    canActivate: [authGuard],
     loadComponent: () =>
       import('./infrastructure/web/features/account-page/account-page').then(m => m.AccountPage)
   },

@@ -8,13 +8,13 @@ export interface AuthenticationServicePort {
 
   login(email: string, password: string, role: UserRole): Observable<boolean>;
 
+  register(email: string, password: string, firstName: string, lastName: string): Observable<boolean>;
+
+  updateProfile(email: string, firstName: string, lastName: string): Observable<boolean>;
+
+  updatePassword(oldPassword: string, newPassword: string): Observable<boolean>;
+
   logout(): void;
 
   getCurrentUser(): any;
-
-  passwordResetRequest(email: string): Observable<boolean>;
-
-  changePassword(email: string, currentPwd: string | null | undefined, newPwd: string | null | undefined): Observable<boolean>;
-
-  passwordReset(email: string, token: string, password: string, confirmPassword: string): any;
 }

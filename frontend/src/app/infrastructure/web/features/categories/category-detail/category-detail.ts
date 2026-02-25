@@ -4,7 +4,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {Category} from '../../../../../domain/entities/category';
-import {CategoryService} from '../../../../services/category.service';
+import {CategoryService} from '../../../services/category.service';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 
 @Component({

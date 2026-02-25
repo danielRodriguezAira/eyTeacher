@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {Category} from '../../domain/entities/category';
-import {CategoryServicePort} from '../../application/services/category.service.port';
+import {Category} from '../../../domain/entities/category';
+import {CategoryServicePort} from '../../../application/services/category.service.port';
 
 @Injectable({
   providedIn: 'root'

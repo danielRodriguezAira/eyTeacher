@@ -5,7 +5,6 @@ export enum UserRole {
 
 export interface AuthUser {
   token: string;
-  isAdmin: boolean;
   email: string;
   id: string;
   expiration: string;

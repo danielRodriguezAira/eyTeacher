@@ -25,7 +25,7 @@
         <mat-form-field class="full-width">
           <input id="passwordInput" matInput placeholder="Password" formControlName="password" type="password"
                  autocomplete="current-password">
-          @if (loginForm.controls['email'].hasError('required')) {
+          @if (loginForm.controls['password'].hasError('required')) {
             <mat-error id="requiredPasswordError">
               Password is
               <strong>required</strong>
@@ -47,22 +47,18 @@
           }
         </mat-form-field>
 
-        <div class="full-width">
-          <mat-slide-toggle formControlName="rememberMe">Remember my email address</mat-slide-toggle>
-        </div>
-
       </mat-card-content>
 
       <mat-card-actions class="login-actions">
-        <button mat-raised-button id="login" color="primary" [disabled]="loginForm.invalid || loading"
+        <button mat-raised-button id="login" color="primary" [disabled]="loginForm.invalid || loading()"
                 (click)="login()">Login
         </button>
-        <button mat-button id="resetPassword" (click)="resetPassword()" type="button">Reset Password</button>
+        <button mat-button id="createAccount" (click)="createAccount()" type="button">Crear Nuevo Usuario</button>
       </mat-card-actions>
 
     </mat-card>
 
-    @if (loading) {
+    @if (loading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     }
   </form>

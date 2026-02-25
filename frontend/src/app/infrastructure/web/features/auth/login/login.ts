@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Title} from '@angular/platform-browser';
@@ -9,9 +9,10 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatSelectModule} from '@angular/material/select';
-import {AuthenticationService} from '../../../../services/auth.service';
-import {NotificationService} from '../../../../services/notification.service';
+import {AuthenticationService} from '../../../services/auth.service';
+import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
+import {DomainError} from '../../../../../domain/errors/auth.errors';
 
 
 interface LoginForm {
@@ -39,7 +40,7 @@ interface LoginForm {
 })
 export class Login implements OnInit {
   loginForm!: FormGroup<LoginForm>;
-  loading = false;
+  loading = signal(false);
 
   roles = Object.values(UserRole);
 
@@ -74,7 +75,7 @@ export class Login implements OnInit {
     const role = this.loginForm.get('role')?.value ?? UserRole.STUDENT;
     const rememberMe = this.loginForm.get('rememberMe')?.value ?? false;
 
-    this.loading = true;
+    this.loading.set(true);
     this.authenticationService
       .login(email.toLowerCase(), password, role)
       .subscribe({
@@ -87,13 +88,17 @@ export class Login implements OnInit {
           this.router.navigate(['/']);
         },
         error: (error) => {
-          this.notificationService.openSnackBar(error.error);
-          this.loading = false;
+          if (error instanceof DomainError) {
+            this.notificationService.openSnackBar(error.message);
+          } else {
+            this.notificationService.openSnackBar(error.message || 'Ocurrió un error inesperado durante la autenticación');
+          }
+          this.loading.set(false);
         }
       });
   }
 
-  resetPassword() {
-    this.router.navigate(['/auth/password-reset-request']);
+  createAccount() {
+    this.router.navigate(['/account']);
   }
 }

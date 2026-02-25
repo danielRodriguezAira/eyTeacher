@@ -1,7 +1,7 @@
 <div class="container">
   <mat-card>
     <mat-card-content>
-      <h2>Mi Cuenta</h2>
+      <h2>{{ isLoggedIn ? 'Mi Cuenta' : 'Crear Nuevo Usuario' }}</h2>
 
       <div class="sections-container">
         <!-- Sección: Edición de datos del usuario -->
@@ -35,63 +35,86 @@
                   <mat-error>Email no válido</mat-error>
                 }
               </mat-form-field>
+
+              @if (!isLoggedIn) {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Contraseña</mat-label>
+                  <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+                  <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  @if (profileForm.get('password')?.hasError('required')) {
+                    <mat-error>La contraseña es obligatoria</mat-error>
+                  }
+                  @if (profileForm.get('password')?.hasError('minlength')) {
+                    <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres, contener al menos una mayúscula, una minúscula, un número y un carácter especial ($!%*?&., etc)</mat-error>
+                  }
+                </mat-form-field>
+              }
             </div>
             <div class="actions">
-              <button mat-raised-button color="primary" [disabled]="profileForm.invalid">Guardar Cambios</button>
+              <button mat-raised-button color="primary" [disabled]="profileForm.invalid">
+                {{ isLoggedIn ? 'Guardar Cambios' : 'Registrarse' }}
+              </button>
+              @if (!isLoggedIn) {
+                <button mat-button type="button" routerLink="/login">Volver al Login</button>
+              }
             </div>
           </form>
         </section>
 
-        <mat-divider [vertical]="true" class="desktop-divider"></mat-divider>
-        <mat-divider class="mobile-divider"></mat-divider>
+        @if (isLoggedIn) {
+          <mat-divider [vertical]="true" class="desktop-divider"></mat-divider>
+          <mat-divider class="mobile-divider"></mat-divider>
 
-        <!-- Sección: Cambio de contraseña -->
-        <section class="account-section">
-          <h3>Cambiar Contraseña</h3>
-          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-            <div class="form-grid">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Contraseña Actual</mat-label>
-                <input matInput [type]="hideCurrentPassword ? 'password' : 'text'" formControlName="currentPassword">
-                <button mat-icon-button matSuffix (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
-                  <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                @if (passwordForm.get('currentPassword')?.hasError('required')) {
-                  <mat-error>Introduce tu contraseña actual</mat-error>
-                }
-              </mat-form-field>
+          <!-- Sección: Cambio de contraseña -->
+          <section class="account-section">
+            <h3>Cambiar Contraseña</h3>
+            <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Contraseña Actual</mat-label>
+                  <input matInput [type]="hideCurrentPassword ? 'password' : 'text'" formControlName="oldPassword">
+                  <button mat-icon-button matSuffix (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
+                    <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  @if (passwordForm.get('currentPassword')?.hasError('required')) {
+                    <mat-error>Introduce tu contraseña actual</mat-error>
+                  }
+                </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Nueva Contraseña</mat-label>
-                <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="newPassword">
-                <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" type="button">
-                  <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                @if (passwordForm.get('newPassword')?.hasError('required')) {
-                  <mat-error>Introduce la nueva contraseña</mat-error>
-                }
-                @if (passwordForm.get('newPassword')?.hasError('minlength')) {
-                  <mat-error>Mínimo 6 caracteres</mat-error>
-                }
-              </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Nueva Contraseña</mat-label>
+                  <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="newPassword">
+                  <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" type="button">
+                    <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  @if (passwordForm.get('newPassword')?.hasError('required')) {
+                    <mat-error>Introduce la nueva contraseña</mat-error>
+                  }
+                  @if (passwordForm.get('newPassword')?.hasError('minlength')) {
+                    <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres, contener al menos una mayúscula, una minúscula, un número y un carácter especial ($!%*?&., etc)</mat-error>
+                  }
+                </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Confirmar Nueva Contraseña</mat-label>
-                <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="newPasswordConfirm">
-                <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
-                  <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                @if (passwordForm.get('newPasswordConfirm')?.hasError('required')) {
-                  <mat-error>Confirma la nueva contraseña</mat-error>
-                }
-              </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Confirmar Nueva Contraseña</mat-label>
+                  <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="newPasswordConfirm">
+                  <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
+                    <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  @if (passwordForm.get('newPasswordConfirm')?.hasError('required')) {
+                    <mat-error>Confirma la nueva contraseña</mat-error>
+                  }
+                </mat-form-field>
 
-            </div>
-            <div class="actions">
-              <button mat-raised-button color="accent" [disabled]="passwordForm.invalid">Actualizar Contraseña</button>
-            </div>
-          </form>
-        </section>
+              </div>
+              <div class="actions">
+                <button mat-raised-button color="accent" [disabled]="passwordForm.invalid">Actualizar Contraseña</button>
+              </div>
+            </form>
+          </section>
+        }
       </div>
     </mat-card-content>
   </mat-card>

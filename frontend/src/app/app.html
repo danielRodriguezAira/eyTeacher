@@ -1,4 +1,4 @@
-@if (!isLoginRoute()) {
+@if (!isPublicRoute()) {
   <div class="app-container">
     <mat-toolbar color="primary" class="main-toolbar">
       <button mat-icon-button (click)="sidenav.toggle()">
@@ -6,7 +6,6 @@
       </button>
       <span>{{ title() }}</span>
       <span class="spacer"></span>
-      <button mat-button class="view-btn">View</button>
       <button mat-icon-button [matMenuTriggerFor]="profileMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
