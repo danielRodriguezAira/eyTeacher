@@ -1,15 +1,15 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import es.leinadfonfria.eyteacher.domain.entities.Role;
-import org.hibernate.type.SqlTypes;
 
 /**
  * JPA entity for user persistence.

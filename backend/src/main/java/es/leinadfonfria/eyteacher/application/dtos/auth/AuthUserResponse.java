@@ -1,6 +1,7 @@
-package es.leinadfonfria.eyteacher.application.dtos;
+package es.leinadfonfria.eyteacher.application.dtos.auth;
 
 import es.leinadfonfria.eyteacher.domain.entities.Role;
+
 import java.time.Instant;
 
 /**

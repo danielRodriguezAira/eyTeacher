@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.AuthenticationException;
@@ -25,8 +26,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
      * @throws IOException If an input or output exception occurs.
      */
     @Override
-    public void commence(jakarta.servlet.http.@NonNull HttpServletRequest request,
-                         jakarta.servlet.http.HttpServletResponse response,
+    public void commence(@NonNull HttpServletRequest request,
+                         @NonNull HttpServletResponse response,
                          @NonNull AuthenticationException authException) throws IOException {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }

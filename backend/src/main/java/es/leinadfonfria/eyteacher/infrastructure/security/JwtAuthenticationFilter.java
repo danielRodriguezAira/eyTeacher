@@ -1,6 +1,5 @@
 package es.leinadfonfria.eyteacher.infrastructure.security;
 
-import es.leinadfonfria.eyteacher.domain.entities.Role;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -52,26 +51,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String jwt = authHeader.substring(7);
         try {
-            if (!jwtService.isTokenExpired(jwt)) {
-                Claims claims = jwtService.validateToken(jwt);
-                String userId = claims.getSubject();
-                @SuppressWarnings("unchecked")
-                List<String> roles = claims.get("roles", List.class);
-                List<SimpleGrantedAuthority> authorities = roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
+            Claims claims = jwtService.validateToken(jwt);
+            String userId = claims.getSubject();
+            @SuppressWarnings("unchecked")
+            List<String> roles = claims.get("roles", List.class);
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
 
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        authorities
-                );
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userId,
+                    null,
+                    authorities
+            );
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
         } catch (Exception e) {
-            // Token invalid or expired
+            // Token inválido o expirado — no establecer autenticación
             SecurityContextHolder.clearContext();
         }
 

@@ -3,6 +3,7 @@ package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
+import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import org.mapstruct.Mapper;
@@ -28,6 +29,8 @@ public interface UserMapper {
     @Mapping(target = "email", source = "email", qualifiedByName = "toEmail")
     @Mapping(target = "firstName", source = "firstName", qualifiedByName = "toName")
     @Mapping(target = "lastName", source = "lastName", qualifiedByName = "toName")
+    @Mapping(target = "password", source = "password", qualifiedByName = "toPassword")
+    @Mapping(target = "isAdmin", ignore = true)
     User toDomain(UserJpaEntity entity);
 
     /**
@@ -40,8 +43,10 @@ public interface UserMapper {
     @Mapping(target = "email", source = "email", qualifiedByName = "fromEmail")
     @Mapping(target = "firstName", source = "firstName", qualifiedByName = "fromName")
     @Mapping(target = "lastName", source = "lastName", qualifiedByName = "fromName")
+    @Mapping(target = "password", source = "password", qualifiedByName = "fromPassword")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "isAdmin", ignore = true)
     UserJpaEntity toEntity(User domain);
 
     @Named("toUserId")
@@ -72,5 +77,15 @@ public interface UserMapper {
     @Named("fromName")
     default String fromName(Name name) {
         return name.value();
+    }
+
+    @Named("toPassword")
+    default Password toPassword(String value) {
+        return Password.hashed(value);
+    }
+
+    @Named("fromPassword")
+    default String fromPassword(Password password) {
+        return password.value();
     }
 }

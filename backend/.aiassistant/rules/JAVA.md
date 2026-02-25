@@ -52,7 +52,7 @@ src/
 - If any request conflicts with Clean Architecture or TDD:
     - FIRST: briefly explain the conflict **IN SPANISH**
     - THEN: propose an aligned alternative **IN SPANISH**
-    - Code must ALWAYS be generated in English
+    - Code and comments must ALWAYS be generated in English
 
 ## Coding Rules
 

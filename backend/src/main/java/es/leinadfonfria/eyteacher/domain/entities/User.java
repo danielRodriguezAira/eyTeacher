@@ -2,6 +2,7 @@ package es.leinadfonfria.eyteacher.domain.entities;
 
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
+import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.Getter;
 public class User {
     private final UserId id;
     private final Email email;
-    private final String password; // hashed
+    private final Password password; // hashed VO
     private final Name firstName;
     private final Name lastName;
     private final boolean isAdmin;
@@ -35,7 +36,16 @@ public class User {
      * @param isAdmin   Flag indicating if the user has administrator privileges.
      * @return User A new user domain entity.
      */
-    public static User create(UserId id, Email email, String password, Name firstName, Name lastName, boolean isAdmin) {
+    public static User create(UserId id, Email email, Password password, Name firstName, Name lastName, boolean isAdmin) {
         return new User(id, email, password, firstName, lastName, isAdmin);
+    }
+
+    public static User update(UserId userId, Email email, Name firstName, Name lastName) {
+        return User.builder()
+                .id(userId)
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .build();
     }
 }
