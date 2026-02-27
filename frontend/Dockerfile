@@ -14,21 +14,12 @@ RUN npm run build
 # Etapa 2: Serve con Nginx
 FROM nginx:stable-alpine
 
-# Configuración de Nginx para soportar Angular Routing y HTTPS
-# Se asume que los certificados se montarán en /etc/nginx/ssl/
+# Configuración de Nginx para soportar Angular Routing y proxy de API en HTTP
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
-    return 301 https://$host$request_uri; \
-} \
-server { \
-    listen 443 ssl; \
-    server_name localhost; \
-    ssl_certificate /etc/nginx/ssl/server.crt; \
-    ssl_certificate_key /etc/nginx/ssl/server.key; \
     location /api/ { \
-        proxy_pass https://host.docker.internal:8443/api/; \
-        proxy_ssl_verify off; \
+        proxy_pass http://host.docker.internal:8080/api/; \
         proxy_set_header Host $host; \
         proxy_set_header X-Real-IP $remote_addr; \
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
@@ -45,7 +36,7 @@ server { \
 # Nota: Ajusta 'frontend' si el nombre del proyecto en angular.json es diferente
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
-# Exponer los puertos 80 y 443
-EXPOSE 80 443
+# Exponer el puerto 80
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

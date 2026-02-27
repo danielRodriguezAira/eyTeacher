@@ -1,34 +1,50 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable, of} from 'rxjs';
+import {switchMap} from 'rxjs/operators';
 import {Category} from '../../../domain/entities/category';
 import {CategoryServicePort} from '../../../application/services/category.service.port';
+import {AuthenticationService} from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class CategoryService implements CategoryServicePort {
-  categoryList: Category[] = [
-    new Category(1, 'Matemáticas', 'Cálculo, Álgebra y Geometría'),
-    new Category(2, 'Lengua', 'Gramática y Literatura'),
-    new Category(3, 'Ciencias', 'Biología, Física y Química'),
-    new Category(4, 'Historia', 'Historia Universal y Geografía'),
-    new Category(5, 'Inglés', 'Grammar and Vocabulary'),
-    new Category(6, 'Arte', 'Dibujo y Pintura')
-  ];
+    private http = inject(HttpClient);
+    private authService = inject(AuthenticationService);
+    private readonly API_URL = '/api/v1/categories';
 
-  getCategories(): Category[] {
-    return this.categoryList;
-  }
+    // Datos locales simulados mientras no haya listado desde backend
+    categoryList: Category[] = [];
 
-  getCategoryById(id: number): Category | undefined {
-    return this.categoryList.find(c => c.id === id);
-  }
+    getCategories(): Observable<Category[]> {
+        return this.authService.getCurrentUserObservable().pipe(
+            switchMap(user => {
+                if (user && user.id) {
+                    return this.http.get<Category[]>(`${this.API_URL}/owner/${user.id}`);
+                }
+                return of([]);
+            })
+        );
+    }
 
-  saveCategory(category: Category) {
-    //TODO: llamada al servicio de categorías: guardar
-    return this.getCategoryById(category.id);
-  }
+    getCategoryById(id: number): Observable<Category> {
+        return this.http.get<Category>(`${this.API_URL}/${id}`);
+    }
 
-  deleteCategory(id: number) {
-    //TODO: llamada al servicio de categorías: borrar
-  }
+    saveCategory(category: Category): Observable<any> {
+        const currentUser = this.authService.getCurrentUser();
+        const ownerId = currentUser?.id;
+        const body = {
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            ownerId: ownerId
+        };
+        return this.http.post<any>(`${this.API_URL}`, body);
+    }
+
+    deleteCategory(id: number | null): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/${id}`);
+    }
 }

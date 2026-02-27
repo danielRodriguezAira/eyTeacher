@@ -1,19 +1,22 @@
 import {ApplicationConfig, provideBrowserGlobalErrorListeners} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 
 import {routes} from './app.routes';
+import {authInterceptor} from './infrastructure/web/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideAnimationsAsync(),
-    provideHttpClient(),
-    {
-      provide: 'LOCALSTORAGE',
-      useFactory: () => (typeof window !== 'undefined' ? window.localStorage : null)
-    }
-  ]
+    providers: [
+        provideBrowserGlobalErrorListeners(),
+        provideRouter(routes),
+        provideAnimationsAsync(),
+        provideHttpClient(
+            withInterceptors([authInterceptor])
+        ),
+        {
+            provide: 'LOCALSTORAGE',
+            useFactory: () => (typeof window !== 'undefined' ? window.localStorage : null)
+        }
+    ]
 };
