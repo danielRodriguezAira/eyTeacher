@@ -7,9 +7,9 @@ import java.util.regex.Pattern;
 import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.INVALID_CREDENTIALS;
 
 /**
- * Value Object de contraseña.
- * - Permite representar contraseñas en claro (para validar reglas) y contraseñas hasheadas (para persistencia).
- * - La validación de reglas SOLO aplica cuando la contraseña no está hasheada.
+ * Password Value Object.
+ * - Allows representing passwords in plaintext (for rule validation) and hashed passwords (for persistence).
+ * - Rule validation ONLY applies when the password is not hashed.
  */
 public record Password(String value, boolean hashed) {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(

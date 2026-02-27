@@ -21,4 +21,13 @@ public class ErrorCode {
     public static final int DIFFERENT_PASSWORD = 1006;
     /** The provided login credentials are incorrect. */
     public static final int INVALID_CREDENTIALS = 1007;
+    /** Authentication-related errors */
+    public static final int AUTHENTICATION_ERROR = 1008;
+    /** The category owner could not be found. */
+    public static final int CATEGORY_OWNER_NOT_FOUND = 2001;
+    /** The category owner does not have the TEACHER role. */
+    public static final int CATEGORY_OWNER_NOT_TEACHER = 2002;
+    /** The requested category could not be found. */
+    public static final int CATEGORY_NOT_FOUND = 2003;
+
 }

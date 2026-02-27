@@ -57,7 +57,7 @@ public class AuthController {
      * @param request The registration details.
      * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
      */
-    @PostMapping("/register")
+    @PutMapping("/register")
     @Operation(summary = "Register user", description = "Creates a new user account")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         log.info("Registering user: {}", request);
@@ -75,7 +75,7 @@ public class AuthController {
      * @param request The update details.
      * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
      */
-    @PutMapping("/profile")
+    @PostMapping("/profile")
     @Operation(summary = "Update user profile", description = "Updates user's email, firstName and lastName")
     public ResponseEntity<?> updateUserProfile(@RequestBody UpdateUserProfileRequest request) {
         log.info("Updating user profile: {}", request);
