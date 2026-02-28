@@ -18,6 +18,7 @@ public interface CategoryMapper {
      * @param entity The persistence entity.
      * @return Category The domain entity.
      */
+    @Mapping(target = "topicList", ignore = true)
     Category toDomain(CategoryJpaEntity entity);
 
     /**
@@ -26,5 +27,7 @@ public interface CategoryMapper {
      * @param domain The domain entity.
      * @return CategoryJpaEntity The persistence entity.
      */
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     CategoryJpaEntity toEntity(Category domain);
 }
