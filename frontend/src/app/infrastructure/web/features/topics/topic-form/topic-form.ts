@@ -7,12 +7,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
-import {CategoryService} from '../../../services/category.service';
-import {Category} from '../../../../../domain/entities/category';
+import {TopicService} from '../../../services/topic.service';
+import {Topic} from '../../../../../domain/entities/topic';
 import {NotificationService} from '../../../services/notification.service';
 
 @Component({
-    selector: 'app-category-form',
+    selector: 'app-topic-form',
     standalone: true,
     imports: [
         ReactiveFormsModule,
@@ -22,19 +22,20 @@ import {NotificationService} from '../../../services/notification.service';
         MatButtonModule,
         MatIconModule
     ],
-    templateUrl: './category-form.html',
-    styleUrls: ['./category-form.css']
+    templateUrl: './topic-form.html',
+    styleUrls: ['./topic-form.css']
 })
-export class CategoryForm implements OnInit {
-    categoryForm = new FormGroup({
+export class TopicForm implements OnInit {
+    topicForm = new FormGroup({
         name: new FormControl('', Validators.required),
         description: new FormControl('', Validators.required),
     });
 
     isEditMode = false;
+    private topicId: number | null = null;
     private categoryId: number | null = null;
     private titleService = inject(Title);
-    private categoryService = inject(CategoryService);
+    private topicService = inject(TopicService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
@@ -42,47 +43,53 @@ export class CategoryForm implements OnInit {
 
     ngOnInit() {
         const idParam = this.route.snapshot.paramMap.get('id');
-        this.categoryId = idParam ? Number(idParam) : null;
-        if (this.categoryId) {
+        const categoryIdParam = this.route.snapshot.queryParamMap.get('categoryId');
+        
+        this.topicId = idParam ? Number(idParam) : null;
+        this.categoryId = categoryIdParam ? Number(categoryIdParam) : null;
+
+        if (this.topicId) {
             this.isEditMode = true;
-            this.titleService.setTitle('Editar Categoría');
-            this.categoryService.getCategoryById(this.categoryId).subscribe(category => {
-                if (category) {
-                    this.categoryForm.patchValue({
-                        name: category.name,
-                        description: category.description
+            this.titleService.setTitle('Editar Tema');
+            this.topicService.getTopicById(this.topicId).subscribe(topic => {
+                if (topic) {
+                    this.topicForm.patchValue({
+                        name: topic.name,
+                        description: topic.description
                     });
+                    this.categoryId = topic.categoryId;
                     this.cdr.detectChanges();
                 }
             });
         } else {
-            this.titleService.setTitle('Nueva Categoría');
+            this.titleService.setTitle('Nuevo Tema');
         }
     }
 
-    saveCategory() {
-        if (this.categoryForm.valid) {
-            const category = this.categoryForm.value as Category;
-            category.id = this.categoryId;
-            this.categoryService.saveCategory(category).subscribe({
-                next: (saved: any) => {
-                    this.notificationService.openSnackBar('Categoría guardada correctamente');
-                    const targetId = saved?.id || this.categoryId;
-                    if (targetId) {
-                        this.router.navigate(['/category-detail', targetId]);
-                    } else {
-                        this.router.navigate(['/category-list']);
-                    }
+    saveTopic() {
+        if (this.topicForm.valid) {
+            const topicData = this.topicForm.value;
+            const topic = new Topic(
+                this.topicId,
+                topicData.name!,
+                topicData.description!,
+                this.categoryId!
+            );
+
+            this.topicService.saveTopic(topic).subscribe({
+                next: () => {
+                    this.notificationService.openSnackBar('Tema guardado correctamente');
+                    this.router.navigate(['/category-detail', this.categoryId]);
                 },
                 error: (error) => {
-                    this.notificationService.openSnackBar(error.error || 'Error al guardar la categoría');
+                    this.notificationService.openSnackBar(error.error || 'Error al guardar el tema');
                 }
             });
         }
     }
 
     onCancel() {
-        if (this.isEditMode && this.categoryId) {
+        if (this.categoryId) {
             this.router.navigate(['/category-detail', this.categoryId]);
         } else {
             this.router.navigate(['/category-list']);

@@ -6,20 +6,19 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * JPA entity for category persistence.
- * Maps the Category domain model to the 'categories' database table.
+ * JPA entity for topic persistence.
+ * Maps the Topic domain model to the 'topics' database table.
  */
 @Entity
-@Table(name = "categories")
+@Table(name = "topics")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryJpaEntity {
+public class TopicJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,8 +31,8 @@ public class CategoryJpaEntity {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private UserJpaEntity owner;
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryJpaEntity category;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -42,7 +41,4 @@ public class CategoryJpaEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "category", cascade = CascadeType.REFRESH)
-    private List<TopicJpaEntity> topicList;
 }

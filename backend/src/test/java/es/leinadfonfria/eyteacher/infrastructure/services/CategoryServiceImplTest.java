@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.category.GetCategoryResponse;
 import es.leinadfonfria.eyteacher.application.dtos.category.SaveCategoryRequest;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Category;
+import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
@@ -11,10 +12,13 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +53,9 @@ class CategoryServiceImplTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private TopicMapper topicMapper;
 
     @InjectMocks
     private CategoryServiceImpl categoryService;
@@ -85,6 +92,15 @@ class CategoryServiceImplTest {
                 .description("Mathematics category")
                 .owner(ownerJpaEntity)
                 .build();
+
+        TopicJpaEntity topicJpaEntity = TopicJpaEntity.builder()
+                .id(1L)
+                .name("Algebra")
+                .description("Algebra topic")
+                .category(categoryJpaEntity)
+                .build();
+
+        categoryJpaEntity.setTopicList(List.of(topicJpaEntity));
     }
 
     @Nested
@@ -191,9 +207,6 @@ class CategoryServiceImplTest {
             // Arrange
             when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
             when(categoryRepository.findByOwner(ownerJpaEntity)).thenReturn(List.of(categoryJpaEntity));
-            when(categoryMapper.toDomain(categoryJpaEntity)).thenReturn(
-                    Category.edit(1L, "Math", "Mathematics category", ownerDomain)
-            );
 
             // Act
             Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
@@ -202,13 +215,13 @@ class CategoryServiceImplTest {
             assertFalse(result.isFailure());
             List<GetCategoryResponse> categories = result.getValue();
             assertEquals(1, categories.size());
-            assertEquals(1L, categories.get(0).id());
-            assertEquals("Math", categories.get(0).name());
-            assertEquals("Mathematics category", categories.get(0).description());
-            assertEquals(ownerIdStr, categories.get(0).ownerId());
+            assertEquals(1L, categories.getFirst().id());
+            assertEquals("Math", categories.getFirst().name());
+            assertEquals("Mathematics category", categories.getFirst().description());
+            assertEquals(ownerIdStr, categories.getFirst().ownerId());
+            assertTrue(categories.getFirst().topicList().isEmpty());
             verify(userRepository).findById(ownerUuid);
             verify(categoryRepository).findByOwner(ownerJpaEntity);
-            verify(categoryMapper).toDomain(categoryJpaEntity);
         }
 
         @Test
@@ -275,18 +288,16 @@ class CategoryServiceImplTest {
     class GetCategoryTests {
 
         @Test
-        @DisplayName("Debe retornar la categoría cuando existe")
+        @DisplayName("Debe retornar la categoría cuando existe con sus tópicos")
         void getCategory_Success() {
             // Arrange
             when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
-            when(categoryMapper.toDomain(categoryJpaEntity)).thenReturn(
-                    Category.builder()
-                            .id(categoryJpaEntity.getId())
-                            .name(categoryJpaEntity.getName())
-                            .description(categoryJpaEntity.getDescription())
-                            .owner(ownerDomain)
-                            .build()
-            );
+            when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
+            
+            Topic topicDomain = Topic.create("Algebra", "Algebra topic", null);
+
+            List<TopicJpaEntity> topicJpaEntityList = categoryJpaEntity.getTopicList();
+            when(topicMapper.toDomainList(topicJpaEntityList)).thenReturn(List.of(topicDomain));
 
             // Act
             Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
@@ -294,8 +305,11 @@ class CategoryServiceImplTest {
             // Assert
             assertTrue(result.isSuccess());
             assertEquals(categoryJpaEntity.getId(), result.getValue().id());
+            assertEquals(1, result.getValue().topicList().size());
+            assertEquals("Algebra", result.getValue().topicList().getFirst().name());
+            
             verify(categoryRepository).findById(categoryJpaEntity.getId());
-            verify(categoryMapper).toDomain(categoryJpaEntity);
+            verify(topicMapper).toDomainList(topicJpaEntityList);
         }
 
         @Test

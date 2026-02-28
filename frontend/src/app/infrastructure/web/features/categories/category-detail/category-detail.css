@@ -49,3 +49,37 @@ mat-card-actions {
     color: #f44336;
 }
 
+.topics-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    margin-bottom: 8px;
+}
+
+.topics-header h3 {
+    margin: 0;
+}
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.topic-card {
+    background-color: #3d3d3d;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.topic-card:hover {
+    background-color: #4d4d4d;
+}
+
+.topic-card mat-card-title {
+    font-size: 1.1rem;
+}
+

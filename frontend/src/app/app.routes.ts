@@ -49,5 +49,23 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./infrastructure/web/features/account-page/account-page').then(m => m.AccountPage)
     },
+    {
+        path: 'topic-add',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/topics/topic-form/topic-form').then(m => m.TopicForm)
+    },
+    {
+        path: 'topic-edit/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/topics/topic-form/topic-form').then(m => m.TopicForm)
+    },
+    {
+        path: 'topic-detail/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/topics/topic-detail/topic-detail').then(m => m.TopicDetail)
+    },
     {path: '**', redirectTo: 'category-list'}
 ];

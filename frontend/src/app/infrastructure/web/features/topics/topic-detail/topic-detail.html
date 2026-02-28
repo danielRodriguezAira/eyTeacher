@@ -1,0 +1,36 @@
+<div class="container">
+    @if (topic$ | async; as topic) {
+        <mat-card class="detail-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <h1>
+                        <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de tema"
+                                (click)="$event.stopPropagation()">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        {{ topic.name }}
+                    </h1>
+                    <mat-menu #itemMenu="matMenu">
+                        <button mat-menu-item (click)="editTopic(topic)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Editar</span>
+                        </button>
+                        <button mat-menu-item (click)="deleteTopic(topic)" class="delete-action">
+                            <mat-icon class="delete-icon">delete</mat-icon>
+                            <span class="delete-text">Borrar</span>
+                        </button>
+                    </mat-menu>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <p class="description">{{ topic.description }}</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-button [routerLink]="['/category-detail', topic.categoryId]">
+                    <mat-icon>arrow_back</mat-icon>
+                    Volver a la categoría
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    }
+</div>

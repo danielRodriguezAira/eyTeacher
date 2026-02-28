@@ -2,6 +2,7 @@ package es.leinadfonfria.eyteacher.infrastructure.services;
 
 import es.leinadfonfria.eyteacher.application.dtos.category.GetCategoryResponse;
 import es.leinadfonfria.eyteacher.application.dtos.category.SaveCategoryRequest;
+import es.leinadfonfria.eyteacher.application.dtos.topic.GetTopicResponse;
 import es.leinadfonfria.eyteacher.application.services.category.DeleteCategoryUseCase;
 import es.leinadfonfria.eyteacher.application.services.category.GetCategoriesByOwnerUseCase;
 import es.leinadfonfria.eyteacher.application.services.category.GetCategoryUseCase;
@@ -13,8 +14,10 @@ import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,9 +42,10 @@ public class CategoryServiceImpl implements SaveCategoryUseCase, GetCategoriesBy
     private final UserRepository userRepository;
     private final CategoryMapper categoryMapper;
     private final UserMapper userMapper;
+    private final TopicMapper topicMapper;
 
     /**
-     * Adds a new category to the system.
+     * Adds a new category to the system. If the category already exists, it updates it.
      *
      * @param request The category creation details.
      * @return Result<Void, Integer> Success or an error code.
@@ -99,12 +104,30 @@ public class CategoryServiceImpl implements SaveCategoryUseCase, GetCategoriesBy
         try {
             CategoryJpaEntity categoryEntity = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new AuthException("Category not found", ErrorCode.CATEGORY_NOT_FOUND));
-            Category category = categoryMapper.toDomain(categoryEntity);
+
+            Category category = Category.withTopics(
+                    categoryEntity.getId(),
+                    categoryEntity.getName(),
+                    categoryEntity.getDescription(),
+                    userMapper.toDomain(categoryEntity.getOwner()),
+                    topicMapper.toDomainList(categoryEntity.getTopicList())
+            );
+
+            List<GetTopicResponse> topicResponseList = category.getTopicList().stream()
+                    .map(topic -> new GetTopicResponse(
+                            topic.getId(),
+                            topic.getName(),
+                            topic.getDescription(),
+                            category.getId()
+                    ))
+                    .toList();
+
             return Result.ok(new GetCategoryResponse(
                     category.getId(),
                     category.getName(),
                     category.getDescription(),
-                    category.getOwner().getId().value().toString()
+                    category.getOwner().getId().value().toString(),
+                    topicResponseList
             ));
         } catch (AuthException e) {
             log.error("Authentication error", e);
@@ -128,12 +151,12 @@ public class CategoryServiceImpl implements SaveCategoryUseCase, GetCategoriesBy
                     .orElseThrow(() -> new AuthException("Category owner not found", ErrorCode.CATEGORY_OWNER_NOT_FOUND));
 
             List<GetCategoryResponse> categories = categoryRepository.findByOwner(ownerEntity).stream()
-                    .map(categoryMapper::toDomain)
-                    .map(category -> new GetCategoryResponse(
-                            category.getId(),
-                            category.getName(),
-                            category.getDescription(),
-                            category.getOwner().getId().value().toString()
+                    .map(categoryEntity -> new GetCategoryResponse(
+                            categoryEntity.getId(),
+                            categoryEntity.getName(),
+                            categoryEntity.getDescription(),
+                            categoryEntity.getOwner().getId().toString(),
+                            Collections.emptyList()
                     ))
                     .toList();
 
