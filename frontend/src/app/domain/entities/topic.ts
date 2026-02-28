@@ -1,11 +1,9 @@
-import {Topic} from './topic';
-
-export class Category {
+export class Topic {
     constructor(
         public id: number | null,
         public name: string,
         public description: string,
-        public topicList: Topic[] = []
+        public categoryId: number
     ) {
     }
 }
