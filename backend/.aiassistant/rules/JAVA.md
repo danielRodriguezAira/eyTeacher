@@ -75,6 +75,8 @@ src/
 - Configuration:
     - NO business logic in @Configuration or @Bean classes
     - keep Spring configuration isolated in `infrastructure`
+- Entity relations:
+    - always define relations by entity, not by entity id 
 
 MANDATORY: Javadoc on all public classes/methods per Documentation Rules above.
 IF JAVADOC IS MISSING → DO NOT generate code, notify me first.

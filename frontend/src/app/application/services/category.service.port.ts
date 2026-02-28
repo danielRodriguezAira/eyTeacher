@@ -1,13 +1,13 @@
 import {Category} from '../../domain/entities/category';
+import {Observable} from 'rxjs';
 
 export interface CategoryServicePort {
-  categoryList: Category[];
 
-  getCategories(): Category[];
+    getCategories(): Observable<Category[]>;
 
-  getCategoryById(id: number): Category | undefined;
+    getCategoryById(id: number): Observable<Category>;
 
-  saveCategory(category: Category): any;
+    saveCategory(category: Category): any;
 
-  deleteCategory(id: number): void;
+    deleteCategory(id: number): Observable<void>;
 }

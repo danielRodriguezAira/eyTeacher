@@ -1,65 +1,66 @@
 <div class="login-container">
-  <form [formGroup]="loginForm" class="login-form">
-    <mat-card>
-      <mat-card-title>eyTeacher</mat-card-title>
-      <mat-card-subtitle>Iniciar sesión</mat-card-subtitle>
-      <mat-card-content>
+    <form [formGroup]="loginForm" class="login-form">
+        <mat-card>
+            <mat-card-title>eyTeacher</mat-card-title>
+            <mat-card-subtitle>Iniciar sesión</mat-card-subtitle>
+            <mat-card-content>
 
-        <mat-form-field class="full-width">
-          <input id="emailInput" matInput placeholder="Email" formControlName="email" autocomplete="email"
-                 type="email">
+                <mat-form-field class="full-width">
+                    <input id="emailInput" matInput placeholder="Email" formControlName="email" autocomplete="email"
+                           type="email">
 
-          @if (loginForm.controls['email'].hasError('email')) {
-            <mat-error id="invalidEmailError">
-              Por favor, introduce un email válido
-            </mat-error>
-          }
-          @if (loginForm.controls['email'].hasError('required')) {
-            <mat-error id="requiredEmailError">
-              El email es <strong>obligatorio</strong>
-            </mat-error>
-          }
+                    @if (loginForm.controls['email'].hasError('email')) {
+                        <mat-error id="invalidEmailError">
+                            Por favor, introduce un email válido
+                        </mat-error>
+                    }
+                    @if (loginForm.controls['email'].hasError('required')) {
+                        <mat-error id="requiredEmailError">
+                            El email es <strong>obligatorio</strong>
+                        </mat-error>
+                    }
 
-        </mat-form-field>
+                </mat-form-field>
 
-        <mat-form-field class="full-width">
-          <input id="passwordInput" matInput placeholder="Password" formControlName="password" type="password"
-                 autocomplete="current-password">
-          @if (loginForm.controls['password'].hasError('required')) {
-            <mat-error id="requiredPasswordError">
-              Password is
-              <strong>required</strong>
-            </mat-error>
-          }
-        </mat-form-field>
+                <mat-form-field class="full-width">
+                    <input id="passwordInput" matInput placeholder="Password" formControlName="password" type="password"
+                           autocomplete="current-password">
+                    @if (loginForm.controls['password'].hasError('required')) {
+                        <mat-error id="requiredPasswordError">
+                            Password is
+                            <strong>required</strong>
+                        </mat-error>
+                    }
+                </mat-form-field>
 
-        <mat-form-field class="full-width">
-          <mat-label>Rol</mat-label>
-          <mat-select formControlName="role">
-            @for (role of roles; track role) {
-              <mat-option [value]="role">{{ role }}</mat-option>
-            }
-          </mat-select>
-          @if (loginForm.controls['role'].hasError('required')) {
-            <mat-error id="requiredRoleError">
-              El rol es <strong>obligatorio</strong>
-            </mat-error>
-          }
-        </mat-form-field>
+                <mat-form-field class="full-width">
+                    <mat-label>Rol</mat-label>
+                    <mat-select formControlName="role">
+                        @for (role of roles; track role) {
+                            <mat-option [value]="role">{{ role }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (loginForm.controls['role'].hasError('required')) {
+                        <mat-error id="requiredRoleError">
+                            El rol es <strong>obligatorio</strong>
+                        </mat-error>
+                    }
+                </mat-form-field>
 
-      </mat-card-content>
+            </mat-card-content>
 
-      <mat-card-actions class="login-actions">
-        <button mat-raised-button id="login" color="primary" [disabled]="loginForm.invalid || loading()"
-                (click)="login()">Login
-        </button>
-        <button mat-button id="createAccount" (click)="createAccount()" type="button">Crear Nuevo Usuario</button>
-      </mat-card-actions>
+            <mat-card-actions class="login-actions">
+                <button mat-raised-button id="login" color="primary" [disabled]="loginForm.invalid || loading()"
+                        (click)="login()">Login
+                </button>
+                <button mat-button id="createAccount" (click)="createAccount()" type="button">Crear Nuevo Usuario
+                </button>
+            </mat-card-actions>
 
-    </mat-card>
+        </mat-card>
 
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    }
-  </form>
+        @if (loading()) {
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+    </form>
 </div>

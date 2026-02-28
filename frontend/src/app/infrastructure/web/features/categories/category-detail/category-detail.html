@@ -1,41 +1,36 @@
 <div class="container">
-  @if (category) {
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>
-          <h1>
-            <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de categoría" (click)="$event.stopPropagation()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            {{ category.name }}
-          </h1>
-          <mat-menu #itemMenu="matMenu">
-            <button mat-menu-item (click)="editCategory(category)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar</span>
-            </button>
-            <button mat-menu-item (click)="deleteCategory(category)" class="delete-action">
-              <mat-icon class="delete-icon">delete</mat-icon>
-              <span class="delete-text">Borrar</span>
-            </button>
-          </mat-menu>
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="description">{{ category.description }}</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-button routerLink="/category-list">
-          <mat-icon>arrow_back</mat-icon>
-          Volver a la lista
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  } @else {
-    <div class="not-found">
-      <mat-icon>error_outline</mat-icon>
-      <p>Categoría no encontrada</p>
-      <button mat-raised-button color="primary" routerLink="/category-list">Volver a la lista</button>
-    </div>
-  }
+    @if (category$ | async; as category) {
+        <mat-card class="detail-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <h1>
+                        <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de categoría"
+                                (click)="$event.stopPropagation()">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        {{ category.name }}
+                    </h1>
+                    <mat-menu #itemMenu="matMenu">
+                        <button mat-menu-item (click)="editCategory(category)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Editar</span>
+                        </button>
+                        <button mat-menu-item (click)="deleteCategory(category)" class="delete-action">
+                            <mat-icon class="delete-icon">delete</mat-icon>
+                            <span class="delete-text">Borrar</span>
+                        </button>
+                    </mat-menu>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <p class="description">{{ category.description }}</p>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-button routerLink="/category-list">
+                    <mat-icon>arrow_back</mat-icon>
+                    Volver a la lista
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    }
 </div>

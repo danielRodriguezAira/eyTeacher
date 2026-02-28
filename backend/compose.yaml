@@ -1,15 +1,20 @@
 services:
   app:
     build: .
+    restart: on-failure:5
     ports:
-      - '8080:8080'
+      - "8080:8080"
+    profiles:
+          - production
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eyteacherdb
-      - SPRING_DATASOURCE_USERNAME=eyteacher
-      - SPRING_DATASOURCE_PASSWORD=eyteacher
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_SECURITY_USER_NAME=admin
-      - SPRING_SECURITY_USER_PASSWORD=admin
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-env}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=5000&socketTimeout=10000&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-eyteacher}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
+      SPRING_FLYWAY_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=5000&socketTimeout=10000&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_FLYWAY_USER: ${MYSQL_USER:-eyteacher}
+      SPRING_FLYWAY_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
     depends_on:
       mysql:
         condition: service_healthy
@@ -17,25 +22,28 @@ services:
         condition: service_started
 
   mysql:
-    image: 'mysql:9.2.0'
+    image: mysql:8.4
+    restart: unless-stopped
     environment:
-      - 'MYSQL_DATABASE=eyteacherdb'
-      - 'MYSQL_PASSWORD=eyteacher'
-      - 'MYSQL_ROOT_PASSWORD=eyteacher'
-      - 'MYSQL_USER=eyteacher'
+      MYSQL_DATABASE: eyteacherdb
+      MYSQL_USER: ${MYSQL_USER:-eyteacher}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-eyteacher}
     ports:
-      - '3306:3306'
+      - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
+      start_period: 30s
 
   rabbitmq:
-    image: 'rabbitmq:3-management'
+    image: rabbitmq:3-management
+    restart: unless-stopped
     environment:
-      - 'RABBITMQ_DEFAULT_PASS=eyteacher'
-      - 'RABBITMQ_DEFAULT_USER=eyteacher'
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-eyteacher}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-eyteacher}
     ports:
-      - '5672:5672'
-      - '15672:15672' # Panel de control de RabbitMQ
+      - "5672:5672"
+      - "15672:15672"

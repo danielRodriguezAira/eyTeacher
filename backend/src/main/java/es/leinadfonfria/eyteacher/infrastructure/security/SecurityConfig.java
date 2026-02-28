@@ -47,16 +47,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(
-                                "/api/v1/auth/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs.yaml",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/register",
                                 "/swagger-ui/**",
-                                "/swagger-ui/index.html",
-                                "/swagger-ui.html",
-                                "/webjars/**",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security"
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
