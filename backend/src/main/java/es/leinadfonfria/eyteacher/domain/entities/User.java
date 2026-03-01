@@ -31,8 +31,8 @@ public class User {
      * @param id        The unique identifier of the user.
      * @param email     The user's email address.
      * @param password  The user's hashed password.
-     * @param firstName The user's first name.
-     * @param lastName  The user's last name.
+     * @param firstName The user's first firstName.
+     * @param lastName  The user's last firstName.
      * @param isAdmin   Flag indicating if the user has administrator privileges.
      * @return User A new user domain entity.
      */

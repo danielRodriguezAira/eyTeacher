@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class AuthenticationUtils {
 
@@ -30,5 +31,9 @@ public class AuthenticationUtils {
 
     public static Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    public static UUID getUserId() {
+        return UUID.fromString((String) Objects.requireNonNull(getAuthentication().getPrincipal()));
     }
 }

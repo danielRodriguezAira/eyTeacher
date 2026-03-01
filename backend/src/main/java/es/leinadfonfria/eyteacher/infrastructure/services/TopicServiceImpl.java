@@ -10,10 +10,13 @@ import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.errors.AuthException;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
+import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
@@ -23,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Implementation of topic-related use cases.
@@ -37,6 +39,7 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
     private final CategoryRepository categoryRepository;
     private final TopicMapper topicMapper;
     private final CategoryMapper categoryMapper;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -47,21 +50,26 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             }
 
             CategoryJpaEntity categoryEntity = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new AuthException("Topic category not found", ErrorCode.TOPIC_CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException("Topic category not found", ErrorCode.TOPIC_CATEGORY_NOT_FOUND));
 
             Topic topic;
             if (request.id() == null) {
                 topic = Topic.create(
-                        request.name(),
+                        new Name(request.name()),
                         request.description(),
-                        categoryMapper.toDomain(categoryEntity)
+                        categoryMapper.toDomain(categoryEntity),
+                        List.of()
                 );
             } else {
+                TopicJpaEntity existingTopic = topicRepository.findById(request.id())
+                        .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+
                 topic = Topic.edit(
                         request.id(),
-                        request.name(),
+                        new Name(request.name()),
                         request.description(),
-                        categoryMapper.toDomain(categoryEntity)
+                        categoryMapper.toDomain(categoryEntity),
+                        topicMapper.toDomain(existingTopic).getStudentList()
                 );
             }
 
@@ -69,6 +77,9 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             return Result.ok(topicJpaEntity.getId());
         } catch (AuthException e) {
             log.error("Authentication error", e);
+            return Result.fail(e.getCode());
+        } catch (NotFoundException e) {
+            log.error("Not found error", e);
             return Result.fail(e.getCode());
         } catch (Exception e) {
             log.error("Unexpected error during topic creation/update", e);
@@ -84,9 +95,10 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             Topic topic = topicMapper.toDomain(topicEntity);
             return Result.ok(new GetTopicResponse(
                     topic.getId(),
-                    topic.getName(),
+                    topic.getName().value(),
                     topic.getDescription(),
-                    topic.getCategory().getId()
+                    topic.getCategory().getId(),
+                    userMapper.toStudentResponseList(topic.getStudentList())
             ));
         } catch (AuthException e) {
             log.error("Authentication error", e);
@@ -114,9 +126,10 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
                     .map(topicMapper::toDomain)
                     .map(topic -> new GetTopicResponse(
                             topic.getId(),
-                            topic.getName(),
+                            topic.getName().value(),
                             topic.getDescription(),
-                            topic.getCategory().getId()
+                            topic.getCategory().getId(),
+                            userMapper.toStudentResponseList(topic.getStudentList())
                     ))
                     .toList();
 

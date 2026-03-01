@@ -27,10 +27,15 @@ public class TopicController {
     private final GetTopicUseCase getTopicUseCase;
     private final DeleteTopicUseCase deleteTopicUseCase;
 
+    /**
+     * Retrieves a topic by its ID.
+     * @param topicId The ID of the topic to retrieve.
+     * @return ResponseEntity<?> HTTP 200 with the topic data or BAD_REQUEST with an error code.
+     */
     @GetMapping("/{topicId}")
     @Operation(summary = "Get topic by ID", description = "Retrieves all data of a topic by its ID")
     public ResponseEntity<?> getTopic(@PathVariable Long topicId) {
-        log.info("Getting topic with id: {}", topicId);
+        log.info("Getting topic with userId: {}", topicId);
         return getTopicUseCase.getTopic(topicId)
                 .fold(
                         ResponseEntity::ok,
@@ -54,10 +59,15 @@ public class TopicController {
                 );
     }
 
+    /**
+     * Deletes a topic by its ID.
+     * @param topicId The ID of the topic to delete.
+     * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
+     */
     @DeleteMapping("/{topicId}")
     @Operation(summary = "Delete topic", description = "Deletes a topic by its ID. Only for TEACHER role.")
     public ResponseEntity<?> deleteTopic(@PathVariable Long topicId) {
-        log.info("Deleting topic with id: {}", topicId);
+        log.info("Deleting topic with userId: {}", topicId);
         return deleteTopicUseCase.deleteTopic(topicId)
                 .fold(
                         v -> ResponseEntity.ok().build(),

@@ -7,6 +7,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,17 +26,18 @@ class TopicTest {
                 new Name("Doe"),
                 false
         );
-        Category category = Category.create("Math", "Math category", owner);
+        Category category = Category.create(new Name("Math"), "Math category", owner);
 
         // Act
-        Topic topic = Topic.create("Algebra", "Basic algebra", category);
+        Topic topic = Topic.create(new Name("Algebra"), "Basic algebra", category, List.of());
 
         // Assert
         assertNotNull(topic);
         assertNull(topic.getId());
-        assertEquals("Algebra", topic.getName());
+        assertEquals("Algebra", topic.getName().value());
         assertEquals("Basic algebra", topic.getDescription());
         assertEquals(category, topic.getCategory());
+        assertTrue(topic.getStudentList().isEmpty());
     }
 
     @Test
@@ -50,17 +52,18 @@ class TopicTest {
                 new Name("Doe"),
                 false
         );
-        Category category = Category.create("Math", "Math category", owner);
+        Category category = Category.create(new Name("Math"), "Math category", owner);
         Long topicId = 1L;
 
         // Act
-        Topic topic = Topic.edit(topicId, "Calculus", "Advanced calculus", category);
+        Topic topic = Topic.edit(topicId, new Name("Calculus"), "Advanced calculus", category, List.of());
 
         // Assert
         assertNotNull(topic);
         assertEquals(topicId, topic.getId());
-        assertEquals("Calculus", topic.getName());
+        assertEquals("Calculus", topic.getName().value());
         assertEquals("Advanced calculus", topic.getDescription());
         assertEquals(category, topic.getCategory());
+        assertTrue(topic.getStudentList().isEmpty());
     }
 }

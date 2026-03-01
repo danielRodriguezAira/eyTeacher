@@ -15,6 +15,7 @@ public record Password(String value, boolean hashed) {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
             "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$"
     );
+    private static final int MAX_LENGTH = 255;
 
     public Password {
         if (value == null) {
@@ -22,6 +23,9 @@ public record Password(String value, boolean hashed) {
         }
         if (!hashed && !PASSWORD_PATTERN.matcher(value).matches()) {
             throw new AuthException("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&., etc)", INVALID_CREDENTIALS);
+        }
+        if(value.length() > MAX_LENGTH) {
+            throw new AuthException(String.format("Email cannot be longer than %d characters", MAX_LENGTH), INVALID_CREDENTIALS);
         }
     }
 

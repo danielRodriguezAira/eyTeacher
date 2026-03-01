@@ -13,8 +13,8 @@ import java.time.Instant;
  * @param email      The user's email address.
  * @param id         The user's unique identifier.
  * @param expiration The expiration timestamp of the token.
- * @param firstName  The user's first name.
- * @param lastName   The user's last name.
+ * @param firstName  The user's first firstName.
+ * @param lastName   The user's last firstName.
  * @param role       The role selected for the session.
  */
 public record AuthUserResponse(

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * JPA entity for topic persistence.
@@ -33,6 +34,14 @@ public class TopicJpaEntity {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryJpaEntity category;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    @JoinTable(
+            name = "topics_students",
+            joinColumns = @JoinColumn(name = "topic_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private List<UserJpaEntity> studentList;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

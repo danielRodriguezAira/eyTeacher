@@ -16,6 +16,7 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEn
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
@@ -51,6 +52,9 @@ class TopicServiceImplTest {
 
     @Mock
     private CategoryMapper categoryMapper;
+
+    @Mock
+    private UserMapper userMapper;
 
     @InjectMocks
     private TopicServiceImpl topicService;
@@ -90,16 +94,17 @@ class TopicServiceImplTest {
                 .owner(ownerJpaEntity)
                 .build();
 
-        categoryDomain = Category.edit(categoryId, "Math", "Math category", ownerDomain);
+        categoryDomain = Category.edit(categoryId, new Name("Math"), "Math category", ownerDomain);
 
         topicJpaEntity = TopicJpaEntity.builder()
                 .id(topicId)
                 .name("Algebra")
                 .description("Basic algebra")
                 .category(categoryJpaEntity)
+                .studentList(List.of())
                 .build();
 
-        topicDomain = Topic.edit(topicId, "Algebra", "Basic algebra", categoryDomain);
+        topicDomain = Topic.edit(topicId, new Name("Algebra"), "Basic algebra", categoryDomain, List.of());
     }
 
     @Nested
@@ -165,6 +170,31 @@ class TopicServiceImplTest {
                 assertEquals(ErrorCode.TOPIC_CATEGORY_NOT_FOUND, result.getError());
             }
         }
+
+        @Test
+        @DisplayName("Debe actualizar un topic correctamente")
+        void saveTopic_UpdateSuccess() {
+            // Arrange
+            SaveTopicRequest request = new SaveTopicRequest(topicId, "Algebra Updated", "New description", categoryId);
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(categoryJpaEntity));
+                when(categoryMapper.toDomain(categoryJpaEntity)).thenReturn(categoryDomain);
+                when(topicRepository.findById(topicId)).thenReturn(Optional.of(topicJpaEntity));
+                when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
+                when(topicMapper.toEntity(any(Topic.class))).thenReturn(topicJpaEntity);
+                when(topicRepository.save(any(TopicJpaEntity.class))).thenReturn(topicJpaEntity);
+
+                // Act
+                Result<Long, Integer> result = topicService.saveTopic(request);
+
+                // Assert
+                assertTrue(result.isSuccess());
+                assertEquals(topicId, result.getValue());
+                verify(topicRepository).save(any(TopicJpaEntity.class));
+            }
+        }
     }
 
     @Nested
@@ -177,6 +207,7 @@ class TopicServiceImplTest {
             // Arrange
             when(topicRepository.findById(topicId)).thenReturn(Optional.of(topicJpaEntity));
             when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
+            when(userMapper.toStudentResponseList(any())).thenReturn(List.of());
 
             // Act
             Result<GetTopicResponse, Integer> result = topicService.getTopic(topicId);
@@ -213,6 +244,7 @@ class TopicServiceImplTest {
             when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(categoryJpaEntity));
             when(topicRepository.findByCategory(categoryJpaEntity)).thenReturn(List.of(topicJpaEntity));
             when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
+            when(userMapper.toStudentResponseList(any())).thenReturn(List.of());
 
             // Act
             Result<List<GetTopicResponse>, Integer> result = topicService.getTopicsByCategory(ownerIdStr, categoryId);
@@ -220,7 +252,7 @@ class TopicServiceImplTest {
             // Assert
             assertTrue(result.isSuccess());
             assertEquals(1, result.getValue().size());
-            assertEquals(topicId, result.getValue().get(0).id());
+            assertEquals(topicId, result.getValue().getFirst().id());
         }
     }
 

@@ -26,9 +26,11 @@ public class ErrorCode {
     /** The category owner could not be found. */
     public static final int CATEGORY_OWNER_NOT_FOUND = 2001;
     /** The category owner does not have the TEACHER role. */
-    public static final int CATEGORY_OWNER_NOT_TEACHER = 2002;
+    public static final int USER_NOT_TEACHER = 2002;
     /** The requested category could not be found. */
     public static final int CATEGORY_NOT_FOUND = 2003;
+    /** The category owner does not have the TEACHER role. */
+    public static final int USER_NOT_STUDENT = 2004;
     /** The topic owner does not have the TEACHER role. */
     public static final int TOPIC_OWNER_NOT_TEACHER = 3002;
     /** The requested topic could not be found. */

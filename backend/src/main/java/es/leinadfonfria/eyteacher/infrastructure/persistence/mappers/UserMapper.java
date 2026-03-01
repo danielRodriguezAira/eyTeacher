@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
+import es.leinadfonfria.eyteacher.application.dtos.topic.StudentResponse;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
@@ -10,6 +11,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -88,4 +90,11 @@ public interface UserMapper {
     default String fromPassword(Password password) {
         return password.value();
     }
+
+    @Mapping(target = "userId", source = "id.value")
+    @Mapping(target = "firstName", source = "firstName", qualifiedByName = "fromName" )
+    @Mapping(target = "lastName", source = "lastName", qualifiedByName = "fromName" )
+    StudentResponse toStudentResponse(User student);
+
+    List<StudentResponse> toStudentResponseList(List<User> studentList);
 }

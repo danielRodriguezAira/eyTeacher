@@ -9,8 +9,9 @@ import java.util.regex.Pattern;
  * @param value The raw email string.
  */
 public record Email(String value) {
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final int MAX_LENGTH = 255;
     /**
      * Validates and creates an Email instance.
      * Used when creating a user or updating their contact information.
@@ -24,6 +25,9 @@ public record Email(String value) {
         }
         if (!EMAIL_PATTERN.matcher(value).matches()) {
             throw new IllegalArgumentException("Invalid email format");
+        }
+        if(value.length() > MAX_LENGTH) {
+            throw new IllegalArgumentException(String.format("Email cannot be longer than %d characters", MAX_LENGTH));
         }
     }
 }

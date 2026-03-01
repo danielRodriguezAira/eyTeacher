@@ -57,6 +57,9 @@ class CategoryServiceImplTest {
     @Mock
     private TopicMapper topicMapper;
 
+    @Mock
+    private TopicRepository topicRepository;
+
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -98,6 +101,7 @@ class CategoryServiceImplTest {
                 .name("Algebra")
                 .description("Algebra topic")
                 .category(categoryJpaEntity)
+                .studentList(List.of())
                 .build();
 
         categoryJpaEntity.setTopicList(List.of(topicJpaEntity));
@@ -288,57 +292,207 @@ class CategoryServiceImplTest {
     class GetCategoryTests {
 
         @Test
-        @DisplayName("Debe retornar la categoría cuando existe con sus tópicos")
-        void getCategory_Success() {
+        @DisplayName("Debe retornar la categoría cuando el profesor es el dueño")
+        void getCategory_Teacher_Success() {
             // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
-            when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
-            
-            Topic topicDomain = Topic.create("Algebra", "Algebra topic", null);
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
 
-            List<TopicJpaEntity> topicJpaEntityList = categoryJpaEntity.getTopicList();
-            when(topicMapper.toDomainList(topicJpaEntityList)).thenReturn(List.of(topicDomain));
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
+                when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
 
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+                Topic topicDomain = Topic.create(new Name("Algebra"), "Algebra topic", null, List.of());
+                List<TopicJpaEntity> topicJpaEntityList = categoryJpaEntity.getTopicList();
+                when(topicMapper.toDomainList(topicJpaEntityList)).thenReturn(List.of(topicDomain));
 
-            // Assert
-            assertTrue(result.isSuccess());
-            assertEquals(categoryJpaEntity.getId(), result.getValue().id());
-            assertEquals(1, result.getValue().topicList().size());
-            assertEquals("Algebra", result.getValue().topicList().getFirst().name());
-            
-            verify(categoryRepository).findById(categoryJpaEntity.getId());
-            verify(topicMapper).toDomainList(topicJpaEntityList);
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+
+                // Assert
+                assertTrue(result.isSuccess());
+                assertEquals(categoryJpaEntity.getId(), result.getValue().id());
+                assertEquals(ownerIdStr, result.getValue().ownerId());
+                verify(categoryRepository).findById(categoryJpaEntity.getId());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar la categoría cuando el estudiante está suscrito")
+        void getCategory_Student_Success() {
+            // Arrange
+            UUID studentUuid = UUID.randomUUID();
+            UserJpaEntity studentJpa = UserJpaEntity.builder().id(studentUuid).build();
+            categoryJpaEntity.getTopicList().get(0).setStudentList(List.of(studentJpa));
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(true);
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(studentUuid);
+
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
+                when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
+
+                Topic topicDomain = Topic.create(new Name("Algebra"), "Algebra topic", null, List.of());
+                when(topicRepository.findTopicByCategoryIdAndStudentId(categoryJpaEntity.getId(), studentUuid))
+                        .thenReturn(categoryJpaEntity.getTopicList());
+                when(topicMapper.toDomainList(any())).thenReturn(List.of(topicDomain));
+
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+
+                // Assert
+                assertTrue(result.isSuccess());
+                assertEquals(categoryJpaEntity.getId(), result.getValue().id());
+                verify(categoryRepository).findById(categoryJpaEntity.getId());
+                verify(topicRepository).findTopicByCategoryIdAndStudentId(categoryJpaEntity.getId(), studentUuid);
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el profesor NO es el dueño")
+        void getCategory_Teacher_NotOwner() {
+            // Arrange
+            UUID otherTeacherUuid = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(otherTeacherUuid);
+
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
+
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+
+                // Assert
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.AUTHENTICATION_ERROR, result.getError());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el estudiante NO está suscrito")
+        void getCategory_Student_NotSubscribed() {
+            // Arrange
+            UUID otherStudentUuid = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(true);
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(otherStudentUuid);
+
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
+
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+
+                // Assert
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.AUTHENTICATION_ERROR, result.getError());
+            }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si la categoría no existe")
         void getCategory_NotFound() {
             // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.empty());
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.empty());
 
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
 
-            // Assert
-            assertTrue(result.isFailure());
-            assertEquals(ErrorCode.CATEGORY_NOT_FOUND, result.getError());
-            verify(categoryRepository).findById(categoryJpaEntity.getId());
+                // Assert
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.CATEGORY_NOT_FOUND, result.getError());
+                verify(categoryRepository).findById(categoryJpaEntity.getId());
+            }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si ocurre un error inesperado")
         void getCategory_UnexpectedError() {
             // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenThrow(new RuntimeException("DB error"));
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
+                when(categoryRepository.findById(categoryJpaEntity.getId())).thenThrow(new RuntimeException("DB error"));
 
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+                // Act
+                Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
 
-            // Assert
-            assertTrue(result.isFailure());
-            assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
+                // Assert
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests para el método getCategoriesByStudent")
+    class GetCategoriesByStudentTests {
+
+        @Test
+        @DisplayName("Debe devolver las categorías de un estudiante correctamente")
+        void getCategoriesByStudent_Success() {
+            UUID studentId = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> mockedAuth = mockStatic(AuthenticationUtils.class)) {
+                mockedAuth.when(AuthenticationUtils::isStudent).thenReturn(true);
+                when(categoryRepository.findByStudentId(studentId)).thenReturn(List.of(categoryJpaEntity));
+
+                var result = categoryService.getCategoriesByStudent(studentId.toString());
+
+                assertTrue(result.isSuccess());
+                assertEquals(1, result.getValue().size());
+                assertEquals(categoryJpaEntity.getName(), result.getValue().get(0).name());
+                verify(categoryRepository).findByStudentId(studentId);
+            }
+        }
+
+        @Test
+        @DisplayName("Debe devolver una lista vacía si el estudiante no tiene categorías")
+        void getCategoriesByStudent_EmptyList() {
+            UUID studentId = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> mockedAuth = mockStatic(AuthenticationUtils.class)) {
+                mockedAuth.when(AuthenticationUtils::isStudent).thenReturn(true);
+                when(categoryRepository.findByStudentId(studentId)).thenReturn(List.of());
+
+                var result = categoryService.getCategoriesByStudent(studentId.toString());
+
+                assertTrue(result.isSuccess());
+                assertTrue(result.getValue().isEmpty());
+                verify(categoryRepository).findByStudentId(studentId);
+            }
+        }
+
+        @Test
+        @DisplayName("Debe devolver fallo si el usuario no es estudiante")
+        void getCategoriesByStudent_NotAStudent() {
+            UUID studentId = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> mockedAuth = mockStatic(AuthenticationUtils.class)) {
+                mockedAuth.when(AuthenticationUtils::isStudent).thenReturn(false);
+
+                var result = categoryService.getCategoriesByStudent(studentId.toString());
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.USER_NOT_STUDENT, result.getError());
+                verifyNoInteractions(categoryRepository);
+            }
+        }
+
+        @Test
+        @DisplayName("Debe fallar si ocurre un error inesperado al obtener categorías por estudiante")
+        void getCategoriesByStudent_UnexpectedError() {
+            UUID studentId = UUID.randomUUID();
+            try (MockedStatic<AuthenticationUtils> mockedAuth = mockStatic(AuthenticationUtils.class)) {
+                mockedAuth.when(AuthenticationUtils::isStudent).thenReturn(true);
+                when(categoryRepository.findByStudentId(studentId)).thenThrow(new RuntimeException("DB error"));
+
+                var result = categoryService.getCategoriesByStudent(studentId.toString());
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
+            }
         }
     }
 
@@ -378,7 +532,7 @@ class CategoryServiceImplTest {
 
                 // Assert
                 assertTrue(result.isFailure());
-                assertEquals(ErrorCode.CATEGORY_OWNER_NOT_TEACHER, result.getError());
+                assertEquals(ErrorCode.USER_NOT_TEACHER, result.getError());
                 verify(categoryRepository, never()).deleteById(any());
             }
         }

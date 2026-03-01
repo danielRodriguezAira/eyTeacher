@@ -3,8 +3,8 @@ package es.leinadfonfria.eyteacher.application.dtos.category;
 /**
  * Data transfer object for editing and adding a new category.
  *
- * @param id          The category id. null if new category.
- * @param name        The category name.
+ * @param id          The category userId. null if new category.
+ * @param name        The category firstName.
  * @param description The category description.
  * @param ownerId     The UUID string of the user who owns this category.
  */

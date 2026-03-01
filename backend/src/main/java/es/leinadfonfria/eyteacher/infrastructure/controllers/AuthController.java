@@ -96,7 +96,7 @@ public class AuthController {
     @PostMapping("/update-password")
     @Operation(summary = "Update password", description = "Update user password after verifying current one")
     public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest request) {
-        log.info("Updating password for id: {}", request.id());
+        log.info("Updating password for userId: {}", request.id());
         return updatePasswordUseCase.updatePassword(request)
                 .fold(
                         ResponseEntity::ok,

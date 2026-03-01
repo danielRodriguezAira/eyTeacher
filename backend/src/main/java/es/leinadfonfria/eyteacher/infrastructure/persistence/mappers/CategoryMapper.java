@@ -1,9 +1,11 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
 import es.leinadfonfria.eyteacher.domain.entities.Category;
+import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 /**
  * Mapper for converting between Category domain entities and JPA entities.
@@ -18,8 +20,19 @@ public interface CategoryMapper {
      * @param entity The persistence entity.
      * @return Category The domain entity.
      */
+    @Mapping(target = "name", source = "name", qualifiedByName = "toCategoryName")
     @Mapping(target = "topicList", ignore = true)
     Category toDomain(CategoryJpaEntity entity);
+
+    @Named("toCategoryName")
+    default Name toName(String name) {
+        return new Name(name);
+    }
+
+    @Named("fromCategoryName")
+    default String fromName(Name name) {
+        return name.value();
+    }
 
     /**
      * Converts a domain entity to a JPA entity.
@@ -27,7 +40,9 @@ public interface CategoryMapper {
      * @param domain The domain entity.
      * @return CategoryJpaEntity The persistence entity.
      */
+    @Mapping(target = "name", source = "name", qualifiedByName = "fromCategoryName")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "topicList", ignore = true)
     CategoryJpaEntity toEntity(Category domain);
 }

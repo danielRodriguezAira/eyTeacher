@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,17 @@ public class CategoryJpaEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.REFRESH)
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     private List<TopicJpaEntity> topicList;
+
+    @Transient
+    public List<UserJpaEntity> getStudentList() {
+        if(CollectionUtils.isEmpty(topicList)) {
+            return List.of();
+        }
+        return topicList.stream()
+                .flatMap(topic -> topic.getStudentList().stream())
+                .distinct()
+                .toList();
+    }
 }

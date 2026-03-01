@@ -20,13 +20,13 @@ class NameTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "  "})
-    @DisplayName("Should throw IllegalArgumentException when name is empty or blank")
+    @DisplayName("Should throw IllegalArgumentException when firstName is empty or blank")
     void shouldThrowExceptionWhenNameIsInvalid(String invalidName) {
         assertThrows(IllegalArgumentException.class, () -> new Name(invalidName));
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException when name is null")
+    @DisplayName("Should throw IllegalArgumentException when firstName is null")
     void shouldThrowExceptionWhenNameIsNull() {
         assertThrows(IllegalArgumentException.class, () -> new Name(null));
     }

@@ -29,11 +29,11 @@ class CategoryTest {
     @Test
     @DisplayName("Should create Category using factory method")
     void shouldCreateCategoryWithNullId() {
-        Category category = Category.create( "Science", "Science category", owner);
+        Category category = Category.create( new Name("Science"), "Science category", owner);
 
         assertNotNull(category);
         assertNull(category.getId());
-        assertEquals("Science", category.getName());
+        assertEquals("Science", category.getName().value());
         assertEquals("Science category", category.getDescription());
         assertEquals(owner, category.getOwner());
     }
@@ -41,22 +41,22 @@ class CategoryTest {
     @Test
     @DisplayName("Should create Category with null description")
     void shouldCreateCategoryWithNullDescription() {
-        Category category = Category.create("History", null, owner);
+        Category category = Category.create(new Name("History"), null, owner);
 
         assertNotNull(category);
-        assertEquals("History", category.getName());
+        assertEquals("History", category.getName().value());
         assertNull(category.getDescription());
         assertEquals(owner, category.getOwner());
     }
 
     @Test
-    @DisplayName("Should edit a Category with id")
+    @DisplayName("Should edit a Category with userId")
     void shouldEditCategoryWithId() {
-        Category category = Category.edit(1L, "Math", "Mathematics category", owner);
+        Category category = Category.edit(1L, new Name("Math"), "Mathematics category", owner);
 
         assertNotNull(category);
         assertEquals(1L, category.getId());
-        assertEquals("Math", category.getName());
+        assertEquals("Math", category.getName().value());
         assertEquals("Mathematics category", category.getDescription());
         assertEquals(owner, category.getOwner());
     }
@@ -66,14 +66,14 @@ class CategoryTest {
     void shouldCreateCategoryUsingBuilder() {
         Category category = Category.builder()
                 .id(2L)
-                .name("Art")
+                .name(new Name("Art"))
                 .description("Art category")
                 .owner(owner)
                 .build();
 
         assertNotNull(category);
         assertEquals(2L, category.getId());
-        assertEquals("Art", category.getName());
+        assertEquals("Art", category.getName().value());
         assertEquals("Art category", category.getDescription());
         assertEquals(owner, category.getOwner());
     }
