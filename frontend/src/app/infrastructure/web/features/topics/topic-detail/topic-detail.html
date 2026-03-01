@@ -4,10 +4,12 @@
             <mat-card-header>
                 <mat-card-title>
                     <h1>
-                        <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de tema"
-                                (click)="$event.stopPropagation()">
-                            <mat-icon>more_vert</mat-icon>
-                        </button>
+                        @if ((userRole$ | async) === UserRole.TEACHER) {
+                            <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de tema"
+                                    (click)="$event.stopPropagation()">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        }
                         {{ topic.name }}
                     </h1>
                     <mat-menu #itemMenu="matMenu">

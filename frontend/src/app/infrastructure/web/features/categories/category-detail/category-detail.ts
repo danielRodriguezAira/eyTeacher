@@ -9,7 +9,9 @@ import {Category} from '../../../../../domain/entities/category';
 import {CategoryService} from '../../../services/category.service';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {NotificationService} from '../../../services/notification.service';
-import {Observable} from 'rxjs';
+import {map, Observable} from 'rxjs';
+import {AuthenticationService} from '../../../services/auth.service';
+import {UserRole} from '../../../../../domain/entities/auth-user';
 
 @Component({
     selector: 'app-category-detail',
@@ -20,10 +22,20 @@ import {Observable} from 'rxjs';
 })
 export class CategoryDetail implements OnInit {
     category$?: Observable<Category>;
+    userRole$: Observable<UserRole | null>;
+    UserRole = UserRole;
+
     private route = inject(ActivatedRoute);
     private categoryService = inject(CategoryService);
+    private authService = inject(AuthenticationService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+
+    constructor() {
+        this.userRole$ = this.authService.getCurrentUserObservable().pipe(
+            map(user => user ? user.role : null)
+        );
+    }
 
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));

@@ -10,6 +10,8 @@ import {MatIconModule} from '@angular/material/icon';
 import {CategoryService} from '../../../services/category.service';
 import {Category} from '../../../../../domain/entities/category';
 import {NotificationService} from '../../../services/notification.service';
+import {AuthenticationService} from '../../../services/auth.service';
+import {UserRole} from '../../../../../domain/entities/auth-user';
 
 @Component({
     selector: 'app-category-form',
@@ -38,9 +40,17 @@ export class CategoryForm implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private authService = inject(AuthenticationService);
     private cdr = inject(ChangeDetectorRef);
 
     ngOnInit() {
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser && currentUser.role !== UserRole.TEACHER) {
+            this.notificationService.openSnackBar('No tienes permisos para acceder a esta página');
+            this.router.navigate(['/category-list']);
+            return;
+        }
+
         const idParam = this.route.snapshot.paramMap.get('id');
         this.categoryId = idParam ? Number(idParam) : null;
         if (this.categoryId) {

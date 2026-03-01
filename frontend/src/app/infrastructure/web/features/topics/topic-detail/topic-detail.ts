@@ -5,10 +5,12 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
-import {Observable} from 'rxjs';
+import {map, Observable} from 'rxjs';
 import {Topic} from '../../../../../domain/entities/topic';
 import {TopicService} from '../../../services/topic.service';
 import {NotificationService} from '../../../services/notification.service';
+import {UserRole} from "../../../../../domain/entities/auth-user";
+import {AuthenticationService} from '../../../services/auth.service';
 
 @Component({
     selector: 'app-topic-detail',
@@ -19,10 +21,18 @@ import {NotificationService} from '../../../services/notification.service';
 })
 export class TopicDetail implements OnInit {
     topic$?: Observable<Topic>;
+    userRole$: Observable<UserRole | null>;
     private route = inject(ActivatedRoute);
     private topicService = inject(TopicService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private authService = inject(AuthenticationService);
+
+    constructor() {
+        this.userRole$ = this.authService.getCurrentUserObservable().pipe(
+            map(user => user ? user.role : null)
+        );
+    }
 
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -50,4 +60,6 @@ export class TopicDetail implements OnInit {
             });
         }
     }
+
+    protected readonly UserRole = UserRole;
 }

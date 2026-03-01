@@ -10,6 +10,8 @@ import {MatIconModule} from '@angular/material/icon';
 import {TopicService} from '../../../services/topic.service';
 import {Topic} from '../../../../../domain/entities/topic';
 import {NotificationService} from '../../../services/notification.service';
+import {AuthenticationService} from '../../../services/auth.service';
+import {UserRole} from '../../../../../domain/entities/auth-user';
 
 @Component({
     selector: 'app-topic-form',
@@ -39,9 +41,17 @@ export class TopicForm implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private authService = inject(AuthenticationService);
     private cdr = inject(ChangeDetectorRef);
 
     ngOnInit() {
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser && currentUser.role !== UserRole.TEACHER) {
+            this.notificationService.openSnackBar('No tienes permisos para acceder a esta página');
+            this.router.navigate(['/category-list']);
+            return;
+        }
+
         const idParam = this.route.snapshot.paramMap.get('id');
         const categoryIdParam = this.route.snapshot.queryParamMap.get('categoryId');
         
