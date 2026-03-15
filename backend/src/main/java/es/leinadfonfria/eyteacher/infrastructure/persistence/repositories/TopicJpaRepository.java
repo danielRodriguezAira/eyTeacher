@@ -14,7 +14,7 @@ import java.util.UUID;
  * Provides abstraction for database operations on the topics table.
  */
 @Repository
-public interface TopicRepository extends JpaRepository<TopicJpaEntity, Long> {
+public interface TopicJpaRepository extends JpaRepository<TopicJpaEntity, Long> {
 
     /**
      * Retrieves all topics belonging to a specific category.

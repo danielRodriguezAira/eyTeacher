@@ -43,6 +43,9 @@ public class TopicJpaEntity {
     )
     private List<UserJpaEntity> studentList;
 
+    @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+    private List<TaskJpaEntity> taskList;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

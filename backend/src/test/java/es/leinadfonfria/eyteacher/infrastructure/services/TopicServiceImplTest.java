@@ -1,24 +1,22 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
-import es.leinadfonfria.eyteacher.application.dtos.topic.GetTopicResponse;
 import es.leinadfonfria.eyteacher.application.dtos.topic.SaveTopicRequest;
+import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponse;
+import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponseMapper;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Category;
+import es.leinadfonfria.eyteacher.domain.entities.Task;
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
+import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.CategoryRepositoryAdapter;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,54 +29,37 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TopicServiceImplTest {
 
     @Mock
-    private TopicRepository topicRepository;
-
+    private TopicRepositoryAdapter topicRepositoryAdapter;
     @Mock
-    private CategoryRepository categoryRepository;
-
+    private CategoryRepositoryAdapter categoryRepositoryAdapter;
     @Mock
-    private TopicMapper topicMapper;
-
+    private TopicResponseMapper topicResponseMapper;
     @Mock
-    private CategoryMapper categoryMapper;
-
-    @Mock
-    private UserMapper userMapper;
+    private TaskRepository<Task> taskRepository;
 
     @InjectMocks
     private TopicServiceImpl topicService;
 
-    private UserJpaEntity ownerJpaEntity;
     private User ownerDomain;
-    private CategoryJpaEntity categoryJpaEntity;
     private Category categoryDomain;
-    private TopicJpaEntity topicJpaEntity;
     private Topic topicDomain;
     private final UUID ownerUuid = UUID.randomUUID();
-    private final String ownerIdStr = ownerUuid.toString();
     private final Long categoryId = 1L;
     private final Long topicId = 1L;
 
     @BeforeEach
     void setUp() {
-        ownerJpaEntity = UserJpaEntity.builder()
-                .id(ownerUuid)
-                .email("owner@example.com")
-                .firstName("John")
-                .lastName("Doe")
-                .build();
-
         ownerDomain = User.create(
                 new UserId(ownerUuid),
                 new Email("owner@example.com"),
@@ -87,24 +68,8 @@ class TopicServiceImplTest {
                 new Name("Doe"),
                 false
         );
-
-        categoryJpaEntity = CategoryJpaEntity.builder()
-                .id(categoryId)
-                .name("Math")
-                .owner(ownerJpaEntity)
-                .build();
-
-        categoryDomain = Category.edit(categoryId, new Name("Math"), "Math category", ownerDomain);
-
-        topicJpaEntity = TopicJpaEntity.builder()
-                .id(topicId)
-                .name("Algebra")
-                .description("Basic algebra")
-                .category(categoryJpaEntity)
-                .studentList(List.of())
-                .build();
-
-        topicDomain = Topic.edit(topicId, new Name("Algebra"), "Basic algebra", categoryDomain, List.of());
+        categoryDomain = Category.edit(categoryId, new Name("Math"), "Mathematics category", ownerDomain);
+        topicDomain = Topic.edit(topicId, new Name("Algebra"), "Algebra topic", categoryDomain, List.of(), List.of());
     }
 
     @Nested
@@ -112,87 +77,74 @@ class TopicServiceImplTest {
     class SaveTopicTests {
 
         @Test
-        @DisplayName("Debe crear un topic correctamente")
+        @DisplayName("Debe crear el tópico correctamente")
         void saveTopic_CreateSuccess() {
-            // Arrange
-            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Basic algebra", categoryId);
+            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Algebra topic", categoryId);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(categoryJpaEntity));
-                when(categoryMapper.toDomain(categoryJpaEntity)).thenReturn(categoryDomain);
-                when(topicMapper.toEntity(any(Topic.class))).thenReturn(topicJpaEntity);
-                when(topicRepository.save(any(TopicJpaEntity.class))).thenReturn(topicJpaEntity);
+                when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
+                when(topicRepositoryAdapter.save(any(Topic.class))).thenReturn(topicDomain);
 
-                // Act
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
-                // Assert
-                assertTrue(result.isSuccess());
+                assertFalse(result.isFailure());
                 assertEquals(topicId, result.getValue());
-                verify(topicRepository).save(any(TopicJpaEntity.class));
+                verify(categoryRepositoryAdapter).findById(categoryId);
+                verify(topicRepositoryAdapter).save(any(Topic.class));
             }
         }
 
         @Test
-        @DisplayName("Debe fallar si el usuario no es TEACHER")
+        @DisplayName("Debe retornar fallo si el usuario no es TEACHER")
         void saveTopic_NotTeacher() {
-            // Arrange
-            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Basic algebra", categoryId);
+            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Algebra topic", categoryId);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
 
-                // Act
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.TOPIC_OWNER_NOT_TEACHER, result.getError());
+                verifyNoInteractions(categoryRepositoryAdapter, topicRepositoryAdapter);
             }
         }
 
         @Test
-        @DisplayName("Debe fallar si la categoría no existe")
+        @DisplayName("Debe retornar fallo si la categoría no existe")
         void saveTopic_CategoryNotFound() {
-            // Arrange
-            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Basic algebra", categoryId);
+            SaveTopicRequest request = new SaveTopicRequest(null, "Algebra", "Algebra topic", categoryId);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
+                when(categoryRepositoryAdapter.findById(categoryId))
+                        .thenThrow(new NotFoundException("Category not found", ErrorCode.TOPIC_CATEGORY_NOT_FOUND));
 
-                // Act
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.TOPIC_CATEGORY_NOT_FOUND, result.getError());
+                verifyNoInteractions(topicRepositoryAdapter);
             }
         }
 
         @Test
-        @DisplayName("Debe actualizar un topic correctamente")
+        @DisplayName("Debe actualizar el tópico correctamente")
         void saveTopic_UpdateSuccess() {
-            // Arrange
-            SaveTopicRequest request = new SaveTopicRequest(topicId, "Algebra Updated", "New description", categoryId);
+            SaveTopicRequest request = new SaveTopicRequest(topicId, "Algebra Updated", "Updated description", categoryId);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(categoryJpaEntity));
-                when(categoryMapper.toDomain(categoryJpaEntity)).thenReturn(categoryDomain);
-                when(topicRepository.findById(topicId)).thenReturn(Optional.of(topicJpaEntity));
-                when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
-                when(topicMapper.toEntity(any(Topic.class))).thenReturn(topicJpaEntity);
-                when(topicRepository.save(any(TopicJpaEntity.class))).thenReturn(topicJpaEntity);
+                when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
+                when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
+                when(topicRepositoryAdapter.save(any(Topic.class))).thenReturn(topicDomain);
 
-                // Act
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
-                // Assert
-                assertTrue(result.isSuccess());
-                assertEquals(topicId, result.getValue());
-                verify(topicRepository).save(any(TopicJpaEntity.class));
+                assertFalse(result.isFailure());
+                verify(topicRepositoryAdapter).findById(topicId);
+                verify(topicRepositoryAdapter).save(any(Topic.class));
             }
         }
     }
@@ -202,57 +154,64 @@ class TopicServiceImplTest {
     class GetTopicTests {
 
         @Test
-        @DisplayName("Debe retornar el topic si existe")
+        @DisplayName("Debe retornar el tópico correctamente")
         void getTopic_Success() {
-            // Arrange
-            when(topicRepository.findById(topicId)).thenReturn(Optional.of(topicJpaEntity));
-            when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
-            when(userMapper.toStudentResponseList(any())).thenReturn(List.of());
+            TopicResponse topicResponse = new TopicResponse(topicId, "Algebra", "Algebra topic", categoryId, List.of(), List.of());
 
-            // Act
-            Result<GetTopicResponse, Integer> result = topicService.getTopic(topicId);
+            when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
+            when(taskRepository.findByTopicId(topicId)).thenReturn(List.of());
+            when(topicResponseMapper.toTopicResponse(eq(topicDomain), any())).thenReturn(topicResponse);
 
-            // Assert
-            assertTrue(result.isSuccess());
+            Result<TopicResponse, Integer> result = topicService.getTopic(topicId);
+
+            assertFalse(result.isFailure());
             assertEquals(topicId, result.getValue().id());
-            assertEquals("Algebra", result.getValue().name());
+            verify(topicRepositoryAdapter).findById(topicId);
+            verify(topicResponseMapper).toTopicResponse(eq(topicDomain), any());
         }
 
         @Test
-        @DisplayName("Debe fallar si el topic no existe")
+        @DisplayName("Debe retornar fallo si el tópico no existe")
         void getTopic_NotFound() {
-            // Arrange
-            when(topicRepository.findById(topicId)).thenReturn(Optional.empty());
+            when(topicRepositoryAdapter.findById(99L))
+                    .thenThrow(new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
 
-            // Act
-            Result<GetTopicResponse, Integer> result = topicService.getTopic(topicId);
+            Result<TopicResponse, Integer> result = topicService.getTopic(99L);
 
-            // Assert
             assertTrue(result.isFailure());
             assertEquals(ErrorCode.TOPIC_NOT_FOUND, result.getError());
         }
     }
 
     @Nested
-    @DisplayName("Tests para el método getTopicsByOwnerAndCategory")
-    class GetTopicsByOwnerAndCategoryTests {
+    @DisplayName("Tests para el método getTopicsByCategory")
+    class GetTopicsByCategoryTests {
 
         @Test
-        @DisplayName("Debe retornar la lista de topics")
+        @DisplayName("Debe retornar la lista de tópicos correctamente")
         void getTopics_Success() {
-            // Arrange
-            when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(categoryJpaEntity));
-            when(topicRepository.findByCategory(categoryJpaEntity)).thenReturn(List.of(topicJpaEntity));
-            when(topicMapper.toDomain(topicJpaEntity)).thenReturn(topicDomain);
-            when(userMapper.toStudentResponseList(any())).thenReturn(List.of());
+            TopicResponse topicResponse = new TopicResponse(topicId, "Algebra", "Algebra topic", categoryId, List.of(), List.of());
 
-            // Act
-            Result<List<GetTopicResponse>, Integer> result = topicService.getTopicsByCategory(ownerIdStr, categoryId);
+            when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
+            when(topicRepositoryAdapter.findByCategory(categoryId)).thenReturn(List.of(topicDomain));
+            when(topicResponseMapper.toTopicResponseList(List.of(topicDomain))).thenReturn(List.of(topicResponse));
 
-            // Assert
-            assertTrue(result.isSuccess());
+            Result<List<TopicResponse>, Integer> result = topicService.getTopicsByCategory(ownerUuid.toString(), categoryId);
+
+            assertFalse(result.isFailure());
             assertEquals(1, result.getValue().size());
-            assertEquals(topicId, result.getValue().getFirst().id());
+            verify(topicRepositoryAdapter).findByCategory(categoryId);
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el owner no coincide")
+        void getTopics_OwnerMismatch() {
+            when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
+
+            Result<List<TopicResponse>, Integer> result = topicService.getTopicsByCategory(UUID.randomUUID().toString(), categoryId);
+
+            assertTrue(result.isFailure());
+            assertEquals(ErrorCode.CATEGORY_USER_NOT_FOUND, result.getError());
         }
     }
 
@@ -261,36 +220,45 @@ class TopicServiceImplTest {
     class DeleteTopicTests {
 
         @Test
-        @DisplayName("Debe eliminar el topic correctamente")
+        @DisplayName("Debe eliminar el tópico correctamente")
         void deleteTopic_Success() {
-            // Arrange
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(topicRepository.existsById(topicId)).thenReturn(true);
+                when(topicRepositoryAdapter.existsById(topicId)).thenReturn(true);
 
-                // Act
                 Result<Void, Integer> result = topicService.deleteTopic(topicId);
 
-                // Assert
-                assertTrue(result.isSuccess());
-                verify(topicRepository).deleteById(topicId);
+                assertFalse(result.isFailure());
+                verify(topicRepositoryAdapter).delete(topicId);
             }
         }
 
         @Test
-        @DisplayName("Debe fallar si el topic no existe")
+        @DisplayName("Debe retornar fallo si el tópico no existe")
         void deleteTopic_NotFound() {
-            // Arrange
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(topicRepository.existsById(topicId)).thenReturn(false);
+                when(topicRepositoryAdapter.existsById(99L)).thenReturn(false);
 
-                // Act
-                Result<Void, Integer> result = topicService.deleteTopic(topicId);
+                Result<Void, Integer> result = topicService.deleteTopic(99L);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.TOPIC_NOT_FOUND, result.getError());
+                verify(topicRepositoryAdapter, never()).delete(any());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el usuario no es TEACHER")
+        void deleteTopic_NotTeacher() {
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
+
+                Result<Void, Integer> result = topicService.deleteTopic(topicId);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.TOPIC_OWNER_NOT_TEACHER, result.getError());
+                verify(topicRepositoryAdapter, never()).delete(any());
             }
         }
     }

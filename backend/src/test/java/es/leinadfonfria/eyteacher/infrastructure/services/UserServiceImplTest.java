@@ -12,9 +12,8 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.UserRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +36,7 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserRepositoryAdapter userRepositoryAdapter;
 
     @Mock
     private UserMapper userMapper;
@@ -51,7 +50,6 @@ class UserServiceImplTest {
     @InjectMocks
     private UserProfileServiceImpl userService;
 
-    private UserJpaEntity userJpaEntity;
     private User domainUser;
     private final String email = "test@example.com";
     private final String password = "Password123&";
@@ -60,15 +58,6 @@ class UserServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        userJpaEntity = UserJpaEntity.builder()
-                .id(userIdUuid)
-                .email(email)
-                .password(encodedPassword)
-                .firstName("John")
-                .lastName("Doe")
-                .isAdmin(false)
-                .build();
-
         domainUser = User.create(
                 new UserId(userIdUuid),
                 new Email(email),
@@ -88,9 +77,8 @@ class UserServiceImplTest {
         void login_Success() {
             // Arrange
             LoginRequest request = new LoginRequest(email, password, Role.STUDENT);
-            when(userRepository.findByEmail(email)).thenReturn(Optional.of(userJpaEntity));
+            when(userRepositoryAdapter.findByEmail(email)).thenReturn(Optional.of(domainUser));
             when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true);
-            when(userMapper.toDomain(userJpaEntity)).thenReturn(domainUser);
             when(jwtService.generateToken(domainUser, Role.STUDENT)).thenReturn("fake-jwt-token");
 
             // Act
@@ -103,7 +91,7 @@ class UserServiceImplTest {
             assertEquals(userIdUuid.toString(), response.getValue().id());
             assertEquals(Role.STUDENT, response.getValue().role());
             assertFalse(response.getValue().isAdmin());
-            verify(userRepository).findByEmail(email);
+            verify(userRepositoryAdapter).findByEmail(email);
             verify(passwordEncoder).matches(password, encodedPassword);
             verify(jwtService).generateToken(domainUser, Role.STUDENT);
         }
@@ -113,13 +101,13 @@ class UserServiceImplTest {
         void login_UserNotFound() {
             // Arrange
             LoginRequest request = new LoginRequest(email, password, null);
-            when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+            when(userRepositoryAdapter.findByEmail(email)).thenReturn(Optional.empty());
 
             // Act & Assert
             Result<AuthUserResponse, Integer> response = userService.login(request);
             assertTrue(response.isFailure());
             assertEquals(ErrorCode.INVALID_CREDENTIALS, response.getError());
-            verify(userRepository).findByEmail(email);
+            verify(userRepositoryAdapter).findByEmail(email);
             verifyNoInteractions(passwordEncoder, userMapper, jwtService);
         }
 
@@ -128,14 +116,14 @@ class UserServiceImplTest {
         void login_InvalidPassword() {
             // Arrange
             LoginRequest request = new LoginRequest(email, "wrongPassword", null);
-            when(userRepository.findByEmail(email)).thenReturn(Optional.of(userJpaEntity));
+            when(userRepositoryAdapter.findByEmail(email)).thenReturn(Optional.of(domainUser));
             when(passwordEncoder.matches("wrongPassword", encodedPassword)).thenReturn(false);
 
             // Act & Assert
             Result<AuthUserResponse, Integer> response = userService.login(request);
             assertTrue(response.isFailure());
             assertEquals(ErrorCode.INVALID_CREDENTIALS, response.getError());
-            verify(userRepository).findByEmail(email);
+            verify(userRepositoryAdapter).findByEmail(email);
             verify(passwordEncoder).matches("wrongPassword", encodedPassword);
             verifyNoInteractions(userMapper, jwtService);
         }
@@ -150,21 +138,18 @@ class UserServiceImplTest {
         void register_Success() {
             // Arrange
             RegisterRequest request = new RegisterRequest(email, password, "John", "Doe");
-            when(userRepository.existsByEmail(email)).thenReturn(false);
+            when(userRepositoryAdapter.existsByEmail(email)).thenReturn(false);
             when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
-            when(userMapper.toEntity(any(User.class))).thenReturn(userJpaEntity);
 
             // Act
             Result<Void, Integer> result = userService.register(request);
 
             // Assert
             assertTrue(result.isSuccess());
-            Void nullValue = result.getValue();
-            assertNull(nullValue);
-            verify(userRepository).existsByEmail(email);
+            assertNull(result.getValue());
+            verify(userRepositoryAdapter).existsByEmail(email);
             verify(passwordEncoder).encode(password);
-            verify(userMapper).toEntity(any(User.class));
-            verify(userRepository).save(userJpaEntity);
+            verify(userRepositoryAdapter).save(any(User.class));
         }
 
         @Test
@@ -172,7 +157,7 @@ class UserServiceImplTest {
         void register_EmailAlreadyInUse() {
             // Arrange
             RegisterRequest request = new RegisterRequest(email, password, "John", "Doe");
-            when(userRepository.existsByEmail(email)).thenReturn(true);
+            when(userRepositoryAdapter.existsByEmail(email)).thenReturn(true);
 
             // Act
             Result<Void, Integer> result = userService.register(request);
@@ -180,8 +165,8 @@ class UserServiceImplTest {
             // Assert
             assertTrue(result.isFailure());
             assertEquals(ErrorCode.EMAIL_ALREADY_IN_USE, result.getError());
-            verify(userRepository).existsByEmail(email);
-            verifyNoMoreInteractions(passwordEncoder, userMapper, userRepository);
+            verify(userRepositoryAdapter).existsByEmail(email);
+            verifyNoMoreInteractions(passwordEncoder, userMapper, userRepositoryAdapter);
         }
     }
 
@@ -197,7 +182,7 @@ class UserServiceImplTest {
             String encodedNewPassword = "encodedNewPassword123&";
             UpdatePasswordRequest request = new UpdatePasswordRequest(userIdUuid.toString(), password, newPassword);
 
-            when(userRepository.findById(userIdUuid)).thenReturn(Optional.of(userJpaEntity));
+            when(userRepositoryAdapter.findById(userIdUuid)).thenReturn(Optional.of(domainUser));
             when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true);
             when(passwordEncoder.matches(newPassword, encodedPassword)).thenReturn(false);
             when(passwordEncoder.encode(newPassword)).thenReturn(encodedNewPassword);
@@ -207,11 +192,11 @@ class UserServiceImplTest {
 
             // Assert
             assertTrue(result.isSuccess());
-            verify(userRepository).findById(userIdUuid);
+            verify(userRepositoryAdapter).findById(userIdUuid);
             verify(passwordEncoder).matches(password, encodedPassword);
             verify(passwordEncoder).matches(newPassword, encodedPassword);
             verify(passwordEncoder).encode(newPassword);
-            verify(userRepository).save(any(UserJpaEntity.class));
+            verify(userRepositoryAdapter).save(any(User.class));
         }
 
         @Test
@@ -219,7 +204,7 @@ class UserServiceImplTest {
         void resetPassword_InvalidCurrentPassword() {
             // Arrange
             UpdatePasswordRequest request = new UpdatePasswordRequest(userIdUuid.toString(), "wrongCurrent", "newPass");
-            when(userRepository.findById(userIdUuid)).thenReturn(Optional.of(userJpaEntity));
+            when(userRepositoryAdapter.findById(userIdUuid)).thenReturn(Optional.of(domainUser));
             when(passwordEncoder.matches("wrongCurrent", encodedPassword)).thenReturn(false);
 
             // Act
@@ -228,9 +213,9 @@ class UserServiceImplTest {
             // Assert
             assertTrue(result.isFailure());
             assertEquals(ErrorCode.INVALID_PASSWORD, result.getError());
-            verify(userRepository).findById(userIdUuid);
+            verify(userRepositoryAdapter).findById(userIdUuid);
             verify(passwordEncoder).matches("wrongCurrent", encodedPassword);
-            verifyNoMoreInteractions(userRepository);
+            verifyNoMoreInteractions(userRepositoryAdapter);
         }
 
         @Test
@@ -238,7 +223,7 @@ class UserServiceImplTest {
         void resetPassword_SamePassword() {
             // Arrange
             UpdatePasswordRequest request = new UpdatePasswordRequest(userIdUuid.toString(), password, password);
-            when(userRepository.findById(userIdUuid)).thenReturn(Optional.of(userJpaEntity));
+            when(userRepositoryAdapter.findById(userIdUuid)).thenReturn(Optional.of(domainUser));
             when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true);
 
             // Act
@@ -247,9 +232,9 @@ class UserServiceImplTest {
             // Assert
             assertTrue(result.isFailure());
             assertEquals(ErrorCode.DIFFERENT_PASSWORD, result.getError());
-            verify(userRepository).findById(userIdUuid);
+            verify(userRepositoryAdapter).findById(userIdUuid);
             verify(passwordEncoder, times(2)).matches(password, encodedPassword);
-            verifyNoMoreInteractions(userRepository);
+            verifyNoMoreInteractions(userRepositoryAdapter);
         }
     }
 }

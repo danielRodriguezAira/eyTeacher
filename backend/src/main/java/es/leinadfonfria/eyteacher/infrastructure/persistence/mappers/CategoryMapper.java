@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
+
 /**
  * Mapper for converting between Category domain entities and JPA entities.
  * Uses MapStruct to automate the mapping of value objects and standard fields.
@@ -23,6 +25,8 @@ public interface CategoryMapper {
     @Mapping(target = "name", source = "name", qualifiedByName = "toCategoryName")
     @Mapping(target = "topicList", ignore = true)
     Category toDomain(CategoryJpaEntity entity);
+
+    List<Category> toDomainList(List<CategoryJpaEntity> entityList);
 
     @Named("toCategoryName")
     default Name toName(String name) {

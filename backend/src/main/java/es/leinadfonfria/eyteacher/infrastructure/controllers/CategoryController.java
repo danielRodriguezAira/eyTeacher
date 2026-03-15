@@ -35,7 +35,7 @@ public class CategoryController {
     @GetMapping("/{categoryId}")
     @Operation(summary = "Get category by ID", description = "Retrieves all data of a category by its ID")
     public ResponseEntity<?> getCategory(@PathVariable Long categoryId) {
-        log.info("Getting category with userId: {}", categoryId);
+        log.info("Getting category with id: {}", categoryId);
         return getCategoryUseCase.getCategory(categoryId)
                 .fold(
                         ResponseEntity::ok,
@@ -101,7 +101,7 @@ public class CategoryController {
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "Delete category", description = "Deletes a category by its ID. Only for TEACHER role.")
     public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId) {
-        log.info("Deleting category with userId: {}", categoryId);
+        log.info("Deleting category with id: {}", categoryId);
         return deleteCategoryUseCase.deleteCategory(categoryId)
                 .fold(
                         v -> ResponseEntity.ok().build(),

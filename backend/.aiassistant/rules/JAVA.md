@@ -27,17 +27,19 @@ src/
     ├── java/es/leinadfonfria/eyteacher/
     │   ├── application
     │   │   ├── dtos
-    │   │   └── services        # use case interfaces
+    │   │   └── services        # use case clases
     │   ├── domain
     │   │   ├── entities        # domain entities (NO JPA annotations)
     │   │   ├── valueobjects
     │   │   ├── events
+    │   │   ├── ports           # domain interfaces for repositories
     │   │   └── errors
     │   ├── infrastructure
     │   │   ├── controllers     # REST controllers (Spring MVC/WebFlux)
     │   │   ├── services        # application service implementations
     │   │   └── persistence
     │   │       ├── entities    # JPA entities (database mapping)
+    │   │       ├── adapter     # Spring Compoment. Implementation for domain ports repositories. Use JPA repositories and Mapstruct mappers
     │   │       └── repositories # Spring Data JPA repositories
     │   └── shared              # utilities, cross-cutting concerns
     └── resources
@@ -69,6 +71,7 @@ src/
     - define domain-specific errors in `domain/errors`
     - return API errors in controllers using global handler (RestControllerAdvice)
 - Lombok: avoid in domain entities if it limits immutability/invariants; prioritize explicit constructors and factory methods
+- RepositoryAdapters: In find methods, always return Optional
 - Tests:
     - unit tests FIRST for domain and application
     - integration tests AFTER for controllers/persistence with JUnit 5 + Testcontainers

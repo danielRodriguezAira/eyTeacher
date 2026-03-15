@@ -50,7 +50,7 @@ class CategoryTest {
     }
 
     @Test
-    @DisplayName("Should edit a Category with userId")
+    @DisplayName("Should edit a Category with id")
     void shouldEditCategoryWithId() {
         Category category = Category.edit(1L, new Name("Math"), "Mathematics category", owner);
 

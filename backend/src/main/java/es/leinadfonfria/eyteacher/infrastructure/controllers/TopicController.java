@@ -35,7 +35,7 @@ public class TopicController {
     @GetMapping("/{topicId}")
     @Operation(summary = "Get topic by ID", description = "Retrieves all data of a topic by its ID")
     public ResponseEntity<?> getTopic(@PathVariable Long topicId) {
-        log.info("Getting topic with userId: {}", topicId);
+        log.info("Getting topic with id: {}", topicId);
         return getTopicUseCase.getTopic(topicId)
                 .fold(
                         ResponseEntity::ok,
@@ -67,7 +67,7 @@ public class TopicController {
     @DeleteMapping("/{topicId}")
     @Operation(summary = "Delete topic", description = "Deletes a topic by its ID. Only for TEACHER role.")
     public ResponseEntity<?> deleteTopic(@PathVariable Long topicId) {
-        log.info("Deleting topic with userId: {}", topicId);
+        log.info("Deleting topic with id: {}", topicId);
         return deleteTopicUseCase.deleteTopic(topicId)
                 .fold(
                         v -> ResponseEntity.ok().build(),

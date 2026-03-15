@@ -13,7 +13,7 @@ import java.util.List;
  * Mapper for converting between Topic domain entities and JPA entities.
  * Uses MapStruct to automate the mapping of value objects and standard fields.
  */
-@Mapper(componentModel = "spring", uses = {CategoryMapper.class, UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
 public interface TopicMapper {
 
     /**
@@ -23,6 +23,8 @@ public interface TopicMapper {
      * @return Topic The domain entity.
      */
     @Mapping(target = "name", source = "name", qualifiedByName = "toTopicName")
+    @Mapping(target = "studentList", ignore = true)
+    @Mapping(target = "taskList", ignore = true)
     Topic toDomain(TopicJpaEntity entity);
 
     @Named("toTopicName")

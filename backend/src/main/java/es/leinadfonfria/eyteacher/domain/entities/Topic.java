@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,13 +19,15 @@ public class Topic {
     private final String description;
     private final Category category;
     private final List<User> studentList;
+    private final List<Task> taskList;
 
-    private Topic(Long id, Name name, String description, Category category, List<User> studentList) {
+    private Topic(Long id, Name name, String description, Category category, List<User> studentList, List<Task> taskList) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.category = category;
-        this.studentList = studentList;
+        this.studentList = studentList != null ? studentList : Collections.emptyList();
+        this.taskList = taskList != null ? taskList : Collections.emptyList();
     }
 
     /**
@@ -37,7 +40,7 @@ public class Topic {
      * @return Topic A new topic domain entity.
      */
     public static Topic create(Name name, String description, Category category, List<User> studentList) {
-        return new Topic(null, name, description, category, studentList);
+        return new Topic(null, name, description, category, studentList, Collections.emptyList());
     }
 
     /**
@@ -48,9 +51,10 @@ public class Topic {
      * @param description The topic description.
      * @param category    The category this topic belongs to.
      * @param studentList The list of students subscribed to this topic.
+     * @param taskList    The list of tasks in this topic.
      * @return Topic A new topic domain entity.
      */
-    public static Topic edit(Long id, Name name, String description, Category category, List<User> studentList) {
-        return new Topic(id, name, description, category, studentList);
+    public static Topic edit(Long id, Name name, String description, Category category, List<User> studentList, List<Task> taskList) {
+        return new Topic(id, name, description, category, studentList, taskList);
     }
 }
