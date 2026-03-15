@@ -67,5 +67,29 @@ export const routes: Routes = [
         loadComponent: () =>
             import('./infrastructure/web/features/topics/topic-detail/topic-detail').then(m => m.TopicDetail)
     },
+    {
+        path: 'task-add',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/tasks/task-form/task-form').then(m => m.TaskForm)
+    },
+    {
+        path: 'task-edit/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/tasks/task-form/task-form').then(m => m.TaskForm)
+    },
+    {
+        path: 'task-detail/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/tasks/task-detail/task-detail').then(m => m.TaskDetail)
+    },
+    {
+        path: 'task/:taskId/solution/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./infrastructure/web/features/solutions/solution-detail/solution-detail').then(m => m.SolutionDetail)
+    },
     {path: '**', redirectTo: 'category-list'}
 ];

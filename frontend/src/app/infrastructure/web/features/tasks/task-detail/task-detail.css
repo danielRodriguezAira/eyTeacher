@@ -32,36 +32,27 @@ mat-card-actions {
     color: #f44336;
 }
 
-.tasks-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 24px;
-    margin-bottom: 8px;
+.solutions-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
 }
 
-.tasks-header h3 {
-    margin: 0;
-}
-
-.tasks-grid {
+.solutions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
     margin-top: 16px;
 }
 
-.task-card {
+.solution-card {
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
     background-color: #3d3d3d;
     color: white;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.task-card:hover {
-    background-color: #4d4d4d;
-}
-
-.task-card mat-card-title {
-    font-size: 1.1rem;
+.solution-card:hover {
+    transform: translateY(-4px);
+    background-color: #4a4a4a;
 }

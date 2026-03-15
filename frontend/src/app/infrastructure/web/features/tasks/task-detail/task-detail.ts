@@ -5,26 +5,27 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
-import {MatListModule} from '@angular/material/list';
 import {map, Observable} from 'rxjs';
-import {Topic} from '../../../../../domain/entities/topic';
-import {TopicService} from '../../../services/topic.service';
+import {Task} from '../../../../../domain/entities/task';
+import {TaskService} from '../../../services/task.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
 
+import {Solution} from '../../../../../domain/entities/solution';
+
 @Component({
-    selector: 'app-topic-detail',
+    selector: 'app-task-detail',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule],
-    templateUrl: './topic-detail.html',
-    styleUrl: './topic-detail.css'
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger],
+    templateUrl: './task-detail.html',
+    styleUrl: './task-detail.css'
 })
-export class TopicDetail implements OnInit {
-    topic$?: Observable<Topic>;
+export class TaskDetail implements OnInit {
+    task$?: Observable<Task>;
     userRole$: Observable<UserRole | null>;
     private route = inject(ActivatedRoute);
-    private topicService = inject(TopicService);
+    private taskService = inject(TaskService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private authService = inject(AuthenticationService);
@@ -38,24 +39,28 @@ export class TopicDetail implements OnInit {
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
         if (id) {
-            this.topic$ = this.topicService.getTopicById(id);
+            this.task$ = this.taskService.getTaskById(id);
         }
     }
 
-    editTopic(topic: Topic) {
-        this.router.navigate(['/topic-edit', topic.id]);
+    viewSolution(taskId: number, solution: Solution) {
+        this.router.navigate(['/task', taskId, 'solution', solution.id]);
     }
 
-    deleteTopic(topic: Topic) {
-        const confirmed = confirm(`¿Seguro que quieres borrar el tema "${topic.name}"?`);
+    editTask(task: Task) {
+        this.router.navigate(['/task-edit', task.id]);
+    }
+
+    deleteTask(task: Task) {
+        const confirmed = confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`);
         if (confirmed) {
-            this.topicService.deleteTopic(topic.id!).subscribe({
+            this.taskService.deleteTask(task.id!).subscribe({
                 next: () => {
-                    this.notificationService.openSnackBar('Tema borrado correctamente');
-                    this.router.navigate(['/category-detail', topic.categoryId]);
+                    this.notificationService.openSnackBar('Tarea borrada correctamente');
+                    this.router.navigate(['/topic-detail', task.topicId]);
                 },
                 error: (err) => {
-                    this.notificationService.openSnackBar('Error al borrar el tema');
+                    this.notificationService.openSnackBar('Error al borrar la tarea');
                     console.error(err);
                 }
             });
@@ -63,12 +68,4 @@ export class TopicDetail implements OnInit {
     }
 
     protected readonly UserRole = UserRole;
-
-    addTask(topicId: number | null) {
-        this.router.navigate(['/task-add'], {queryParams: {topicId}});
-    }
-
-    viewTask(task: any) {
-        this.router.navigate(['/task-detail', task.id]);
-    }
 }
