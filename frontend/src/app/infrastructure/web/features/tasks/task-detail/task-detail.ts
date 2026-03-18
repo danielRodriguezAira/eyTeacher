@@ -1,45 +1,44 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
-import {map, Observable} from 'rxjs';
+import {map} from 'rxjs';
 import {Task} from '../../../../../domain/entities/task';
 import {TaskService} from '../../../services/task.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
-
 import {Solution} from '../../../../../domain/entities/solution';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-task-detail',
     standalone: true,
     imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger],
     templateUrl: './task-detail.html',
-    styleUrl: './task-detail.css'
+    styleUrl: './task-detail.scss'
 })
 export class TaskDetail implements OnInit {
-    task$?: Observable<Task>;
-    userRole$: Observable<UserRole | null>;
     private route = inject(ActivatedRoute);
     private taskService = inject(TaskService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private authService = inject(AuthenticationService);
 
-    constructor() {
-        this.userRole$ = this.authService.getCurrentUserObservable().pipe(
-            map(user => user ? user.role : null)
-        );
-    }
+    task = signal<Task | undefined>(undefined);
+    userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
+        map(user => user?.role ?? null)
+    ), {initialValue: null});
+
+    UserRole = UserRole;
 
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
         if (id) {
-            this.task$ = this.taskService.getTaskById(id);
+            this.taskService.getTaskById(id).subscribe(t => this.task.set(t));
         }
     }
 
@@ -52,8 +51,7 @@ export class TaskDetail implements OnInit {
     }
 
     deleteTask(task: Task) {
-        const confirmed = confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`);
-        if (confirmed) {
+        if (confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`)) {
             this.taskService.deleteTask(task.id!).subscribe({
                 next: () => {
                     this.notificationService.openSnackBar('Tarea borrada correctamente');
@@ -66,6 +64,4 @@ export class TaskDetail implements OnInit {
             });
         }
     }
-
-    protected readonly UserRole = UserRole;
 }

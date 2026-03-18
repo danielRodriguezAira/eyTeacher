@@ -1,10 +1,10 @@
 <div class="container">
-    @if (category$ | async; as category) {
+    @if (category(); as category) {
         <mat-card class="detail-card">
             <mat-card-header>
                 <mat-card-title>
                     <h1>
-                        @if ((userRole$ | async) === UserRole.TEACHER) {
+                        @if (userRole() === UserRole.TEACHER) {
                             <button mat-icon-button [matMenuTriggerFor]="itemMenu" aria-label="Opciones de categoría"
                                     (click)="$event.stopPropagation()">
                                 <mat-icon>more_vert</mat-icon>
@@ -28,7 +28,7 @@
                 <p class="description">{{ category.description }}</p>
 
                 <div class="topics-header">
-                    @if ((userRole$ | async) === UserRole.TEACHER) {
+                    @if (userRole() === UserRole.TEACHER) {
                         <button mat-icon-button [matMenuTriggerFor]="topicMenu" aria-label="Opciones de temas">
                             <mat-icon>more_vert</mat-icon>
                         </button>
@@ -46,7 +46,7 @@
                 @if (category.topicList && category.topicList.length > 0) {
                     <div class="topics-grid">
                         @for (topic of category.topicList; track topic.id) {
-                            <mat-card class="topic-card" (click)="viewTopic(topic)">
+                            <mat-card class="topic-card" (click)="viewTopic(topic.id)">
                                 <mat-card-header>
                                     <mat-card-title>
                                         {{ topic.name }}

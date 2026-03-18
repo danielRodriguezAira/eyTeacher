@@ -1,6 +1,6 @@
-import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
 import {Title} from '@angular/platform-browser';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -23,16 +23,10 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
         MatButtonModule
     ],
     templateUrl: './task-form.html',
-    styleUrls: ['./task-form.css']
+    styleUrls: ['./task-form.scss']
 })
 export class TaskForm implements OnInit {
-    taskForm = new FormGroup({
-        description: new FormControl('', Validators.required),
-    });
-
-    isEditMode = false;
-    private taskId: number | null = null;
-    private topicId: number | null = null;
+    private fb = inject(NonNullableFormBuilder);
     private titleService = inject(Title);
     private taskService = inject(TaskService);
     private route = inject(ActivatedRoute);
@@ -41,9 +35,17 @@ export class TaskForm implements OnInit {
     private authService = inject(AuthenticationService);
     private cdr = inject(ChangeDetectorRef);
 
+    taskForm = this.fb.group({
+        description: ['', Validators.required],
+    });
+
+    isEditMode = signal(false);
+    private taskId: number | null = null;
+    private topicId: number | null = null;
+
     ngOnInit() {
         const currentUser = this.authService.getCurrentUser();
-        if (currentUser && currentUser.role !== UserRole.TEACHER) {
+        if (currentUser?.role !== UserRole.TEACHER) {
             this.notificationService.openSnackBar('No tienes permisos para acceder a esta página');
             this.router.navigate(['/category-list']);
             return;
@@ -56,7 +58,7 @@ export class TaskForm implements OnInit {
         this.topicId = topicIdParam ? Number(topicIdParam) : null;
 
         if (this.taskId) {
-            this.isEditMode = true;
+            this.isEditMode.set(true);
             this.titleService.setTitle('Editar Tarea');
             this.taskService.getTaskById(this.taskId).subscribe(task => {
                 if (task) {
@@ -73,24 +75,26 @@ export class TaskForm implements OnInit {
     }
 
     saveTask() {
-        if (this.taskForm.valid) {
-            const taskData = this.taskForm.value;
-            const task = new Task(
-                this.taskId,
-                taskData.description!,
-                this.topicId!
-            );
-
-            this.taskService.saveTask(task).subscribe({
-                next: () => {
-                    this.notificationService.openSnackBar('Tarea guardada correctamente');
-                    this.router.navigate(['/topic-detail', this.topicId]);
-                },
-                error: (error) => {
-                    this.notificationService.openSnackBar(error.error || 'Error al guardar la tarea');
-                }
-            });
+        if (this.taskForm.invalid) {
+            return;
         }
+
+        const {description} = this.taskForm.getRawValue();
+        const task = new Task(
+            this.taskId,
+            description,
+            this.topicId!
+        );
+
+        this.taskService.saveTask(task).subscribe({
+            next: () => {
+                this.notificationService.openSnackBar('Tarea guardada correctamente');
+                this.router.navigate(['/topic-detail', this.topicId]);
+            },
+            error: (error) => {
+                this.notificationService.openSnackBar(error.error || 'Error al guardar la tarea');
+            }
+        });
     }
 
     onCancel() {

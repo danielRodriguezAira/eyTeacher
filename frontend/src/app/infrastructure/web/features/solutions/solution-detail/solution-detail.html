@@ -1,17 +1,17 @@
 <div class="container">
-    @if (solution$ | async; as solution) {
+    @if (solution(); as sol) {
         <mat-card class="detail-card">
             <mat-card-header>
                 <mat-card-title>
-                    <h1>Solución de {{ solution.student.firstName }} {{ solution.student.lastName }}</h1>
+                    <h1>Solución de {{ sol.student.firstName }} {{ sol.student.lastName }}</h1>
                 </mat-card-title>
             </mat-card-header>
             <mat-card-content>
-                <p class="description">{{ solution.description }}</p>
+                <p class="description">{{ sol.description }}</p>
 
-                @if ((userRole$ | async) === UserRole.TEACHER) {
+                @if (userRole() === UserRole.TEACHER) {
                     <div class="correction-section">
-                        @if (!showCorrectionForm) {
+                        @if (!showCorrectionForm()) {
                             <button mat-raised-button color="primary" (click)="startCorrection()">
                                 <mat-icon>edit</mat-icon>
                                 Corregir
@@ -19,7 +19,7 @@
                         } @else {
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Corrección</mat-label>
-                                <textarea matInput [(ngModel)]="correctionText" rows="5"></textarea>
+                                <textarea matInput [ngModel]="correctionText()" (ngModelChange)="correctionText.set($event)" rows="5"></textarea>
                             </mat-form-field>
                             <button mat-raised-button color="accent" (click)="sendCorrection()">
                                 <mat-icon>send</mat-icon>
@@ -30,7 +30,7 @@
                 }
             </mat-card-content>
             <mat-card-actions>
-                <button mat-button [routerLink]="['/task-detail', solution.task.id]">
+                <button mat-button [routerLink]="['/task-detail', sol.task.id]">
                     <mat-icon>arrow_back</mat-icon>
                     Volver a la tarea
                 </button>

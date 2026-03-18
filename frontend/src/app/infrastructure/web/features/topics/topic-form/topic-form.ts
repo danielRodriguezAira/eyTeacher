@@ -1,6 +1,6 @@
-import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
 import {Title} from '@angular/platform-browser';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -25,17 +25,10 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
         MatIconModule
     ],
     templateUrl: './topic-form.html',
-    styleUrls: ['./topic-form.css']
+    styleUrls: ['./topic-form.scss']
 })
 export class TopicForm implements OnInit {
-    topicForm = new FormGroup({
-        name: new FormControl('', Validators.required),
-        description: new FormControl('', Validators.required),
-    });
-
-    isEditMode = false;
-    private topicId: number | null = null;
-    private categoryId: number | null = null;
+    private fb = inject(NonNullableFormBuilder);
     private titleService = inject(Title);
     private topicService = inject(TopicService);
     private route = inject(ActivatedRoute);
@@ -44,9 +37,18 @@ export class TopicForm implements OnInit {
     private authService = inject(AuthenticationService);
     private cdr = inject(ChangeDetectorRef);
 
+    topicForm = this.fb.group({
+        name: ['', Validators.required],
+        description: ['', Validators.required],
+    });
+
+    isEditMode = signal(false);
+    private topicId: number | null = null;
+    private categoryId: number | null = null;
+
     ngOnInit() {
         const currentUser = this.authService.getCurrentUser();
-        if (currentUser && currentUser.role !== UserRole.TEACHER) {
+        if (currentUser?.role !== UserRole.TEACHER) {
             this.notificationService.openSnackBar('No tienes permisos para acceder a esta página');
             this.router.navigate(['/category-list']);
             return;
@@ -59,7 +61,7 @@ export class TopicForm implements OnInit {
         this.categoryId = categoryIdParam ? Number(categoryIdParam) : null;
 
         if (this.topicId) {
-            this.isEditMode = true;
+            this.isEditMode.set(true);
             this.titleService.setTitle('Editar Tema');
             this.topicService.getTopicById(this.topicId).subscribe(topic => {
                 if (topic) {
@@ -77,25 +79,27 @@ export class TopicForm implements OnInit {
     }
 
     saveTopic() {
-        if (this.topicForm.valid) {
-            const topicData = this.topicForm.value;
-            const topic = new Topic(
-                this.topicId,
-                topicData.name!,
-                topicData.description!,
-                this.categoryId!
-            );
-
-            this.topicService.saveTopic(topic).subscribe({
-                next: () => {
-                    this.notificationService.openSnackBar('Tema guardado correctamente');
-                    this.router.navigate(['/category-detail', this.categoryId]);
-                },
-                error: (error) => {
-                    this.notificationService.openSnackBar(error.error || 'Error al guardar el tema');
-                }
-            });
+        if (this.topicForm.invalid) {
+            return;
         }
+
+        const {name, description} = this.topicForm.getRawValue();
+        const topic = new Topic(
+            this.topicId,
+            name,
+            description,
+            this.categoryId!
+        );
+
+        this.topicService.saveTopic(topic).subscribe({
+            next: () => {
+                this.notificationService.openSnackBar('Tema guardado correctamente');
+                this.router.navigate(['/category-detail', this.categoryId]);
+            },
+            error: (error) => {
+                this.notificationService.openSnackBar(error.error || 'Error al guardar el tema');
+            }
+        });
     }
 
     onCancel() {

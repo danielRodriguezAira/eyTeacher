@@ -1,6 +1,6 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Title} from '@angular/platform-browser';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -13,14 +13,6 @@ import {AuthenticationService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
 import {DomainError} from '../../../../../domain/errors/auth.errors';
-
-
-interface LoginForm {
-    email: FormControl<string | null>;
-    password: FormControl<string | null>;
-    role: FormControl<UserRole | null>;
-    rememberMe: FormControl<boolean | null>;
-}
 
 @Component({
     selector: 'app-login',
@@ -36,47 +28,47 @@ interface LoginForm {
         MatSelectModule
     ],
     templateUrl: './login.html',
-    styleUrls: ['./login.css']
+    styleUrls: ['./login.scss']
 })
 export class Login implements OnInit {
-    loginForm!: FormGroup<LoginForm>;
     loading = signal(false);
-
     roles = Object.values(UserRole);
 
+    private fb = inject(NonNullableFormBuilder);
     private router = inject(Router);
     private titleService = inject(Title);
     private notificationService = inject(NotificationService);
     private authenticationService = inject(AuthenticationService);
 
+    loginForm = this.fb.group({
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', Validators.required],
+        role: [UserRole.STUDENT, Validators.required],
+        rememberMe: [false]
+    });
+
     ngOnInit() {
         this.titleService.setTitle('angular-material-template - Login');
         this.authenticationService.logout();
-        this.createForm();
+        this.loadSavedUser();
     }
 
-    private createForm() {
+    private loadSavedUser() {
         const savedUserEmail = localStorage.getItem('savedUserEmail');
-
-        this.loginForm = new FormGroup<LoginForm>({
-            email: new FormControl<string | null>(savedUserEmail, {
-                nonNullable: false,
-                validators: [Validators.required, Validators.email]
-            }),
-            password: new FormControl<string | null>('', {nonNullable: false, validators: [Validators.required]}),
-            role: new FormControl<UserRole | null>(UserRole.STUDENT, {
-                nonNullable: false,
-                validators: [Validators.required]
-            }),
-            rememberMe: new FormControl<boolean | null>(savedUserEmail !== null)
-        });
+        if (savedUserEmail) {
+            this.loginForm.patchValue({
+                email: savedUserEmail,
+                rememberMe: true
+            });
+        }
     }
 
     login() {
-        const email = this.loginForm.get('email')?.value ?? '';
-        const password = this.loginForm.get('password')?.value ?? '';
-        const role = this.loginForm.get('role')?.value ?? UserRole.STUDENT;
-        const rememberMe = this.loginForm.get('rememberMe')?.value ?? false;
+        if (this.loginForm.invalid) {
+            return;
+        }
+
+        const {email, password, role, rememberMe} = this.loginForm.getRawValue();
 
         this.loading.set(true);
         this.authenticationService
@@ -91,11 +83,8 @@ export class Login implements OnInit {
                     this.router.navigate(['/']);
                 },
                 error: (error) => {
-                    if (error instanceof DomainError) {
-                        this.notificationService.openSnackBar(error.message);
-                    } else {
-                        this.notificationService.openSnackBar(error.message || 'Ocurrió un error inesperado durante la autenticación');
-                    }
+                    const message = error instanceof DomainError ? error.message : (error.message || 'Ocurrió un error inesperado durante la autenticación');
+                    this.notificationService.openSnackBar(message);
                     this.loading.set(false);
                 }
             });

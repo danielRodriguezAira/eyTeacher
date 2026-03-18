@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
@@ -6,39 +6,39 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {MatListModule} from '@angular/material/list';
-import {map, Observable} from 'rxjs';
+import {map} from 'rxjs';
 import {Topic} from '../../../../../domain/entities/topic';
 import {TopicService} from '../../../services/topic.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-topic-detail',
     standalone: true,
     imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule],
     templateUrl: './topic-detail.html',
-    styleUrl: './topic-detail.css'
+    styleUrl: './topic-detail.scss'
 })
 export class TopicDetail implements OnInit {
-    topic$?: Observable<Topic>;
-    userRole$: Observable<UserRole | null>;
     private route = inject(ActivatedRoute);
     private topicService = inject(TopicService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private authService = inject(AuthenticationService);
 
-    constructor() {
-        this.userRole$ = this.authService.getCurrentUserObservable().pipe(
-            map(user => user ? user.role : null)
-        );
-    }
+    topic = signal<Topic | undefined>(undefined);
+    userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
+        map(user => user?.role ?? null)
+    ), {initialValue: null});
+
+    UserRole = UserRole;
 
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
         if (id) {
-            this.topic$ = this.topicService.getTopicById(id);
+            this.topicService.getTopicById(id).subscribe(t => this.topic.set(t));
         }
     }
 
@@ -47,8 +47,7 @@ export class TopicDetail implements OnInit {
     }
 
     deleteTopic(topic: Topic) {
-        const confirmed = confirm(`¿Seguro que quieres borrar el tema "${topic.name}"?`);
-        if (confirmed) {
+        if (confirm(`¿Seguro que quieres borrar el tema "${topic.name}"?`)) {
             this.topicService.deleteTopic(topic.id!).subscribe({
                 next: () => {
                     this.notificationService.openSnackBar('Tema borrado correctamente');
@@ -62,13 +61,11 @@ export class TopicDetail implements OnInit {
         }
     }
 
-    protected readonly UserRole = UserRole;
-
     addTask(topicId: number | null) {
         this.router.navigate(['/task-add'], {queryParams: {topicId}});
     }
 
-    viewTask(task: any) {
-        this.router.navigate(['/task-detail', task.id]);
+    viewTask(taskId: number) {
+        this.router.navigate(['/task-detail', taskId]);
     }
 }
