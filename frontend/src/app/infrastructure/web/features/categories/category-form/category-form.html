@@ -1,7 +1,7 @@
 <div class="container">
     <mat-card>
         <mat-card-content>
-            <h2>{{ isEditMode ? 'Editar categoría' : 'Nueva categoría' }}</h2>
+            <h2>{{ isEditMode() ? 'Editar categoría' : 'Nueva categoría' }}</h2>
 
             <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
                 <div class="form-grid">

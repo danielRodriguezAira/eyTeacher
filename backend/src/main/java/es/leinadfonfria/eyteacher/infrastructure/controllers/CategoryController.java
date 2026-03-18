@@ -1,10 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.controllers;
 
 import es.leinadfonfria.eyteacher.application.dtos.category.SaveCategoryRequest;
-import es.leinadfonfria.eyteacher.application.services.category.DeleteCategoryUseCase;
-import es.leinadfonfria.eyteacher.application.services.category.GetCategoriesByOwnerUseCase;
-import es.leinadfonfria.eyteacher.application.services.category.GetCategoryUseCase;
-import es.leinadfonfria.eyteacher.application.services.category.SaveCategoryUseCase;
+import es.leinadfonfria.eyteacher.application.services.category.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +23,15 @@ public class CategoryController {
 
     private final SaveCategoryUseCase saveCategoryUseCase;
     private final GetCategoriesByOwnerUseCase getCategoriesByOwnerUseCase;
+    private final GetCategoriesByStudentUseCase getCategoriesByStudentUseCase;
     private final GetCategoryUseCase getCategoryUseCase;
     private final DeleteCategoryUseCase deleteCategoryUseCase;
 
+    /**
+     * Retrieves a category by its ID.
+     * @param categoryId The ID of the category to retrieve.
+     * @return ResponseEntity<?> HTTP 200 with the category data or BAD_REQUEST with an error code.
+     */
     @GetMapping("/{categoryId}")
     @Operation(summary = "Get category by ID", description = "Retrieves all data of a category by its ID")
     public ResponseEntity<?> getCategory(@PathVariable Long categoryId) {
@@ -40,11 +43,32 @@ public class CategoryController {
                 );
     }
 
+    /**
+     * Retrieves all categories belonging to a specific owner.
+     * @param ownerId The ID of the owner.
+     * @return ResponseEntity<?> HTTP 200 with the list of categories or BAD_REQUEST with an error code.
+     */
     @GetMapping("/owner/{ownerId}")
     @Operation(summary = "Get categories by owner", description = "Retrieves all categories belonging to the given owner")
     public ResponseEntity<?> getCategoriesByOwner(@PathVariable String ownerId) {
         log.info("Getting categories for owner: {}", ownerId);
         return getCategoriesByOwnerUseCase.getCategoriesByOwner(ownerId)
+                .fold(
+                        ResponseEntity::ok,
+                        error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+                );
+    }
+
+    /**
+     * Retrieves all categories related to a specific student.
+     * @param studentId The ID of the student.
+     * @return ResponseEntity<?> HTTP 200 with the list of categories or BAD_REQUEST with an error code.
+     */
+    @GetMapping("/student/{studentId}")
+    @Operation(summary = "Get categories by student", description = "Retrieves all categories related to the given student through their subscribed topics")
+    public ResponseEntity<?> getCategoriesByStudent(@PathVariable String studentId) {
+        log.info("Getting categories for student: {}", studentId);
+        return getCategoriesByStudentUseCase.getCategoriesByStudent(studentId)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
@@ -69,6 +93,11 @@ public class CategoryController {
                 );
     }
 
+    /**
+     * Deletes a category by its ID.
+     * @param categoryId The ID of the category to delete.
+     * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
+     */
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "Delete category", description = "Deletes a category by its ID. Only for TEACHER role.")
     public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId) {

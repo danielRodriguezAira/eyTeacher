@@ -12,7 +12,7 @@ import java.util.UUID;
  * Provides abstraction for database operations on the users table.
  */
 @Repository
-public interface UserRepository extends JpaRepository<UserJpaEntity, UUID> {
+public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
     /**
      * Retrieves a user by their email address.
      *

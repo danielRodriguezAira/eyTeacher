@@ -1,0 +1,67 @@
+import {Component, inject, OnInit, signal} from '@angular/core';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
+import {map} from 'rxjs';
+import {Task} from '../../../../../domain/entities/task';
+import {TaskService} from '../../../services/task.service';
+import {NotificationService} from '../../../services/notification.service';
+import {UserRole} from "../../../../../domain/entities/auth-user";
+import {AuthenticationService} from '../../../services/auth.service';
+import {Solution} from '../../../../../domain/entities/solution';
+import {toSignal} from '@angular/core/rxjs-interop';
+
+@Component({
+    selector: 'app-task-detail',
+    standalone: true,
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger],
+    templateUrl: './task-detail.html',
+    styleUrl: './task-detail.scss'
+})
+export class TaskDetail implements OnInit {
+    private route = inject(ActivatedRoute);
+    private taskService = inject(TaskService);
+    private router = inject(Router);
+    private notificationService = inject(NotificationService);
+    private authService = inject(AuthenticationService);
+
+    task = signal<Task | undefined>(undefined);
+    userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
+        map(user => user?.role ?? null)
+    ), {initialValue: null});
+
+    UserRole = UserRole;
+
+    ngOnInit(): void {
+        const id = Number(this.route.snapshot.paramMap.get('id'));
+        if (id) {
+            this.taskService.getTaskById(id).subscribe(t => this.task.set(t));
+        }
+    }
+
+    viewSolution(taskId: number, solution: Solution) {
+        this.router.navigate(['/task', taskId, 'solution', solution.id]);
+    }
+
+    editTask(task: Task) {
+        this.router.navigate(['/task-edit', task.id]);
+    }
+
+    deleteTask(task: Task) {
+        if (confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`)) {
+            this.taskService.deleteTask(task.id!).subscribe({
+                next: () => {
+                    this.notificationService.openSnackBar('Tarea borrada correctamente');
+                    this.router.navigate(['/topic-detail', task.topicId]);
+                },
+                error: (err) => {
+                    this.notificationService.openSnackBar('Error al borrar la tarea');
+                    console.error(err);
+                }
+            });
+        }
+    }
+}

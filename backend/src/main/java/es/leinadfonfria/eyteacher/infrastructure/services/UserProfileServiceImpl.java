@@ -10,13 +10,12 @@ import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.AuthException;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +39,7 @@ import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.UNKNOWN_ERROR;
 @RequiredArgsConstructor
 public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, UpdateUserProfileUseCase, UpdatePasswordUseCase {
 
-    private final UserRepository userRepository;
+    private final UserRepository<User> userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -56,14 +55,13 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
     @Transactional(readOnly = true)
     public Result<AuthUserResponse, Integer> login(LoginRequest request) {
         try {
-            UserJpaEntity entity = userRepository.findByEmail(request.email())
+            User domainUser = userRepository.findByEmail(request.email())
                     .orElseThrow(() -> new AuthException("Invalid credentials", INVALID_CREDENTIALS));
 
-            if (!passwordEncoder.matches(request.password(), entity.getPassword())) {
+            if (!passwordEncoder.matches(request.password(), domainUser.getPassword().value())) {
                 throw new AuthException("Invalid credentials", INVALID_CREDENTIALS);
             }
 
-            User domainUser = userMapper.toDomain(entity);
             Role selectedRole = request.role() != null ? request.role() : Role.STUDENT;
             String token = jwtService.generateToken(domainUser, selectedRole);
 
@@ -89,7 +87,7 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
      * Registers a new user in the system.
      *
      * @param request The registration details.
-     * @return UserId The identifier of the newly created user.
+     * @return Void
      * @throws AuthException If the email is already in use.
      */
     @Override
@@ -111,9 +109,7 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
                     false
             );
 
-            UserJpaEntity entity = userMapper.toEntity(user);
-            userRepository.save(entity);
-
+            userRepository.save(user);
             return Result.ok(null);
         } catch (AuthException e) {
             return Result.fail(e.getCode());
@@ -128,7 +124,7 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
      * Password and admin flag are not modified here.
      *
      * @param request The update details.
-     * @return UserId The identifier of the updated user.
+     * @return Void
      */
     @Override
     @Transactional
@@ -152,22 +148,26 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
                 throw new AuthException("Error updating user profile", e, ErrorCode.INVALID_USER_DATA);
             }
 
-            UserJpaEntity entity = userRepository.findById(userUpdated.getId().value())
+            User existing = userRepository.findById(userUpdated.getId().value())
                     .orElseThrow(() -> new AuthException("User not found", ErrorCode.USER_NOT_FOUND));
 
-            // If email is changing, ensure uniqueness
             String newEmail = userUpdated.getEmail().value();
-            if (!newEmail.equals(entity.getEmail())) {
+            if (!newEmail.equals(existing.getEmail().value())) {
                 if (userRepository.existsByEmail(newEmail)) {
                     throw new AuthException("Email already in use", ErrorCode.EMAIL_ALREADY_IN_USE);
                 }
-                entity.setEmail(newEmail);
             }
 
-            entity.setFirstName(userUpdated.getFirstName().value());
-            entity.setLastName(userUpdated.getLastName().value());
+            User updated = User.create(
+                    userUpdated.getId(),
+                    userUpdated.getEmail(),
+                    existing.getPassword(),
+                    userUpdated.getFirstName(),
+                    userUpdated.getLastName(),
+                    existing.isAdmin()
+            );
 
-            userRepository.save(entity);
+            userRepository.save(updated);
             return Result.ok(null);
         } catch (AuthException e) {
             return Result.fail(e.getCode());
@@ -189,21 +189,29 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
     public Result<Void, Integer> updatePassword(UpdatePasswordRequest request) {
         try {
             UUID userUuid = UUID.fromString(request.id());
-            UserJpaEntity entity = userRepository.findById(userUuid)
+            User existing = userRepository.findById(userUuid)
                     .orElseThrow(() -> new AuthException("User not found", ErrorCode.USER_NOT_FOUND));
 
-            if(!passwordEncoder.matches(request.oldPassword(), entity.getPassword())) {
+            if (!passwordEncoder.matches(request.oldPassword(), existing.getPassword().value())) {
                 throw new AuthException("Invalid current password", ErrorCode.INVALID_PASSWORD);
             }
 
-            if (passwordEncoder.matches(request.newPassword(), entity.getPassword())) {
+            if (passwordEncoder.matches(request.newPassword(), existing.getPassword().value())) {
                 throw new AuthException("New password must be different from the current one", ErrorCode.DIFFERENT_PASSWORD);
             }
 
             Password.raw(request.newPassword());
 
-            entity.setPassword(passwordEncoder.encode(request.newPassword()));
-            userRepository.save(entity);
+            User updated = User.create(
+                    existing.getId(),
+                    existing.getEmail(),
+                    Password.hashed(passwordEncoder.encode(request.newPassword())),
+                    existing.getFirstName(),
+                    existing.getLastName(),
+                    existing.isAdmin()
+            );
+
+            userRepository.save(updated);
             return Result.ok(null);
         } catch (AuthException e) {
             return Result.fail(e.getCode());
@@ -212,5 +220,4 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
             return Result.fail(UNKNOWN_ERROR);
         }
     }
-
 }

@@ -1,7 +1,7 @@
 <div class="container">
     <mat-card>
         <mat-card-content>
-            <h2>{{ isLoggedIn ? 'Mi Cuenta' : 'Crear Nuevo Usuario' }}</h2>
+            <h2>{{ isLoggedIn() ? 'Mi Cuenta' : 'Crear Nuevo Usuario' }}</h2>
 
             <div class="sections-container">
                 <!-- Sección: Edición de datos del usuario -->
@@ -12,7 +12,7 @@
                             <mat-form-field appearance="outline">
                                 <mat-label>Nombre</mat-label>
                                 <input matInput formControlName="firstName">
-                                @if (profileForm.get('firstName')?.hasError('required')) {
+                                @if (profileForm.controls.firstName.hasError('required')) {
                                     <mat-error>El nombre es obligatorio</mat-error>
                                 }
                             </mat-form-field>
@@ -20,7 +20,7 @@
                             <mat-form-field appearance="outline">
                                 <mat-label>Apellidos</mat-label>
                                 <input matInput formControlName="lastName">
-                                @if (profileForm.get('lastName')?.hasError('required')) {
+                                @if (profileForm.controls.lastName.hasError('required')) {
                                     <mat-error>Los apellidos son obligatorios</mat-error>
                                 }
                             </mat-form-field>
@@ -28,50 +28,43 @@
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Email</mat-label>
                                 <input matInput formControlName="email" type="email">
-                                @if (profileForm.get('email')?.hasError('required')) {
+                                @if (profileForm.controls.email.hasError('required')) {
                                     <mat-error>El email es obligatorio</mat-error>
                                 }
-                                @if (profileForm.get('email')?.hasError('email')) {
+                                @if (profileForm.controls.email.hasError('email')) {
                                     <mat-error>Email no válido</mat-error>
                                 }
                             </mat-form-field>
 
-                            @if (!isLoggedIn) {
+                            @if (!isLoggedIn()) {
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Contraseña</mat-label>
-                                    <input matInput [type]="hidePassword ? 'password' : 'text'"
+                                    <input matInput [type]="hidePassword() ? 'password' : 'text'"
                                            formControlName="password">
-                                    <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword"
+                                    <button mat-icon-button matSuffix (click)="hidePassword.set(!hidePassword())"
                                             type="button">
-                                        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                                     </button>
-                                    @if (profileForm.get('password')?.hasError('required')) {
+                                    @if (profileForm.controls.password.hasError('required')) {
                                         <mat-error>La contraseña es obligatoria</mat-error>
                                     }
-                                    @if (profileForm.get('password')?.hasError('minlength')) {
-                                        <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres, contener al
-                                            menos una mayúscula, una minúscula, un número y un carácter especial
-                                            ($!%*?&., etc)
-                                        </mat-error>
+                                    @if (profileForm.controls.password.hasError('minlength')) {
+                                        <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres</mat-error>
                                     }
                                 </mat-form-field>
                             }
                         </div>
                         <div class="actions">
                             <button mat-raised-button color="primary" [disabled]="profileForm.invalid">
-                                {{ isLoggedIn ? 'Guardar Cambios' : 'Registrarse' }}
+                                {{ isLoggedIn() ? 'Guardar Cambios' : 'Registrarse' }}
                             </button>
-                            @if (!isLoggedIn) {
+                            @if (!isLoggedIn()) {
                                 <button mat-button type="button" routerLink="/login">Volver al Login</button>
                             }
                         </div>
                     </form>
                 </section>
-
-                @if (isLoggedIn) {
-                    <mat-divider [vertical]="true" class="desktop-divider"></mat-divider>
-                    <mat-divider class="mobile-divider"></mat-divider>
-
+                @if (isLoggedIn()) {
                     <!-- Sección: Cambio de contraseña -->
                     <section class="account-section">
                         <h3>Cambiar Contraseña</h3>
@@ -79,45 +72,42 @@
                             <div class="form-grid">
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Contraseña Actual</mat-label>
-                                    <input matInput [type]="hideCurrentPassword ? 'password' : 'text'"
+                                    <input matInput [type]="hideCurrentPassword() ? 'password' : 'text'"
                                            formControlName="oldPassword">
                                     <button mat-icon-button matSuffix
-                                            (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
-                                        <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                            (click)="hideCurrentPassword.set(!hideCurrentPassword())" type="button">
+                                        <mat-icon>{{ hideCurrentPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                                     </button>
-                                    @if (passwordForm.get('currentPassword')?.hasError('required')) {
+                                    @if (passwordForm.controls.oldPassword.hasError('required')) {
                                         <mat-error>Introduce tu contraseña actual</mat-error>
                                     }
                                 </mat-form-field>
 
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Nueva Contraseña</mat-label>
-                                    <input matInput [type]="hideNewPassword ? 'password' : 'text'"
+                                    <input matInput [type]="hideNewPassword() ? 'password' : 'text'"
                                            formControlName="newPassword">
-                                    <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword"
+                                    <button mat-icon-button matSuffix (click)="hideNewPassword.set(!hideNewPassword())"
                                             type="button">
-                                        <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                        <mat-icon>{{ hideNewPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                                     </button>
-                                    @if (passwordForm.get('newPassword')?.hasError('required')) {
+                                    @if (passwordForm.controls.newPassword.hasError('required')) {
                                         <mat-error>Introduce la nueva contraseña</mat-error>
                                     }
-                                    @if (passwordForm.get('newPassword')?.hasError('minlength')) {
-                                        <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres, contener al
-                                            menos una mayúscula, una minúscula, un número y un carácter especial
-                                            ($!%*?&., etc)
-                                        </mat-error>
+                                    @if (passwordForm.controls.newPassword.hasError('minlength')) {
+                                        <mat-error>Contraseña inválida: Debe tener al menos 8 caracteres</mat-error>
                                     }
                                 </mat-form-field>
 
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Confirmar Nueva Contraseña</mat-label>
-                                    <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
+                                    <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'"
                                            formControlName="newPasswordConfirm">
                                     <button mat-icon-button matSuffix
-                                            (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
-                                        <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                            (click)="hideConfirmPassword.set(!hideConfirmPassword())" type="button">
+                                        <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                                     </button>
-                                    @if (passwordForm.get('newPasswordConfirm')?.hasError('required')) {
+                                    @if (passwordForm.controls.newPasswordConfirm.hasError('required')) {
                                         <mat-error>Confirma la nueva contraseña</mat-error>
                                     }
                                 </mat-form-field>

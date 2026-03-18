@@ -6,8 +6,8 @@ package es.leinadfonfria.eyteacher.application.dtos.auth;
  *
  * @param email     The desired email address for the new account.
  * @param password  The plain-text password chosen by the user.
- * @param firstName The user's first name.
- * @param lastName  The user's last name.
+ * @param firstName The user's first firstName.
+ * @param lastName  The user's last firstName.
  */
 public record RegisterRequest(
         String email,

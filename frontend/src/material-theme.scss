@@ -1,36 +1,162 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+@use 'sass:map';
 @use '@angular/material' as mat;
 
+// Theme palettes
+$brown-palette: (
+        0: #000000,
+        10: #211105,
+        20: #3b1f0b,
+        25: #482911,
+        30: #543417,
+        35: #613f1d,
+        40: #6e4b23,
+        50: #8b633a,
+        60: #a87c52,
+        70: #c6966a,
+        80: #e4b183,
+        90: #ffdcbe,
+        95: #ffeedc,
+        98: #fff8f2,
+        99: #fffbff,
+        100: #ffffff,
+);
+
+$green-palette: (
+        0: #000000,
+        10: #00210e,
+        20: #00391c,
+        25: #004523,
+        30: #00522b,
+        35: #006033,
+        40: #006d3b,
+        50: #00894c,
+        60: #00a65d,
+        70: #39c476,
+        80: #5ae090,
+        90: #78fdab,
+        95: #bcffcf,
+        98: #a9b5aa,
+        99: #f3fff4,
+        100: #ffffff,
+);
+
+// Helper to read a tone from a palette
+@function tone($palette, $shade) {
+  @return map.get($palette, $shade);
+}
+
+// Semantic tokens for the app
+$app-colors: (
+        text: tone($brown-palette, 20),
+        text-on-primary: tone($brown-palette, 20),
+        text-on-surface: tone($brown-palette, 20),
+
+        primary: tone($brown-palette, 90),
+        surface: tone($brown-palette, 95),
+        surface-container: tone($brown-palette, 95),
+        surface-container-low: tone($brown-palette, 95),
+        surface-container-highest: tone($green-palette, 98),
+
+        toolbar: tone($brown-palette, 90),
+        sidenav: tone($brown-palette, 95),
+        feature-container: tone($green-palette, 98),
+);
+
+// Theme application
 html {
   height: 100%;
+
   @include mat.theme((
           color: (
-                  primary: mat.$azure-palette,
-                  tertiary: mat.$blue-palette,
+                  primary: $brown-palette,
+                  tertiary: $green-palette,
           ),
           typography: Roboto,
           density: 0,
   ));
+
+  --app-text: #{map.get($app-colors, text)};
+  --app-text-on-primary: #{map.get($app-colors, text-on-primary)};
+  --app-text-on-surface: #{map.get($app-colors, text-on-surface)};
+  --app-primary: #{map.get($app-colors, primary)};
+  --app-surface: #{map.get($app-colors, surface)};
+  --app-surface-container: #{map.get($app-colors, surface-container)};
+  --app-surface-container-low: #{map.get($app-colors, surface-container-low)};
+  --app-surface-container-highest: #{map.get($app-colors, surface-container-highest)};
+  --app-toolbar: #{map.get($app-colors, toolbar)};
+  --app-sidenav: #{map.get($app-colors, sidenav)};
+  --app-feature-container: #{map.get($app-colors, feature-container)};
+
+  --mat-sys-on-surface: var(--app-text);
+  --mat-sys-on-surface-variant: var(--app-text);
+  --mat-sys-on-primary-container: var(--app-text);
+  --mat-sys-on-secondary-container: var(--app-text);
+  --mat-sys-on-tertiary-container: var(--app-text);
+
+  --mat-sys-primary: var(--app-primary);
+  --mat-sys-on-primary: var(--app-text-on-primary);
+
+  --mat-sys-surface: var(--app-surface);
+  --mat-sys-surface-container: var(--app-surface-container);
+  --mat-sys-surface-container-low: var(--app-surface-container-low);
+  --mat-sys-surface-container-highest: var(--app-surface-container-highest);
+
+  .container {
+    background-color: var(--app-feature-container);
+    color: var(--app-text);
+  }
+
+  .content-wrapper {
+    background-color: var(--app-feature-container);
+    min-height: 100vh;
+  }
+
+  mat-sidenav-container,
+  mat-sidenav-content {
+    background-color: var(--app-feature-container) !important;
+  }
+
+  mat-sidenav {
+    background-color: var(--app-sidenav) !important;
+  }
+
+  mat-toolbar {
+    background-color: var(--app-toolbar) !important;
+    color: var(--app-text) !important;
+  }
+
+  * {
+    &:not(.mdc-button__label):not(.mat-mdc-button-persistent-ripple) {
+      color: inherit;
+    }
+  }
+
+  body {
+    color: var(--app-text) !important;
+  }
+
+  .mat-mdc-list-item-title,
+  .mat-mdc-list-item-icon,
+  .mat-icon {
+    color: var(--app-text) !important;
+  }
+
 }
 
-body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
+.mat-mdc-form-field.mat-focused .mdc-floating-label {
+  color: #{tone($brown-palette, 40)} !important;
+}
 
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: #{tone($brown-palette, 40)} !important;
+}
+body {
+  color-scheme: light;
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
   height: 100%;
 }

@@ -24,16 +24,23 @@ public class ErrorCode {
     /** Authentication-related errors */
     public static final int AUTHENTICATION_ERROR = 1008;
     /** The category owner could not be found. */
-    public static final int CATEGORY_OWNER_NOT_FOUND = 2001;
+    public static final int CATEGORY_USER_NOT_FOUND = 2001;
     /** The category owner does not have the TEACHER role. */
-    public static final int CATEGORY_OWNER_NOT_TEACHER = 2002;
+    public static final int USER_NOT_TEACHER = 2002;
     /** The requested category could not be found. */
     public static final int CATEGORY_NOT_FOUND = 2003;
+    /** The category owner does not have the TEACHER role. */
+    public static final int USER_NOT_STUDENT = 2004;
+    /** The category has topics, cannot be deleted. */
+    public static final int CATEGORY_HAS_TOPICS = 2005;
     /** The topic owner does not have the TEACHER role. */
     public static final int TOPIC_OWNER_NOT_TEACHER = 3002;
     /** The requested topic could not be found. */
     public static final int TOPIC_NOT_FOUND = 3003;
     /** The requested topic category could not be found. */
     public static final int TOPIC_CATEGORY_NOT_FOUND = 3004;
-
+    /** The requested topic could not be found. */
+    public static final int TASK_NOT_FOUND = 4001;
+    /** The requested solution could not be found. */
+    public static final int SOLUTION_NOT_FOUND = 5001;
 }

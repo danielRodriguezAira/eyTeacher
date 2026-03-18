@@ -3,9 +3,11 @@
         <mat-card-header>
             <mat-card-title>
                 <h1>
-                    <button mat-icon-button [matMenuTriggerFor]="categoriesMenu" aria-label="Opciones de categorías">
-                        <mat-icon>more_vert</mat-icon>
-                    </button>
+                    @if (userRole() === UserRole.TEACHER) {
+                        <button mat-icon-button [matMenuTriggerFor]="categoriesMenu" aria-label="Opciones de categorías">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                    }
                     <span>Categorías</span>
                 </h1>
                 <mat-menu #categoriesMenu="matMenu">
@@ -18,7 +20,7 @@
         </mat-card-header>
         <mat-card-content>
             <div class="grid-container">
-                @for (category of categoryList$ | async; track category.id) {
+                @for (category of categories(); track category.id) {
                     <mat-card class="category-card" (click)="viewCategory(category)">
                         <mat-card-header>
                             <mat-card-title>

@@ -1,0 +1,78 @@
+package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters;
+
+import es.leinadfonfria.eyteacher.domain.entities.Solution;
+import es.leinadfonfria.eyteacher.domain.entities.Task;
+import es.leinadfonfria.eyteacher.domain.entities.Topic;
+import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
+import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TaskJpaEntity;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.SolutionMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TaskMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.SolutionJpaRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJpaRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicJpaRepository;
+import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class TaskRepositoryAdapter implements TaskRepository<Task> {
+
+    private final TaskJpaRepository taskJpaRepository;
+    private final TopicJpaRepository topicJpaRepository;
+    private final SolutionJpaRepository solutionJpaRepository;
+    private final TaskMapper taskMapper;
+    private final TopicMapper topicMapper;
+    private final SolutionMapper solutionMapper;
+
+    @Override
+    public Task findById(Long id) {
+        TaskJpaEntity taskEntity = taskJpaRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
+        Task task = taskMapper.toDomain(taskEntity);
+        Topic topic = topicMapper.toDomain(taskEntity.getTopic());
+        List<Solution> solutionList;
+        if(AuthenticationUtils.isTeacher()) {
+            solutionList = task.getSolutionList();
+        } else {
+            solutionList = solutionMapper.toDomainList(
+                    solutionJpaRepository.findByTaskAndStudentId(taskEntity, AuthenticationUtils.getUserId()));
+        }
+        return Task.create(task.getId(), task.getDescription(), topic, solutionList);
+    }
+
+    @Override
+    public List<Task> findByTopicId(Long topicId) {
+        TopicJpaEntity topicEntity = topicJpaRepository.findById(topicId)
+                .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+        List<TaskJpaEntity> taskList = taskJpaRepository.findByTopic(topicEntity)
+                .orElse(Collections.emptyList());
+        return taskMapper.toDomainList(taskList);
+    }
+
+    @Override
+    public Task save(Task task, Long topicId) {
+        TopicJpaEntity topicEntity = topicJpaRepository.findById(topicId)
+                .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+        TaskJpaEntity taskJpaEntity = taskMapper.toEntity(task);
+        taskJpaEntity.setTopic(topicEntity);
+        return taskMapper.toDomain(taskJpaRepository.save(taskJpaEntity));
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return taskJpaRepository.existsById(id);
+    }
+
+    @Override
+    public void delete(Long id) {
+        taskJpaRepository.deleteById(id);
+    }
+}

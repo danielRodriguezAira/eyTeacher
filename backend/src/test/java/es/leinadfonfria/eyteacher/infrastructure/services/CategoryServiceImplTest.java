@@ -1,25 +1,22 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
-import es.leinadfonfria.eyteacher.application.dtos.category.GetCategoryResponse;
+import es.leinadfonfria.eyteacher.application.dtos.auth.UserResponseMapper;
+import es.leinadfonfria.eyteacher.application.dtos.category.CategoryResponse;
+import es.leinadfonfria.eyteacher.application.dtos.category.CategoryResponseMapper;
 import es.leinadfonfria.eyteacher.application.dtos.category.SaveCategoryRequest;
+import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponseMapper;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Category;
-import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.TopicMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryRepository;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicRepository;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserRepository;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.CategoryRepositoryAdapter;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.UserRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,40 +40,25 @@ import static org.mockito.Mockito.*;
 class CategoryServiceImplTest {
 
     @Mock
-    private CategoryRepository categoryRepository;
-
+    private CategoryRepositoryAdapter categoryRepositoryAdapter;
     @Mock
-    private UserRepository userRepository;
-
+    private UserRepositoryAdapter userRepositoryAdapter;
     @Mock
-    private CategoryMapper categoryMapper;
-
+    private CategoryResponseMapper categoryResponseMapper;
     @Mock
-    private UserMapper userMapper;
-
+    private UserResponseMapper userResponseMapper;
     @Mock
-    private TopicMapper topicMapper;
+    private TopicResponseMapper topicResponseMapper;
 
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
-    private UserJpaEntity ownerJpaEntity;
     private User ownerDomain;
-    private CategoryJpaEntity categoryJpaEntity;
     private final UUID ownerUuid = UUID.randomUUID();
     private final String ownerIdStr = ownerUuid.toString();
 
     @BeforeEach
     void setUp() {
-        ownerJpaEntity = UserJpaEntity.builder()
-                .id(ownerUuid)
-                .email("owner@example.com")
-                .password("encodedPassword")
-                .firstName("John")
-                .lastName("Doe")
-                .isAdmin(false)
-                .build();
-
         ownerDomain = User.create(
                 new UserId(ownerUuid),
                 new Email("owner@example.com"),
@@ -85,112 +67,94 @@ class CategoryServiceImplTest {
                 new Name("Doe"),
                 false
         );
-
-        categoryJpaEntity = CategoryJpaEntity.builder()
-                .id(1L)
-                .name("Math")
-                .description("Mathematics category")
-                .owner(ownerJpaEntity)
-                .build();
-
-        TopicJpaEntity topicJpaEntity = TopicJpaEntity.builder()
-                .id(1L)
-                .name("Algebra")
-                .description("Algebra topic")
-                .category(categoryJpaEntity)
-                .build();
-
-        categoryJpaEntity.setTopicList(List.of(topicJpaEntity));
     }
 
     @Nested
-    @DisplayName("Tests para el método addCategory")
-    class AddCategoryTests {
+    @DisplayName("Tests para el método saveCategory")
+    class SaveCategoryTests {
 
         @Test
         @DisplayName("Debe crear la categoría correctamente con datos válidos")
-        void addCategory_Success() {
-            // Arrange
+        void saveCategory_Success() {
             SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", ownerIdStr);
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.of(ownerDomain));
+                when(categoryRepositoryAdapter.save(any(Category.class))).thenReturn(savedCategory);
 
-                when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
-                when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
-                when(categoryMapper.toEntity(any(Category.class))).thenReturn(categoryJpaEntity);
-                when(categoryRepository.save(categoryJpaEntity)).thenReturn(categoryJpaEntity);
-
-                // Act
                 Result<Long, Integer> result = categoryService.saveCategory(request);
 
-                // Assert
-                assertEquals(categoryJpaEntity.getId(), result.getValue());
-                verify(userRepository).findById(ownerUuid);
-                verify(userMapper).toDomain(ownerJpaEntity);
-                verify(categoryMapper).toEntity(any(Category.class));
-                verify(categoryRepository).save(categoryJpaEntity);
+                assertFalse(result.isFailure());
+                assertEquals(1L, result.getValue());
+                verify(userRepositoryAdapter).findById(ownerUuid);
+                verify(categoryRepositoryAdapter).save(any(Category.class));
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el usuario no es TEACHER")
+        void saveCategory_NotTeacher() {
+            SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", ownerIdStr);
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
+
+                Result<Long, Integer> result = categoryService.saveCategory(request);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.USER_NOT_TEACHER, result.getError());
+                verifyNoInteractions(userRepositoryAdapter, categoryRepositoryAdapter);
             }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si el ownerId no es un UUID válido")
-        void addCategory_InvalidOwnerIdFormat() {
-            // Arrange
+        void saveCategory_InvalidOwnerIdFormat() {
             SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", "not-a-uuid");
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
 
-                // Act
                 Result<Long, Integer> result = categoryService.saveCategory(request);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.INVALID_USER_ID_FORMAT, result.getError());
-                verifyNoInteractions(userRepository, categoryRepository, categoryMapper, userMapper);
+                verifyNoInteractions(userRepositoryAdapter, categoryRepositoryAdapter);
             }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si el owner no existe")
-        void addCategory_OwnerNotFound() {
-            // Arrange
+        void saveCategory_OwnerNotFound() {
             SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", ownerIdStr);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(userRepository.findById(ownerUuid)).thenReturn(Optional.empty());
+                when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.empty());
 
-                // Act
                 Result<Long, Integer> result = categoryService.saveCategory(request);
 
-                // Assert
                 assertTrue(result.isFailure());
-                assertEquals(ErrorCode.CATEGORY_OWNER_NOT_FOUND, result.getError());
-                verify(userRepository).findById(ownerUuid);
-                verifyNoInteractions(categoryRepository, categoryMapper, userMapper);
+                assertEquals(ErrorCode.CATEGORY_USER_NOT_FOUND, result.getError());
+                verify(userRepositoryAdapter).findById(ownerUuid);
+                verifyNoInteractions(categoryRepositoryAdapter);
             }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si ocurre un error inesperado al guardar")
-        void addCategory_UnexpectedError() {
-            // Arrange
+        void saveCategory_UnexpectedError() {
             SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", ownerIdStr);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.of(ownerDomain));
+                when(categoryRepositoryAdapter.save(any(Category.class))).thenThrow(new RuntimeException("DB error"));
 
-                when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
-                when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
-                when(categoryMapper.toEntity(any(Category.class))).thenReturn(categoryJpaEntity);
-                when(categoryRepository.save(any())).thenThrow(new RuntimeException("DB error"));
-
-                // Act
                 Result<Long, Integer> result = categoryService.saveCategory(request);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
             }
@@ -204,141 +168,118 @@ class CategoryServiceImplTest {
         @Test
         @DisplayName("Debe retornar la lista de categorías del owner correctamente")
         void getCategoriesByOwner_Success() {
-            // Arrange
-            when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
-            when(categoryRepository.findByOwner(ownerJpaEntity)).thenReturn(List.of(categoryJpaEntity));
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
 
-            // Act
-            Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
+            when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.of(ownerDomain));
+            when(categoryRepositoryAdapter.findByOwnerId(any(UserId.class))).thenReturn(List.of(savedCategory));
+            when(categoryResponseMapper.toCategoryResponseList(List.of(savedCategory))).thenReturn(List.of(categoryResponse));
 
-            // Assert
+            Result<List<CategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
+
             assertFalse(result.isFailure());
-            List<GetCategoryResponse> categories = result.getValue();
-            assertEquals(1, categories.size());
-            assertEquals(1L, categories.getFirst().id());
-            assertEquals("Math", categories.getFirst().name());
-            assertEquals("Mathematics category", categories.getFirst().description());
-            assertEquals(ownerIdStr, categories.getFirst().ownerId());
-            assertTrue(categories.getFirst().topicList().isEmpty());
-            verify(userRepository).findById(ownerUuid);
-            verify(categoryRepository).findByOwner(ownerJpaEntity);
-        }
-
-        @Test
-        @DisplayName("Debe retornar lista vacía si el owner no tiene categorías")
-        void getCategoriesByOwner_EmptyList() {
-            // Arrange
-            when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
-            when(categoryRepository.findByOwner(ownerJpaEntity)).thenReturn(List.of());
-
-            // Act
-            Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
-
-            // Assert
-            assertFalse(result.isFailure());
-            assertTrue(result.getValue().isEmpty());
-        }
-
-        @Test
-        @DisplayName("Debe retornar fallo si el ownerId no es un UUID válido")
-        void getCategoriesByOwner_InvalidOwnerIdFormat() {
-            // Act
-            Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner("not-a-uuid");
-
-            // Assert
-            assertTrue(result.isFailure());
-            assertEquals(ErrorCode.INVALID_USER_ID_FORMAT, result.getError());
-            verifyNoInteractions(userRepository, categoryRepository, categoryMapper);
+            assertEquals(1, result.getValue().size());
+            assertEquals(1L, result.getValue().getFirst().id());
+            verify(userRepositoryAdapter).findById(ownerUuid);
+            verify(categoryRepositoryAdapter).findByOwnerId(any(UserId.class));
         }
 
         @Test
         @DisplayName("Debe retornar fallo si el owner no existe")
         void getCategoriesByOwner_OwnerNotFound() {
-            // Arrange
-            when(userRepository.findById(ownerUuid)).thenReturn(Optional.empty());
+            when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.empty());
 
-            // Act
-            Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
+            Result<List<CategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
 
-            // Assert
             assertTrue(result.isFailure());
-            assertEquals(ErrorCode.CATEGORY_OWNER_NOT_FOUND, result.getError());
-            verify(userRepository).findById(ownerUuid);
-            verifyNoInteractions(categoryRepository, categoryMapper);
+            assertEquals(ErrorCode.CATEGORY_USER_NOT_FOUND, result.getError());
+            verifyNoInteractions(categoryRepositoryAdapter);
         }
 
         @Test
-        @DisplayName("Debe retornar fallo si ocurre un error inesperado")
-        void getCategoriesByOwner_UnexpectedError() {
-            // Arrange
-            when(userRepository.findById(ownerUuid)).thenReturn(Optional.of(ownerJpaEntity));
-            when(categoryRepository.findByOwner(ownerJpaEntity)).thenThrow(new RuntimeException("DB error"));
+        @DisplayName("Debe retornar fallo si el ownerId no es un UUID válido")
+        void getCategoriesByOwner_InvalidOwnerIdFormat() {
+            Result<List<CategoryResponse>, Integer> result = categoryService.getCategoriesByOwner("not-a-uuid");
 
-            // Act
-            Result<List<GetCategoryResponse>, Integer> result = categoryService.getCategoriesByOwner(ownerIdStr);
-
-            // Assert
             assertTrue(result.isFailure());
-            assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
+            assertEquals(ErrorCode.INVALID_USER_ID_FORMAT, result.getError());
         }
     }
 
     @Nested
-    @DisplayName("GetCategory Tests")
+    @DisplayName("Tests para el método getCategoriesByStudent")
+    class GetCategoriesByStudentTests {
+
+        @Test
+        @DisplayName("Debe retornar la lista de categorías del estudiante correctamente")
+        void getCategoriesByStudent_Success() {
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(true);
+                when(categoryRepositoryAdapter.findByStudentId(any(UserId.class))).thenReturn(List.of(savedCategory));
+                when(categoryResponseMapper.toCategoryResponseList(List.of(savedCategory))).thenReturn(List.of(categoryResponse));
+
+                Result<List<CategoryResponse>, Integer> result = categoryService.getCategoriesByStudent(ownerIdStr);
+
+                assertFalse(result.isFailure());
+                assertEquals(1, result.getValue().size());
+                verify(categoryRepositoryAdapter).findByStudentId(any(UserId.class));
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el usuario no es STUDENT")
+        void getCategoriesByStudent_NotStudent() {
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
+
+                Result<List<CategoryResponse>, Integer> result = categoryService.getCategoriesByStudent(ownerIdStr);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.USER_NOT_STUDENT, result.getError());
+                verifyNoInteractions(categoryRepositoryAdapter);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests para el método getCategory")
     class GetCategoryTests {
 
         @Test
-        @DisplayName("Debe retornar la categoría cuando existe con sus tópicos")
-        void getCategory_Success() {
-            // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.of(categoryJpaEntity));
-            when(userMapper.toDomain(ownerJpaEntity)).thenReturn(ownerDomain);
-            
-            Topic topicDomain = Topic.create("Algebra", "Algebra topic", null);
+        @DisplayName("Debe retornar la categoría correctamente para un TEACHER")
+        void getCategory_SuccessTeacher() {
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
 
-            List<TopicJpaEntity> topicJpaEntityList = categoryJpaEntity.getTopicList();
-            when(topicMapper.toDomainList(topicJpaEntityList)).thenReturn(List.of(topicDomain));
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
+                when(categoryRepositoryAdapter.findById(1L)).thenReturn(savedCategory);
+                when(topicResponseMapper.toTopicResponseList(any())).thenReturn(List.of());
+                when(userResponseMapper.toStudentResponseList(any())).thenReturn(List.of());
+                when(categoryResponseMapper.toCategoryResponse(any(), any(), any())).thenReturn(categoryResponse);
 
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+                Result<CategoryResponse, Integer> result = categoryService.getCategory(1L);
 
-            // Assert
-            assertTrue(result.isSuccess());
-            assertEquals(categoryJpaEntity.getId(), result.getValue().id());
-            assertEquals(1, result.getValue().topicList().size());
-            assertEquals("Algebra", result.getValue().topicList().getFirst().name());
-            
-            verify(categoryRepository).findById(categoryJpaEntity.getId());
-            verify(topicMapper).toDomainList(topicJpaEntityList);
+                assertFalse(result.isFailure());
+                assertEquals(1L, result.getValue().id());
+            }
         }
 
         @Test
         @DisplayName("Debe retornar fallo si la categoría no existe")
         void getCategory_NotFound() {
-            // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenReturn(Optional.empty());
+            when(categoryRepositoryAdapter.findById(99L))
+                    .thenThrow(new NotFoundException("Category not found", ErrorCode.CATEGORY_NOT_FOUND));
 
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
+            Result<CategoryResponse, Integer> result = categoryService.getCategory(99L);
 
-            // Assert
             assertTrue(result.isFailure());
             assertEquals(ErrorCode.CATEGORY_NOT_FOUND, result.getError());
-            verify(categoryRepository).findById(categoryJpaEntity.getId());
-        }
 
-        @Test
-        @DisplayName("Debe retornar fallo si ocurre un error inesperado")
-        void getCategory_UnexpectedError() {
-            // Arrange
-            when(categoryRepository.findById(categoryJpaEntity.getId())).thenThrow(new RuntimeException("DB error"));
-
-            // Act
-            Result<GetCategoryResponse, Integer> result = categoryService.getCategory(categoryJpaEntity.getId());
-
-            // Assert
-            assertTrue(result.isFailure());
-            assertEquals(ErrorCode.UNKNOWN_ERROR, result.getError());
         }
     }
 
@@ -347,58 +288,62 @@ class CategoryServiceImplTest {
     class DeleteCategoryTests {
 
         @Test
-        @DisplayName("Debe eliminar la categoría correctamente si el usuario es TEACHER")
+        @DisplayName("Debe eliminar la categoría correctamente")
         void deleteCategory_Success() {
-            // Arrange
-            Long categoryId = 1L;
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepository.existsById(categoryId)).thenReturn(true);
+                when(categoryRepositoryAdapter.existsById(1L)).thenReturn(true);
+                when(categoryRepositoryAdapter.countTopicList(1L)).thenReturn(0);
 
-                // Act
-                Result<Void, Integer> result = categoryService.deleteCategory(categoryId);
+                Result<Void, Integer> result = categoryService.deleteCategory(1L);
 
-                // Assert
-                assertTrue(result.isSuccess());
-                verify(categoryRepository).existsById(categoryId);
-                verify(categoryRepository).deleteById(categoryId);
+                assertFalse(result.isFailure());
+                verify(categoryRepositoryAdapter).delete(1L);
             }
         }
 
         @Test
-        @DisplayName("Debe fallar si el usuario no es TEACHER")
+        @DisplayName("Debe retornar fallo si el usuario no es TEACHER")
         void deleteCategory_NotTeacher() {
-            // Arrange
-            Long categoryId = 1L;
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(false);
 
-                // Act
-                Result<Void, Integer> result = categoryService.deleteCategory(categoryId);
+                Result<Void, Integer> result = categoryService.deleteCategory(1L);
 
-                // Assert
                 assertTrue(result.isFailure());
-                assertEquals(ErrorCode.CATEGORY_OWNER_NOT_TEACHER, result.getError());
-                verify(categoryRepository, never()).deleteById(any());
+                assertEquals(ErrorCode.USER_NOT_TEACHER, result.getError());
+                verify(categoryRepositoryAdapter, never()).delete(any());
             }
         }
 
         @Test
-        @DisplayName("Debe fallar si la categoría no existe")
+        @DisplayName("Debe retornar fallo si la categoría no existe")
         void deleteCategory_NotFound() {
-            // Arrange
-            Long categoryId = 1L;
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepository.existsById(categoryId)).thenReturn(false);
+                when(categoryRepositoryAdapter.existsById(99L)).thenReturn(false);
 
-                // Act
-                Result<Void, Integer> result = categoryService.deleteCategory(categoryId);
+                Result<Void, Integer> result = categoryService.deleteCategory(99L);
 
-                // Assert
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.CATEGORY_NOT_FOUND, result.getError());
-                verify(categoryRepository, never()).deleteById(any());
+                verify(categoryRepositoryAdapter, never()).delete(any());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si la categoría tiene tópicos")
+        void deleteCategory_HasTopics() {
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
+                when(categoryRepositoryAdapter.existsById(1L)).thenReturn(true);
+                when(categoryRepositoryAdapter.countTopicList(1L)).thenReturn(2);
+
+                Result<Void, Integer> result = categoryService.deleteCategory(1L);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.CATEGORY_HAS_TOPICS, result.getError());
+                verify(categoryRepositoryAdapter, never()).delete(any());
             }
         }
     }

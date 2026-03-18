@@ -5,6 +5,7 @@ import {switchMap} from 'rxjs/operators';
 import {Category} from '../../../domain/entities/category';
 import {CategoryServicePort} from '../../../application/services/category.service.port';
 import {AuthenticationService} from './auth.service';
+import {UserRole} from "../../../domain/entities/auth-user";
 
 @Injectable({
     providedIn: 'root'
@@ -21,7 +22,12 @@ export class CategoryService implements CategoryServicePort {
         return this.authService.getCurrentUserObservable().pipe(
             switchMap(user => {
                 if (user && user.id) {
-                    return this.http.get<Category[]>(`${this.API_URL}/owner/${user.id}`);
+                    if (user.role === UserRole.STUDENT) {
+                        return this.http.get<Category[]>(`${this.API_URL}/student/${user.id}`);
+                    }
+                    if (user.role === UserRole.TEACHER) {
+                        return this.http.get<Category[]>(`${this.API_URL}/owner/${user.id}`);
+                    }
                 }
                 return of([]);
             })

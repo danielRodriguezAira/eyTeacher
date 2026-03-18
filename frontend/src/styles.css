@@ -1,6 +1,4 @@
 /* You can add global styles to this file, and also import other style files */
-/* Use a dark prebuilt theme to match the dark background */
-@import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 
 html, body {
     height: 100%;
@@ -9,29 +7,16 @@ html, body {
 body {
     margin: 0;
     font-family: Roboto, "Helvetica Neue", sans-serif;
-    background-color: #121212;
-    color: white;
-}
-
-/* Custom dark theme colors override */
-.mat-toolbar.mat-primary {
-    background: #1a1a2e;
 }
 
 .dark-sidebar {
-    background: #16213e !important;
-    color: white;
 }
 
 .mat-nav-list .mat-list-item {
-    color: #bdc3c7;
 }
 
 .mat-nav-list .mat-list-item:hover {
-    background: rgba(255, 255, 255, 0.05);
 }
 
 .active-link {
-    color: #3f51b5 !important;
-    background: rgba(63, 81, 181, 0.1);
 }
