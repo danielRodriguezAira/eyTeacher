@@ -1,0 +1,61 @@
+.container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.sections-container {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.account-section {
+    flex: 1;
+}
+
+.account-section h3 {
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.desktop-divider {
+    height: auto;
+}
+
+.mobile-divider {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .sections-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .desktop-divider {
+        display: none;
+    }
+
+    .mobile-divider {
+        display: block;
+        margin: 20px 0;
+    }
+}
