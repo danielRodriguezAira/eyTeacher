@@ -63,9 +63,9 @@ export class App {
         if (url.startsWith('/login')) {
             return true;
         }
-        // Para '/account', solo es pública (sin layout) si el usuario NO está logueado
-        if (url.startsWith('/account')) {
-            return !this.auth.getCurrentUser();
+        // Para '/register', es pública (sin layout) siempre
+        if (url.startsWith('/register')) {
+            return true;
         }
         return false;
     }

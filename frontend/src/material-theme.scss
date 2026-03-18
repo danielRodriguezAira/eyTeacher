@@ -7,14 +7,109 @@
 
 html {
   height: 100%;
+
+  $brown-palette: (
+    0: #000000,
+    10: #211105,
+    20: #3b1f0b,
+    25: #482911,
+    30: #543417,
+    35: #613f1d,
+    40: #6e4b23,
+    50: #8b633a,
+    60: #a87c52,
+    70: #c6966a,
+    80: #e4b183,
+    90: #ffdcbe,
+    95: #ffeedc,
+    98: #fff8f2,
+    99: #fffbff,
+    100: #ffffff,
+  );
+
+  $green-palette: (
+    0: #000000,
+    10: #00210e,
+    20: #00391c,
+    25: #004523,
+    30: #00522b,
+    35: #006033,
+    40: #006d3b,
+    50: #00894c,
+    60: #00a65d,
+    70: #39c476,
+    80: #5ae090,
+    90: #78fdab,
+    95: #bcffcf,
+    98: #7b887d,
+    99: #f3fff4,
+    100: #ffffff,
+  );
+
   @include mat.theme((
           color: (
-                  primary: mat.$azure-palette,
-                  tertiary: mat.$blue-palette,
+                  primary: $brown-palette,
+                  tertiary: $green-palette,
           ),
           typography: Roboto,
           density: 0,
   ));
+
+  // Overrides for Brown Dark Font (except buttons)
+  --mat-sys-on-surface: #3e2723;
+  --mat-sys-on-surface-variant: #3e2723;
+  --mat-sys-on-primary-container: #3e2723;
+  --mat-sys-on-secondary-container: #3e2723;
+  --mat-sys-on-tertiary-container: #3e2723;
+
+  // Header (Toolbar): Marrón tenue (use primary tone 90)
+  --mat-sys-primary: #ffdcbe;
+  --mat-sys-on-primary: #3e2723;
+
+  // Sidenav: Marrón un poco más claro que la cabecera (use primary tone 95)
+  --mat-sys-surface: #ffeedc;
+  --mat-sys-surface-container: #ffeedc;
+  --mat-sys-surface-container-low: #ffeedc;
+
+  // Contenedores (Features): Verde muy tenue (use tertiary tone 98)
+  --mat-sys-surface-container-highest: #7b887d;
+
+  .container {
+    background-color: #7b887d;
+    color: #3e2723;
+  }
+
+  .content-wrapper {
+    background-color: #7b887d;
+    min-height: 100vh;
+  }
+
+  mat-sidenav-container, mat-sidenav-content {
+    background-color: #7b887d !important;
+  }
+
+  mat-sidenav {
+    background-color: #ffeedc !important;
+  }
+
+  mat-toolbar {
+    background-color: #ffdcbe !important;
+    color: #3e2723 !important;
+  }
+
+  * {
+    &:not(.mdc-button__label):not(.mat-mdc-button-persistent-ripple) {
+      color: inherit;
+    }
+  }
+
+  body {
+    color: #3e2723 !important;
+  }
+
+  .mat-mdc-list-item-title, .mat-mdc-list-item-icon, .mat-icon {
+    color: #3e2723 !important;
+  }
 }
 
 body {

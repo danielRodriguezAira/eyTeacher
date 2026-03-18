@@ -35,7 +35,6 @@
 
 .submenu {
     overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .submenu-item {
@@ -43,11 +42,9 @@
 }
 
 .new-category-item {
-    background-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .new-category-item:hover {
-    background-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .italic-text {
@@ -55,8 +52,6 @@
 }
 
 .view-btn {
-    background-color: #ff4081;
-    color: white;
     margin-right: 16px;
 }
 

@@ -5,29 +5,23 @@
 }
 
 .detail-card {
-    background-color: #2c2c2c;
-    color: white;
     padding: 16px;
 }
 
 h1 {
     margin: 0;
-    color: #e0e0e0;
 }
 
 .description {
     font-size: 1.2rem;
     line-height: 1.6;
     margin-top: 20px;
-    color: #e0e0e0;
 }
 
 .not-found {
     text-align: center;
     padding: 40px;
-    background-color: #2c2c2c;
     border-radius: 8px;
-    color: white;
 }
 
 .not-found mat-icon {
@@ -35,7 +29,6 @@ h1 {
     width: 48px;
     height: 48px;
     margin-bottom: 16px;
-    color: #f44336;
 }
 
 mat-card-actions {
@@ -46,7 +39,6 @@ mat-card-actions {
 /* Estilos para la opción Borrar en rojo */
 .delete-action .delete-text,
 .delete-action .delete-icon {
-    color: #f44336;
 }
 
 .topics-header {
@@ -69,14 +61,11 @@ mat-card-actions {
 }
 
 .topic-card {
-    background-color: #3d3d3d;
-    color: white;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
 .topic-card:hover {
-    background-color: #4d4d4d;
 }
 
 .topic-card mat-card-title {
