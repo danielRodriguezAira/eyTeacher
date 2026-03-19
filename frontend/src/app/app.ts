@@ -1,4 +1,4 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {animate, state, style, transition, trigger} from '@angular/animations';
@@ -9,10 +9,13 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
-import {Observable} from 'rxjs';
+import {Observable, of, switchMap} from 'rxjs';
 import {AuthenticationService} from './infrastructure/web/services/auth.service';
 import {CategoryService} from './infrastructure/web/services/category.service';
 import {Category} from './domain/entities/category';
+import {NotificationService} from './infrastructure/web/services/notification.service';
+import {Notification} from './domain/entities/notification';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-root',
@@ -53,6 +56,22 @@ export class App {
     private readonly router = inject(Router);
     private readonly auth = inject(AuthenticationService);
     private readonly categoryService = inject(CategoryService);
+    private readonly notificationService = inject(NotificationService);
+
+    notifications = toSignal(this.auth.getCurrentUserObservable().pipe(
+        switchMap(user => {
+            if (user && user.id) {
+                return this.notificationService.getRefreshObservable().pipe(
+                    switchMap(() => this.notificationService.getNotificationsByOwner(user.id))
+                );
+            }
+            return of([] as Notification[]);
+        })
+    ), {initialValue: [] as Notification[]});
+
+    hasUnreadNotifications = computed(() => {
+        return this.notifications()?.some(n => !n.read) ?? false;
+    });
 
     constructor() {
         this.categories$ = this.categoryService.getCategories();

@@ -16,7 +16,12 @@ export const routes: Routes = [
         path: '',
         canActivate: [authGuard],
         children: [
-            {path: '', redirectTo: 'category-list', pathMatch: 'full'},
+            {path: '', redirectTo: 'notifications', pathMatch: 'full'},
+            {
+                path: 'notifications',
+                loadComponent: () =>
+                    import('./infrastructure/web/features/notifications/notification-list/notification-list').then(m => m.NotificationList)
+            },
             {
                 path: 'category-list',
                 loadComponent: () =>
@@ -81,6 +86,11 @@ export const routes: Routes = [
                 path: 'task/:taskId/solution/:id',
                 loadComponent: () =>
                     import('./infrastructure/web/features/solutions/solution-detail/solution-detail').then(m => m.SolutionDetail)
+            },
+            {
+                path: 'task/:taskId/solution-form',
+                loadComponent: () =>
+                    import('./infrastructure/web/features/solutions/solution-form/solution-form').then(m => m.SolutionForm)
             },
         ]
     },

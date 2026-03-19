@@ -50,6 +50,10 @@ export class TaskDetail implements OnInit {
         this.router.navigate(['/task-edit', task.id]);
     }
 
+    addSolution(task: Task) {
+        this.router.navigate(['/task', task.id, 'solution-form']);
+    }
+
     deleteTask(task: Task) {
         if (confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`)) {
             this.taskService.deleteTask(task.id!).subscribe({
