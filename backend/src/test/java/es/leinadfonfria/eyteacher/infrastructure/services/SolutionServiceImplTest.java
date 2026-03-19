@@ -149,7 +149,7 @@ class SolutionServiceImplTest {
         void getSolutionsByTask_Success() {
             UserResponse student = new UserResponse(studentDomain.getId().value().toString(), "Jane", "Smith", "jane.smith@example.com");
             TaskResponse task = new TaskResponse(taskId, "Task description", 1L, Collections.emptyList());
-            SolutionResponse solutionResponse = new SolutionResponse(solutionId, "My solution", student, task);
+            SolutionResponse solutionResponse = new SolutionResponse(solutionId, "My solution", student, task, null);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);

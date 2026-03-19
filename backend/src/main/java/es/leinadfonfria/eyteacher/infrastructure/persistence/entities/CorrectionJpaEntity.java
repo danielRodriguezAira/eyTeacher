@@ -4,21 +4,19 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 
 /**
- * JPA entity for solution persistence.
+ * JPA entity for correction persistence.
  */
 @Entity
-@Table(name = "solutions")
+@Table(name = "corrections")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolutionJpaEntity {
-
+public class CorrectionJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,16 +24,13 @@ public class SolutionJpaEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private UserJpaEntity student;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id", nullable = false)
-    private TaskJpaEntity task;
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private UserJpaEntity teacher;
 
-    @OneToOne(mappedBy = "solution")
-    private CorrectionJpaEntity correction;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "solution_id", nullable = false, unique = true)
+    private SolutionJpaEntity solution;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

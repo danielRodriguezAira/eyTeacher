@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -22,6 +23,12 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
     private final SolutionJpaRepository solutionJpaRepository;
     private final TaskJpaRepository taskJpaRepository;
     private final SolutionMapper solutionMapper;
+
+    @Override
+    public Optional<Solution> findById(Long id) {
+        return solutionJpaRepository.findById(id)
+                .map(solutionMapper::toDomain);
+    }
 
     @Override
     public List<Solution> findByTaskId(Long taskId) {

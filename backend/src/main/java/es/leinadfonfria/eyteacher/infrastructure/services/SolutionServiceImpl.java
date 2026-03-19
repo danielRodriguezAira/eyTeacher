@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponse;
 import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponseMapper;
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionRequest;
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionUseCase;
+import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionByIdUseCase;
 import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionsByTaskUseCase;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Solution;
@@ -15,9 +16,11 @@ import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.SolutionRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
 import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
+import es.leinadfonfria.eyteacher.infrastructure.events.NewSolutionEvent;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +30,13 @@ import java.util.UUID;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTaskUseCase {
+public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTaskUseCase, GetSolutionByIdUseCase {
 
     private final SolutionRepository<Solution> solutionRepository;
     private final TaskRepository<Task> taskRepository;
     private final UserRepository<User> userRepository;
     private final SolutionResponseMapper solutionResponseMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Adds a new solution to a task (Only Student Role).
@@ -56,6 +60,7 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
 
             Solution solution = Solution.create(request.description(), student, task);
             Solution saved = solutionRepository.save(solution, request.taskId());
+            eventPublisher.publishEvent(new NewSolutionEvent(this, solution));
             return Result.ok(saved.getId());
         } catch (AuthException e) {
             log.error("Authentication error during solution addition", e);
@@ -95,6 +100,26 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
             return Result.fail(e.getCode());
         } catch (Exception e) {
             log.error("Unexpected error during solutions retrieval", e);
+            return Result.fail(ErrorCode.UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Retrieves a solution by its ID.
+     * @param id The ID of the solution.
+     * @return Result containing the SolutionResponse or an error code.
+     */
+    @Override
+    public Result<SolutionResponse, Integer> getSolutionById(Long id) {
+        try {
+            Solution solution = solutionRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Solution not found", ErrorCode.SOLUTION_NOT_FOUND));
+            return Result.ok(solutionResponseMapper.toSolutionResponse(solution));
+        } catch (NotFoundException e) {
+            log.error("Not found error during solution retrieval", e);
+            return Result.fail(e.getCode());
+        } catch (Exception e) {
+            log.error("Unexpected error during solution retrieval", e);
             return Result.fail(ErrorCode.UNKNOWN_ERROR);
         }
     }

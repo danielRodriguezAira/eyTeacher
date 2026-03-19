@@ -2,6 +2,7 @@ package es.leinadfonfria.eyteacher.infrastructure.controllers;
 
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionRequest;
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionUseCase;
+import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionByIdUseCase;
 import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionsByTaskUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ public class SolutionController {
 
     private final AddSolutionUseCase addSolutionUseCase;
     private final GetSolutionsByTaskUseCase getSolutionsByTaskUseCase;
+    private final GetSolutionByIdUseCase getSolutionByIdUseCase;
 
     /**
      * Handles solution addition requests.
@@ -35,6 +37,23 @@ public class SolutionController {
     public ResponseEntity<?> addSolution(@RequestBody AddSolutionRequest request) {
         log.info("Adding solution: {}", request);
         return addSolutionUseCase.addSolution(request)
+                .fold(
+                        ResponseEntity::ok,
+                        error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+                );
+    }
+
+    /**
+     * Retrieves a solution by its ID.
+     *
+     * @param id The ID of the solution.
+     * @return ResponseEntity<?> HTTP 200 with the solution or BAD_REQUEST with an error code.
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "Get solution by ID", description = "Retrieves a solution by its ID.")
+    public ResponseEntity<?> getSolutionById(@PathVariable Long id) {
+        log.info("Getting solution by id: {}", id);
+        return getSolutionByIdUseCase.getSolutionById(id)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

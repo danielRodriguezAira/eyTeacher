@@ -43,4 +43,8 @@ public class ErrorCode {
     public static final int TASK_NOT_FOUND = 4001;
     /** The requested solution could not be found. */
     public static final int SOLUTION_NOT_FOUND = 5001;
+    /** The requested correction could not be found. */
+    public static final int CORRECTION_NOT_FOUND = 6001;
+    /** The requested notification could not be found. */
+    public static final int NOTIFICATION_NOT_FOUND = 7001;
 }

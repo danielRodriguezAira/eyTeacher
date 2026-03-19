@@ -10,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,6 +33,8 @@ public interface UserMapper {
     @Mapping(target = "password", source = "password", qualifiedByName = "toPassword")
     @Mapping(target = "isAdmin", ignore = true)
     User toDomain(UserJpaEntity entity);
+
+    List<User> toDomainList(List<UserJpaEntity> entityList);
 
     /**
      * Converts a domain entity to a JPA entity.

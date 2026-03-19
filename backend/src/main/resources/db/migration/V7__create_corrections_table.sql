@@ -1,0 +1,10 @@
+CREATE TABLE corrections (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    description TEXT NOT NULL,
+    teacher_id BINARY(16) NOT NULL,
+    solution_id BIGINT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_correction_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_correction_solution FOREIGN KEY (solution_id) REFERENCES solutions(id) ON DELETE CASCADE
+);

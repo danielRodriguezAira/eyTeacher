@@ -4,13 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 /**
- * Implementación del patrón Result en Java.
- * Utiliza 'sealed' para garantizar que solo existan los casos Success y Failure.
+ * Implementation of the Result pattern in Java.
+ * Uses 'sealed' to ensure that only Success and Failure cases exist.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
@@ -19,7 +17,7 @@ import java.util.function.Function;
 })
 public sealed interface Result<T, E> permits Result.Success, Result.Failure {
 
-    // --- Métodos de Fábrica ---
+    // --- Factory Methods ---
 
     static <T, E> Result<T, E> ok(T value) {
         return new Success<>(value);
@@ -29,7 +27,7 @@ public sealed interface Result<T, E> permits Result.Success, Result.Failure {
         return new Failure<>(error);
     }
 
-    // --- Métodos de Estado ---
+    // --- Status Methods ---
 
     boolean isSuccess();
 
@@ -37,7 +35,7 @@ public sealed interface Result<T, E> permits Result.Success, Result.Failure {
         return !isSuccess();
     }
 
-    // --- Implementaciones de los Tipos ---
+    // --- Type Implementations ---
 
     record Success<T, E>(T value) implements Result<T, E> {
         @Override public boolean isSuccess() { return true; }
@@ -49,7 +47,7 @@ public sealed interface Result<T, E> permits Result.Success, Result.Failure {
         @Override public boolean isSuccess() { return false; }
     }
 
-    // --- Operaciones Funcionales (map, flatMap, fold, combine) ---
+    // --- Functional Operations (map, flatMap, fold, combine) ---
     
     default <U> U fold(Function<? super T, ? extends U> successFn, Function<? super E, ? extends U> failureFn) {
         if (this instanceof Success<T, E>(T value)) {
@@ -65,41 +63,17 @@ public sealed interface Result<T, E> permits Result.Success, Result.Failure {
         }
         return (Result<U, E>) this;
     }
-
-    @SuppressWarnings("unchecked")
-    default <U> Result<U, E> flatMap(Function<? super T, Result<U, E>> fn) {
-        if (this instanceof Success<T, E>(T value)) {
-            return fn.apply(value);
-        }
-        return (Result<U, E>) this;
-    }
-
-    /**
-     * Combina una lista de resultados en un resultado de lista.
-     * Si uno falla, devuelve el primer error encontrado.
-     */
-    static <T, E> Result<List<T>, E> combine(List<Result<T, E>> results) {
-        List<T> values = new ArrayList<>(results.size());
-        for (var result : results) {
-            if (result instanceof Success<T, E>(T value)) {
-                values.add(value);
-            } else if (result instanceof Failure<T, E>(E error)) {
-                return Result.fail(error);
-            }
-        }
-        return Result.ok(values);
-    }
-
-    // Métodos de utilidad para acceder al valor o error de forma segura con Pattern Matching
+    
+    // Utility methods for safely accessing value or error with Pattern Matching
     @JsonIgnore
     default T getValue() {
         if (this instanceof Success<T, E>(T value)) return value;
-        throw new IllegalStateException("No se puede obtener el valor de un Result.Failure");
+        throw new IllegalStateException("Cannot get value from a Result.Failure");
     }
 
     @JsonIgnore
     default E getError() {
         if (this instanceof Failure<T, E>(E error)) return error;
-        throw new IllegalStateException("No se puede obtener el error de un Result.Success");
+        throw new IllegalStateException("Cannot get error from a Result.Success");
     }
 }
