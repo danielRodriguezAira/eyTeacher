@@ -1,0 +1,26 @@
+<mat-card class="notification-card">
+    <mat-card-header>
+        <mat-card-title>Avisos</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        @if (notifications().length > 0) {
+            <mat-nav-list>
+                @for (notification of notifications(); track notification.id) {
+                    <a mat-list-item
+                       (click)="onNotificationClick(notification)"
+                       [class.unread-notification]="!notification.read">
+                        <mat-icon matListItemIcon>notifications</mat-icon>
+                        <div matListItemTitle [class.is-unread]="!notification.read">
+                            {{ notification.message }}
+                        </div>
+                        <div matListItemLine>
+                            {{ notification.goTo }}
+                        </div>
+                    </a>
+                }
+            </mat-nav-list>
+        } @else {
+            <p class="no-notifications">No tienes avisos en este momento.</p>
+        }
+    </mat-card-content>
+</mat-card>
