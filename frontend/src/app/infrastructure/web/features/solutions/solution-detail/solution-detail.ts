@@ -1,5 +1,5 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
-import {ActivatedRoute, RouterLink} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -9,7 +9,10 @@ import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {map} from 'rxjs';
 import {Solution} from '../../../../../domain/entities/solution';
+import {Correction} from '../../../../../domain/entities/correction';
 import {TaskService} from '../../../services/task.service';
+import {CorrectionService} from '../../../services/correction.service';
+import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
 import {toSignal} from '@angular/core/rxjs-interop';
@@ -32,8 +35,11 @@ import {toSignal} from '@angular/core/rxjs-interop';
 })
 export class SolutionDetail implements OnInit {
     private route = inject(ActivatedRoute);
+    private router = inject(Router);
     private taskService = inject(TaskService);
     private authService = inject(AuthenticationService);
+    private correctionService = inject(CorrectionService);
+    private notificationService = inject(NotificationService);
 
     solution = signal<Solution | undefined>(undefined);
     userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
@@ -61,7 +67,22 @@ export class SolutionDetail implements OnInit {
     }
 
     sendCorrection() {
-        // Lógica de envío de corrección no implementada según requerimiento
-        console.log('Enviando corrección:', this.correctionText());
+        const sol = this.solution();
+        if (sol && sol.id) {
+            const correction: Correction = {
+                description: this.correctionText(),
+                solutionId: sol.id
+            };
+            this.correctionService.addCorrection(correction).subscribe({
+                next: (savedCorrection) => {
+                    this.solution.update(s => s ? {...s, correction: savedCorrection} : undefined);
+                    this.router.navigate(['/task-detail', sol.task.id]);
+                    this.notificationService.openSnackBar('Corrección enviada correctamente');
+                },
+                error: () => {
+                    this.notificationService.openSnackBar('Error al enviar la corrección');
+                }
+            });
+        }
     }
 }

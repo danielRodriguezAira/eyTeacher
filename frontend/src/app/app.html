@@ -24,6 +24,13 @@
         <mat-sidenav-container class="main-container">
             <mat-sidenav #sidenav mode="side" opened class="dark-sidebar">
                 <mat-nav-list>
+                    <a mat-list-item routerLink="/notifications" routerLinkActive="active-link" class="notification-menu-item">
+                        <mat-icon matListItemIcon>notifications</mat-icon>
+                        <span matListItemTitle>Avisos</span>
+                        @if (hasUnreadNotifications()) {
+                            <span class="unread-dot"></span>
+                        }
+                    </a>
                     <a mat-list-item routerLink="/category-list" routerLinkActive="active-link">
                         <mat-icon matListItemIcon>category</mat-icon>
                         <span matListItemTitle>Categorías</span>

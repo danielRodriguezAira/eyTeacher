@@ -9,7 +9,16 @@
             <mat-card-content>
                 <p class="description">{{ sol.description }}</p>
 
-                @if (userRole() === UserRole.TEACHER) {
+                @if (sol.correction) {
+                    <div class="correction-display">
+                        <h3>Corrección</h3>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <textarea matInput [value]="sol.correction.description" readonly rows="5"></textarea>
+                        </mat-form-field>
+                    </div>
+                }
+
+                @if (userRole() === UserRole.TEACHER && !sol.correction) {
                     <div class="correction-section">
                         @if (!showCorrectionForm()) {
                             <button mat-raised-button color="primary" (click)="startCorrection()">

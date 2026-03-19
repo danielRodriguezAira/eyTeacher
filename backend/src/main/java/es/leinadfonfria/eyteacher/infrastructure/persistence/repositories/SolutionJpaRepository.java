@@ -13,6 +13,6 @@ import java.util.UUID;
 public interface SolutionJpaRepository extends JpaRepository<SolutionJpaEntity, Long> {
     List<SolutionJpaEntity> findByTask(TaskJpaEntity task);
 
-    @Query("SELECT s FROM SolutionJpaEntity s WHERE s.task.id = :taskId AND s.student.id = :studentId")
+    @Query("SELECT s FROM SolutionJpaEntity s WHERE s.task = :task AND s.student.id = :studentId")
     List<SolutionJpaEntity> findByTaskAndStudentId(TaskJpaEntity task, UUID studentId);
 }

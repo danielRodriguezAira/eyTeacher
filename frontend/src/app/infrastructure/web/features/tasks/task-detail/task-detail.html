@@ -28,7 +28,21 @@
                 <p class="description">{{ task.description }}</p>
 
                 <div class="solutions-section">
-                    <h3>Soluciones</h3>
+                    <h3 class="solutions-header">
+                        @if (userRole() === UserRole.STUDENT && (!task.solutionList || task.solutionList.length === 0)) {
+                            <button mat-icon-button [matMenuTriggerFor]="solutionMenu" aria-label="Opciones de solución"
+                                    (click)="$event.stopPropagation()">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #solutionMenu="matMenu">
+                                <button mat-menu-item (click)="addSolution(task)">
+                                    <mat-icon>add</mat-icon>
+                                    <span>Añadir solución</span>
+                                </button>
+                            </mat-menu>
+                        }
+                        <span>Soluciones</span>
+                    </h3>
                     @if (task.solutionList && task.solutionList.length > 0) {
                         <div class="solutions-grid">
                             @for (solution of task.solutionList; track solution.id) {

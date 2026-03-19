@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
+import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import org.mapstruct.Mapper;
@@ -26,6 +27,13 @@ public interface TopicMapper {
     @Mapping(target = "studentList", ignore = true)
     @Mapping(target = "taskList", ignore = true)
     Topic toDomain(TopicJpaEntity entity);
+
+    @Mapping(target = "name", source = "entity.name", qualifiedByName = "toTopicName")
+    @Mapping(target = "description", source = "entity.description")
+    @Mapping(target = "category", source = "entity.category")
+    @Mapping(target = "studentList", source = "studentList")
+    @Mapping(target = "taskList", ignore = true)
+    Topic toDomain(TopicJpaEntity entity, List<User> studentList);
 
     @Named("toTopicName")
     default Name toName(String name) {

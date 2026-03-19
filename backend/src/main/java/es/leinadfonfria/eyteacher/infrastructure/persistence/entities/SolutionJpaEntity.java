@@ -34,6 +34,9 @@ public class SolutionJpaEntity {
     @JoinColumn(name = "task_id", nullable = false)
     private TaskJpaEntity task;
 
+    @OneToOne(mappedBy = "solution")
+    private CorrectionJpaEntity correction;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
