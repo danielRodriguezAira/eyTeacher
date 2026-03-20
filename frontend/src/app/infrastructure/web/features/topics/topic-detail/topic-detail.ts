@@ -46,6 +46,10 @@ export class TopicDetail implements OnInit {
         this.router.navigate(['/topic-edit', topic.id]);
     }
 
+    subscribeStudents(topic: Topic) {
+        this.router.navigate(['/topic-subscribe', topic.id]);
+    }
+
     deleteTopic(topic: Topic) {
         if (confirm(`¿Seguro que quieres borrar el tema "${topic.name}"?`)) {
             this.topicService.deleteTopic(topic.id!).subscribe({

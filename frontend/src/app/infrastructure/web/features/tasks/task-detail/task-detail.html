@@ -49,7 +49,11 @@
                                 <mat-card class="solution-card" (click)="viewSolution(task.id!, solution)">
                                     <mat-card-header>
                                         <mat-card-title>
-                                            {{ solution.student.firstName }} {{ solution.student.lastName }}
+                                            @if (userRole() === UserRole.TEACHER) {
+                                                {{ solution.student.firstName }} {{ solution.student.lastName }}
+                                            } @else {
+                                                Mi solución
+                                            }
                                         </mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content>

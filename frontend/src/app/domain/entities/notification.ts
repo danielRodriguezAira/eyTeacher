@@ -6,6 +6,5 @@ export interface Notification {
     id: number;
     message: string;
     owner: NotificationOwner;
-    goTo: string;
     read: boolean;
 }

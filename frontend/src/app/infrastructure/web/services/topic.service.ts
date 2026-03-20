@@ -22,4 +22,12 @@ export class TopicService implements TopicServicePort {
     deleteTopic(id: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/${id}`);
     }
+
+    subscribeStudents(topicId: number, ownerId: string, studentEmailList: string[]): Observable<any> {
+        return this.http.post<any>(`${this.API_URL}/${topicId}/students`, {
+            topicId,
+            ownerId,
+            studentEmailList
+        });
+    }
 }
