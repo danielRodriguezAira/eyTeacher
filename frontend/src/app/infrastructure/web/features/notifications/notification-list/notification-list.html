@@ -9,12 +9,9 @@
                     <a mat-list-item
                        (click)="onNotificationClick(notification)"
                        [class.unread-notification]="!notification.read">
-                        <mat-icon matListItemIcon>notifications</mat-icon>
+
                         <div matListItemTitle [class.is-unread]="!notification.read">
                             {{ notification.message }}
-                        </div>
-                        <div matListItemLine>
-                            {{ notification.goTo }}
                         </div>
                     </a>
                 }

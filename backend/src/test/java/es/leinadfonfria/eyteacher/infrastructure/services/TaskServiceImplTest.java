@@ -47,6 +47,9 @@ class TaskServiceImplTest {
     @Mock
     private TaskResponseMapper taskResponseMapper;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private TaskServiceImpl taskService;
 

@@ -1,6 +1,8 @@
 package es.leinadfonfria.eyteacher.infrastructure.controllers;
 
+import es.leinadfonfria.eyteacher.application.dtos.topic.AddTopicSubscriptionToStudentsRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.SaveTopicRequest;
+import es.leinadfonfria.eyteacher.application.services.topic.AddTopicSubscriptionToStudentsUseCase;
 import es.leinadfonfria.eyteacher.application.services.topic.DeleteTopicUseCase;
 import es.leinadfonfria.eyteacher.application.services.topic.GetTopicUseCase;
 import es.leinadfonfria.eyteacher.application.services.topic.SaveTopicUseCase;
@@ -26,9 +28,11 @@ public class TopicController {
     private final SaveTopicUseCase saveTopicUseCase;
     private final GetTopicUseCase getTopicUseCase;
     private final DeleteTopicUseCase deleteTopicUseCase;
+    private final AddTopicSubscriptionToStudentsUseCase addStudentsToTopicUseCase;
 
     /**
      * Retrieves a topic by its ID.
+     *
      * @param topicId The ID of the topic to retrieve.
      * @return ResponseEntity<?> HTTP 200 with the topic data or BAD_REQUEST with an error code.
      */
@@ -45,6 +49,7 @@ public class TopicController {
 
     /**
      * Creates or edits a topic.
+     *
      * @param request The topic details.
      * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
      */
@@ -61,6 +66,7 @@ public class TopicController {
 
     /**
      * Deletes a topic by its ID.
+     *
      * @param topicId The ID of the topic to delete.
      * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
      */
@@ -71,6 +77,23 @@ public class TopicController {
         return deleteTopicUseCase.deleteTopic(topicId)
                 .fold(
                         v -> ResponseEntity.ok().build(),
+                        error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+                );
+    }
+
+    /**
+     * Adds students to a topic.
+     *
+     * @param request The request with topic ID and the student emails to add.
+     * @return ResponseEntity<?> HTTP 200 with the result: OK or BAD_REQUEST with an error code.
+     */
+    @PostMapping("/{topicId}/students")
+    @Operation(summary = "Add students to topic", description = "Adds students to a topic. Only for TEACHER role.")
+    public ResponseEntity<?> addStudentsToTopic(@RequestBody AddTopicSubscriptionToStudentsRequest request) {
+        log.info("Adding students to topic with id: {}", request.topicId());
+        return addStudentsToTopicUseCase.addTopicSubscriptionToStudents(request)
+                .fold(
+                        ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
                 );
     }

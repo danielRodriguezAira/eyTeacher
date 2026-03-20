@@ -129,8 +129,13 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
         if (AuthenticationUtils.isTeacher()) {
             throw new AuthException("Authenticated TEACHER can't save solutions", ErrorCode.AUTHENTICATION_ERROR);
         } else if (AuthenticationUtils.isStudent()) {
-            boolean isEnrolled = task.getTopic().getStudentList().stream()
-                    .anyMatch(student -> student.getId().value().equals(authUserId));
+            boolean isEnrolled = false;
+            for (User student : task.getTopic().getStudentList()) {
+                if (student.getId().value().equals(authUserId)) {
+                    isEnrolled = true;
+                    break;
+                }
+            }
             if (!isEnrolled) {
                 throw new AuthException("Authenticated STUDENT is not enrolled in any topic of this category", ErrorCode.AUTHENTICATION_ERROR);
             }

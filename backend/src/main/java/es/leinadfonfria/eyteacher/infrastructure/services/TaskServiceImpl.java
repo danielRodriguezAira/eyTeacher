@@ -11,9 +11,11 @@ import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TopicRepository;
+import es.leinadfonfria.eyteacher.infrastructure.events.NewTaskEvent;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
     private final TaskRepository<Task> taskRepository;
     private final TopicRepository<Topic> topicRepository;
     private final TaskResponseMapper taskResponseMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Saves a new task or updates an existing one.
@@ -55,6 +58,7 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
             }
 
             Task saved = taskRepository.save(task, request.topicId());
+            eventPublisher.publishEvent( new NewTaskEvent(this, saved, topic.getStudentList()));
             return Result.ok(saved.getId());
         } catch (AuthException e) {
             log.error("Authentication error during task save", e);

@@ -1,30 +1,34 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
+import es.leinadfonfria.eyteacher.application.dtos.topic.AddTopicSubscriptionToStudentsRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.SaveTopicRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponse;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponseMapper;
-import es.leinadfonfria.eyteacher.application.services.topic.DeleteTopicUseCase;
-import es.leinadfonfria.eyteacher.application.services.topic.GetTopicUseCase;
-import es.leinadfonfria.eyteacher.application.services.topic.GetTopicsByOwnerAndCategoryUseCase;
-import es.leinadfonfria.eyteacher.application.services.topic.SaveTopicUseCase;
+import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationRequest;
+import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationUseCase;
+import es.leinadfonfria.eyteacher.application.services.topic.*;
 import es.leinadfonfria.eyteacher.application.shared.Result;
-import es.leinadfonfria.eyteacher.domain.entities.Category;
-import es.leinadfonfria.eyteacher.domain.entities.Task;
-import es.leinadfonfria.eyteacher.domain.entities.Topic;
+import es.leinadfonfria.eyteacher.domain.entities.*;
 import es.leinadfonfria.eyteacher.domain.errors.AuthException;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.CategoryRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
+import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
+import es.leinadfonfria.eyteacher.infrastructure.events.NewSolutionEvent;
+import es.leinadfonfria.eyteacher.infrastructure.events.NewSubscriptionEvent;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of topic-related use cases.
@@ -32,12 +36,14 @@ import java.util.List;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetTopicsByOwnerAndCategoryUseCase, DeleteTopicUseCase {
+public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetTopicsByOwnerAndCategoryUseCase, DeleteTopicUseCase, AddTopicSubscriptionToStudentsUseCase {
 
     private final TopicRepositoryAdapter topicRepository;
     private final CategoryRepository<Category> categoryRepository;
     private final TaskRepository<Task> taskRepository;
+    private final UserRepository<User> userRepository;
     private final TopicResponseMapper topicResponseMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Saves a new topic or updates an existing one.
@@ -158,6 +164,60 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             return Result.fail(e.getCode());
         } catch (Exception e) {
             log.error("Unexpected error during topic deletion", e);
+            return Result.fail(ErrorCode.UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Adds a list of students to a topic.
+     * @param request The request containing topic ID and student IDs.
+     */
+    @Override
+    @Transactional
+    public Result<Void, Integer> addTopicSubscriptionToStudents(AddTopicSubscriptionToStudentsRequest request) {
+        try {
+            Topic topic = topicRepository.findById(request.topicId());
+
+            if (!topic.getCategory().getOwner().getId().value().equals(AuthenticationUtils.getUserId())) {
+                throw new AuthException("Authenticated user is not the owner of the topic category", ErrorCode.AUTHENTICATION_ERROR);
+            }
+
+            List<User> currentStudents = new ArrayList<>(topic.getStudentList());
+            List<User> newStudents = new ArrayList<>();
+            for (String email : request.studentEmailList()) {
+                Optional<User> studentOpt = userRepository.findByEmail(email);
+                if (studentOpt.isEmpty()) {
+                    log.warn("Student not found by email: {}", email);
+                    continue;
+                }
+                User student = studentOpt.get();
+                if (!currentStudents.contains(student)) {
+                    currentStudents.add(student);
+                    newStudents.add(student);
+                }
+            }
+
+            Topic updatedTopic = Topic.edit(
+                    topic.getId(),
+                    topic.getName(),
+                    topic.getDescription(),
+                    topic.getCategory(),
+                    currentStudents,
+                    topic.getTaskList()
+            );
+
+            topicRepository.save(updatedTopic);
+            eventPublisher.publishEvent(new NewSubscriptionEvent(this, topic, newStudents));
+            return Result.ok(null);
+
+        } catch (AuthException e) {
+            log.error("Authentication error during topic subscription", e);
+            return Result.fail(e.getCode());
+        } catch (NotFoundException e) {
+            log.error("Topic not found during subscription", e);
+            return Result.fail(e.getCode());
+        } catch (Exception e) {
+            log.error("Unexpected error during topic subscription", e);
             return Result.fail(ErrorCode.UNKNOWN_ERROR);
         }
     }

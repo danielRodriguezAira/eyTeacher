@@ -48,4 +48,8 @@ public class User {
                 .lastName(lastName)
                 .build();
     }
+
+    public String getFullName() {
+        return firstName.value() + " " + lastName.value();
+    }
 }

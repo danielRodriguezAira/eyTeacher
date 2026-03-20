@@ -3,11 +3,27 @@
         <mat-card class="detail-card">
             <mat-card-header>
                 <mat-card-title>
-                    <h1>Solución de {{ sol.student.firstName }} {{ sol.student.lastName }}</h1>
+                    @if (userRole() === UserRole.TEACHER) {
+                        <h1>Solución de {{ sol.student.firstName }} {{ sol.student.lastName }}</h1>
+                    } @else {
+                        <h1>Detalle de la solución</h1>
+                    }
                 </mat-card-title>
             </mat-card-header>
             <mat-card-content>
-                <p class="description">{{ sol.description }}</p>
+                <div class="task-description">
+                    <h3>Tarea</h3>
+                    <p>{{ sol.task.description }}</p>
+                </div>
+                <hr>
+                <div class="solution-description">
+                    @if (userRole() === UserRole.TEACHER) {
+                        <h3>Solución del alumno</h3>
+                    } @else {
+                        <h3>Mi Solución</h3>
+                    }
+                    <p class="description">{{ sol.description }}</p>
+                </div>
 
                 @if (sol.correction) {
                     <div class="correction-display">

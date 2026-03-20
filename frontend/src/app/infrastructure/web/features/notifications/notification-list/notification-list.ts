@@ -41,7 +41,6 @@ export class NotificationList implements OnInit {
         this.updateNotificationInList(notification.id, true);
       });
     }
-    // "Con el campo goTo de momento no hagas nada."
   }
 
   private updateNotificationInList(id: number, isRead: boolean) {

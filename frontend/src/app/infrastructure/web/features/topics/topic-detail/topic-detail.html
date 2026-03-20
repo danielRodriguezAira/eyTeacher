@@ -17,6 +17,10 @@
                             <mat-icon>edit</mat-icon>
                             <span>Editar</span>
                         </button>
+                        <button mat-menu-item (click)="subscribeStudents(topic)">
+                            <mat-icon>group_add</mat-icon>
+                            <span>Subscribir estudiantes</span>
+                        </button>
                         <button mat-menu-item (click)="deleteTopic(topic)" class="delete-action">
                             <mat-icon class="delete-icon">delete</mat-icon>
                             <span class="delete-text">Borrar</span>

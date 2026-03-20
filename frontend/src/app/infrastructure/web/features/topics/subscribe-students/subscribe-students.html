@@ -1,0 +1,43 @@
+<div class="container">
+    @if (topic(); as topic) {
+        <mat-card class="detail-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <h1>Suscribir alumnos al tema {{ topic.name }}</h1>
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <p class="description">escribe los emails de los alumnos separados por comas.</p>
+                
+                <form [formGroup]="subscribeForm" (ngSubmit)="onSubmit()">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Emails de alumnos</mat-label>
+                        <textarea matInput 
+                                  formControlName="emails" 
+                                  placeholder="ejemplo1@email.com, ejemplo2@email.com"
+                                  rows="5"></textarea>
+                        
+                        @if (subscribeForm.get('emails')?.hasError('required')) {
+                            <mat-error>Los emails son requeridos</mat-error>
+                        }
+                        @if (subscribeForm.get('emails')?.hasError('invalidEmails')) {
+                            <mat-error>Uno o más emails no son válidos o el formato es incorrecto</mat-error>
+                        }
+                    </mat-form-field>
+
+                    <div class="actions">
+                        <button mat-raised-button color="primary" type="submit" [disabled]="subscribeForm.invalid">
+                            Enviar subscripciones
+                        </button>
+                    </div>
+                </form>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-button [routerLink]="['/topic-detail', topic.id]">
+                    <mat-icon>arrow_back</mat-icon>
+                    Volver al detalle del tema
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    }
+</div>

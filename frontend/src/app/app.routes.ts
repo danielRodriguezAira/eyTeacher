@@ -68,6 +68,11 @@ export const routes: Routes = [
                     import('./infrastructure/web/features/topics/topic-detail/topic-detail').then(m => m.TopicDetail)
             },
             {
+                path: 'topic-subscribe/:id',
+                loadComponent: () =>
+                    import('./infrastructure/web/features/topics/subscribe-students/subscribe-students').then(m => m.SubscribeStudents)
+            },
+            {
                 path: 'task-add',
                 loadComponent: () =>
                     import('./infrastructure/web/features/tasks/task-form/task-form').then(m => m.TaskForm)
