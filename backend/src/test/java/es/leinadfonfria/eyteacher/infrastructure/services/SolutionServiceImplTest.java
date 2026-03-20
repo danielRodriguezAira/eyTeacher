@@ -52,6 +52,9 @@ class SolutionServiceImplTest {
     @Mock
     private SolutionResponseMapper solutionResponseMapper;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private SolutionServiceImpl solutionService;
 
@@ -113,8 +116,28 @@ class SolutionServiceImplTest {
                 authUtils.when(AuthenticationUtils::getUserId).thenReturn(studentUuid);
 
                 when(userRepositoryAdapter.findById(studentUuid)).thenReturn(Optional.of(studentDomain));
-                when(taskRepositoryAdapter.findById(taskId)).thenReturn(taskDomain);
-                when(solutionRepositoryAdapter.save(any(Solution.class), eq(taskId))).thenReturn(solutionDomain);
+                
+                List<User> students = List.of(studentDomain);
+                Topic topicWithStudent = Topic.edit(
+                        topicDomain.getId(),
+                        topicDomain.getName(),
+                        topicDomain.getDescription(),
+                        topicDomain.getCategory(),
+                        students,
+                        List.of()
+                );
+                Task taskWithTopicWithStudent = Task.create(taskId, "Task Description", topicWithStudent, List.of());
+                when(taskRepositoryAdapter.findById(taskId)).thenReturn(taskWithTopicWithStudent);
+                
+                when(solutionRepositoryAdapter.save(any(Solution.class), eq(taskId))).thenAnswer(invocation -> {
+                    Solution solutionArg = invocation.getArgument(0);
+                    return Solution.builder()
+                            .id(solutionId)
+                            .description(solutionArg.getDescription())
+                            .student(solutionArg.getStudent())
+                            .task(solutionArg.getTask())
+                            .build();
+                });
 
                 Result<Long, Integer> result = solutionService.addSolution(request);
 

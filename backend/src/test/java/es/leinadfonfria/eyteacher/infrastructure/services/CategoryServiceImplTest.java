@@ -42,6 +42,8 @@ class CategoryServiceImplTest {
     @Mock
     private CategoryRepositoryAdapter categoryRepositoryAdapter;
     @Mock
+    private TopicRepositoryAdapter topicRepositoryAdapter;
+    @Mock
     private UserRepositoryAdapter userRepositoryAdapter;
     @Mock
     private CategoryResponseMapper categoryResponseMapper;
@@ -251,13 +253,14 @@ class CategoryServiceImplTest {
         @Test
         @DisplayName("Debe retornar la categoría correctamente para un TEACHER")
         void getCategory_SuccessTeacher() {
-            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            Category savedCategory = Category.withTopicsAndStudents(1L, new Name("Math"), "Mathematics category", ownerDomain, List.of(), List.of());
             CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
                 authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
                 when(categoryRepositoryAdapter.findById(1L)).thenReturn(savedCategory);
+                when(topicRepositoryAdapter.findByCategory(1L)).thenReturn(List.of());
                 when(topicResponseMapper.toTopicResponseList(any())).thenReturn(List.of());
                 when(userResponseMapper.toStudentResponseList(any())).thenReturn(List.of());
                 when(categoryResponseMapper.toCategoryResponse(any(), any(), any())).thenReturn(categoryResponse);

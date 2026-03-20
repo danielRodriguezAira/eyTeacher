@@ -11,7 +11,6 @@ import java.util.List;
 public interface SolutionMapper {
 
     @Mapping(target = "task.topic", ignore = true)
-    @Mapping(target = "task.description", ignore = true)
     @Mapping(target = "task.solutionList", ignore = true)
     @Mapping(target = "correction.solutionId", source = "correction.solution.id")
     Solution toDomain(SolutionJpaEntity entity);

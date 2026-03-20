@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
+import es.leinadfonfria.eyteacher.application.dtos.topic.AddTopicSubscriptionToStudentsRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.SaveTopicRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponse;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponseMapper;
@@ -11,6 +12,7 @@ import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
+import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
@@ -18,6 +20,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.CategoryRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +50,10 @@ class TopicServiceImplTest {
     private TopicResponseMapper topicResponseMapper;
     @Mock
     private TaskRepository<Task> taskRepository;
+    @Mock
+    private UserRepository<User> userRepository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private TopicServiceImpl topicService;
@@ -259,6 +266,66 @@ class TopicServiceImplTest {
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.TOPIC_OWNER_NOT_TEACHER, result.getError());
                 verify(topicRepositoryAdapter, never()).delete(any());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests para el método addTopicSubscriptionToStudents")
+    class AddTopicSubscriptionToStudentsTests {
+
+        @Test
+        @DisplayName("Debe añadir suscripciones correctamente")
+        void addTopicSubscriptionToStudents_Success() {
+            String studentEmail = "student@example.com";
+            AddTopicSubscriptionToStudentsRequest request = new AddTopicSubscriptionToStudentsRequest(topicId, ownerUuid, List.of(studentEmail));
+            User studentDomain = User.create(new UserId(UUID.randomUUID()), new Email(studentEmail), Password.hashed("pass"), new Name("Student"), new Name("One"), true);
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
+                when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
+                when(userRepository.findByEmail(studentEmail)).thenReturn(java.util.Optional.of(studentDomain));
+
+                Result<Void, Integer> result = topicService.addTopicSubscriptionToStudents(request);
+
+                assertFalse(result.isFailure());
+                verify(topicRepositoryAdapter).save(any(Topic.class));
+                verify(eventPublisher, times(1)).publishEvent(any());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el usuario no es el dueño")
+        void addTopicSubscriptionToStudents_NotOwner() {
+            String studentEmail = "student@example.com";
+            AddTopicSubscriptionToStudentsRequest request = new AddTopicSubscriptionToStudentsRequest(topicId, ownerUuid, List.of(studentEmail));
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(UUID.randomUUID());
+                when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
+
+                Result<Void, Integer> result = topicService.addTopicSubscriptionToStudents(request);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.AUTHENTICATION_ERROR, result.getError());
+                verify(topicRepositoryAdapter, never()).save(any());
+            }
+        }
+
+        @Test
+        @DisplayName("Debe retornar fallo si el tópico no existe")
+        void addTopicSubscriptionToStudents_TopicNotFound() {
+            String studentEmail = "student@example.com";
+            AddTopicSubscriptionToStudentsRequest request = new AddTopicSubscriptionToStudentsRequest(topicId, ownerUuid, List.of(studentEmail));
+
+            try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
+                authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
+                when(topicRepositoryAdapter.findById(topicId)).thenThrow(new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+
+                Result<Void, Integer> result = topicService.addTopicSubscriptionToStudents(request);
+
+                assertTrue(result.isFailure());
+                assertEquals(ErrorCode.TOPIC_NOT_FOUND, result.getError());
             }
         }
     }

@@ -24,7 +24,6 @@ public interface TopicMapper {
      * @return Topic The domain entity.
      */
     @Mapping(target = "name", source = "name", qualifiedByName = "toTopicName")
-    @Mapping(target = "studentList", ignore = true)
     @Mapping(target = "taskList", ignore = true)
     Topic toDomain(TopicJpaEntity entity);
 

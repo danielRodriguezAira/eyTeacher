@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.services.notification.AddNotificat
 import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationUseCase;
 import es.leinadfonfria.eyteacher.domain.entities.Solution;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
+import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Log4j2
 @Component
@@ -33,7 +36,7 @@ public class NotificationEventListener {
 
             String studentName = student.getFirstName().value() + " " + student.getLastName().value();
             String topicName = task.getTopic().getName().value();
-            String message = "El alumno " + studentName + " ha entregado una solución a la tarea " + topicName + " - " + task.getDescription();
+            String message = studentName + " ha entregado una solución a la tarea " + topicName + " - " + task.getDescription();
             String goTo = "/tasks/" + task.getId();
 
             addNotificationUseCase.addNotification(new AddNotificationRequest(teacher.getId().value(), message, goTo));
@@ -62,6 +65,39 @@ public class NotificationEventListener {
             addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
         } catch (Exception e) {
             log.error("Error creating notification for new correction event", e);
+        }
+    }
+
+    @EventListener
+    public void onNewSubscription(NewSubscriptionEvent event) {
+        try {
+            Topic topic = event.getTopic();
+            User teacher = topic.getCategory().getOwner();
+            List<User> studentList = event.getNewStudents();
+
+            for (User student : studentList) {
+                String message = teacher.getFullName() + " te ha suscrito al tema: " + topic.getName().value();
+                String goTo = "/topics/" + topic.getId();
+                addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
+            }
+        } catch (Exception e) {
+            log.error("Error creating notification for new subscription event", e);
+        }
+    }
+
+    @EventListener
+    public void onNewTask(NewTaskEvent event) {
+        try {
+            Task task = event.getTask();
+            User teacher =  task.getTopic().getCategory().getOwner();
+            List<User> studentList = task.getTopic().getStudentList();
+            String message = teacher.getFullName() + " ha creado/modificado la tarea: " + task.getTopic().getName().value() + " - " + task.getDescription();
+            String goTo = "/tasks/" + task.getId();
+            for (User student : studentList) {
+                addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
+            }
+        } catch (Exception e) {
+            log.error("Error creating notification for new subscription event", e);
         }
     }
 }
