@@ -1,11 +1,17 @@
 services:
-  angular-app:
+  eyteacher-frontend-app:
     build:
-      context: .
+      context: ../frontend
       dockerfile: Dockerfile
-    container_name: angular-frontend
+    container_name: eyteacher-frontend
     ports:
-      - "8081:80"
+      - "8082:80"
+    networks:
+      - eyteacher-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+networks:
+  eyteacher-network:
+    external: true
