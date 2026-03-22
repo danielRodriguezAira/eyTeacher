@@ -1,0 +1,12 @@
+server:
+  port: ${SERVER_PORT:8081}
+spring:
+  application:
+    name: hint-api
+  ai:
+    ollama:
+      base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        model: qwen3.5:9b
+        options:
+          temperature: 0.5
