@@ -3,10 +3,13 @@ services:
     build: .
     restart: on-failure:5
     ports:
-      - "8080:8081"
+      - "8080:8080"
     profiles:
       - production
+    labels:
+      - "org.springframework.boot.ignore=true"
     networks:
+      - default
       - eyteacher-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -34,6 +37,7 @@ services:
     ports:
       - "3306:3306"
     networks:
+      - default
       - eyteacher-network
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
@@ -52,9 +56,9 @@ services:
       - "5672:5672"
       - "15672:15672"
     networks:
+      - default
       - eyteacher-network
 
 networks:
   eyteacher-network:
-    name: eyteacher-network
-    driver: bridge
+    external: true
