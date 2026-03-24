@@ -10,3 +10,5 @@ spring:
         model: qwen3.5:9b
         options:
           temperature: 0.5
+jwt:
+  secret: ${JWT_SECRET:[eyteacher-super-secret-key-512bits-long-enough-for-hs512-algorithm-validation]}
