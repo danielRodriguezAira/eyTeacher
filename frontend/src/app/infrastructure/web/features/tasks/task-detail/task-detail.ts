@@ -34,6 +34,7 @@ export class TaskDetail implements OnInit {
     ), {initialValue: null});
 
     UserRole = UserRole;
+    user = toSignal(this.authService.getCurrentUserObservable(), {initialValue: null});
 
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -52,6 +53,24 @@ export class TaskDetail implements OnInit {
 
     addSolution(task: Task) {
         this.router.navigate(['/task', task.id, 'solution-form']);
+    }
+
+    canAddSolution(task: Task): boolean {
+        if (this.userRole() !== UserRole.STUDENT) {
+            return false;
+        }
+
+        if (!task.solutionList || task.solutionList.length === 0) {
+            return true;
+        }
+
+        const mySolutions = task.solutionList.filter(s => s.student.id === this.user()?.id);
+        if (mySolutions.length === 0) {
+            return true;
+        }
+
+        const latestSolution = mySolutions[mySolutions.length - 1];
+        return !!latestSolution.correction;
     }
 
     deleteTask(task: Task) {

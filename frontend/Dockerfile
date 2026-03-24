@@ -19,11 +19,22 @@ RUN printf 'server { \n\
     listen 80; \n\
     server_name localhost; \n\
     location /api/ { \n\
-        proxy_pass http://eyteacher-backend-app:8081/api/; \n\
+        proxy_pass http://eyteacher-backend-app:8080/api/; \n\
         proxy_set_header Host $host; \n\
         proxy_set_header X-Real-IP $remote_addr; \n\
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \n\
         proxy_set_header X-Forwarded-Proto $scheme; \n\
+        proxy_set_header Authorization $http_authorization; \n\
+        proxy_pass_header Authorization; \n\
+    } \n\
+    location /ai-api/ { \n\
+        proxy_pass http://eyteacher-ai-app:8081/; \n\
+        proxy_set_header Host $host; \n\
+        proxy_set_header X-Real-IP $remote_addr; \n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \n\
+        proxy_set_header X-Forwarded-Proto $scheme; \n\
+        proxy_set_header Authorization $http_authorization; \n\
+        proxy_pass_header Authorization; \n\
     } \n\
     location / { \n\
         root /usr/share/nginx/html; \n\

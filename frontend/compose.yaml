@@ -10,6 +10,7 @@ services:
       - eyteacher-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "eyteacher-backend-app:host-gateway"
     restart: unless-stopped
 
 networks:

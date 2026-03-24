@@ -11,9 +11,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const currentUserRaw = localStorage?.getItem('currentUser');
 
     const isAuthUrl = req.url.includes('/api/v1/auth/login') || req.url.includes('/api/v1/auth/register');
+    const isAiUrl = req.url.includes('/ai-api/');
 
-    if (!currentUserRaw && !isAuthUrl) {
+    if (!currentUserRaw && !isAuthUrl && !isAiUrl) {
         router.navigate(['/login']);
+        return next(req);
     }
 
     let requestToProcess = req;
@@ -36,7 +38,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(requestToProcess).pipe(
         catchError((error) => {
             const isAuthUrl = req.url.includes('/api/v1/auth/login') || req.url.includes('/api/v1/auth/register');
-            if (error.status === 401 && !isAuthUrl) {
+            const isAiUrl = req.url.includes('/ai-api/');
+            if (error.status === 401 && !isAuthUrl && !isAiUrl) {
+                console.error('Session expired or unauthorized for URL:', req.url);
                 authService.logout();
                 router.navigate(['/login']);
             }

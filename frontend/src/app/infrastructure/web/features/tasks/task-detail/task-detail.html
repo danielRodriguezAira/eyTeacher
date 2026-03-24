@@ -29,7 +29,7 @@
 
                 <div class="solutions-section">
                     <h3 class="solutions-header">
-                        @if (userRole() === UserRole.STUDENT && (!task.solutionList || task.solutionList.length === 0)) {
+                        @if (canAddSolution(task)) {
                             <button mat-icon-button [matMenuTriggerFor]="solutionMenu" aria-label="Opciones de solución"
                                     (click)="$event.stopPropagation()">
                                 <mat-icon>more_vert</mat-icon>
