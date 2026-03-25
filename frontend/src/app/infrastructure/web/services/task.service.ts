@@ -10,6 +10,7 @@ import {TaskServicePort} from '../../../application/services/task.service.port';
 export class TaskService implements TaskServicePort {
     private http = inject(HttpClient);
     private readonly API_URL = '/api/v1/tasks';
+    private readonly EXERCISES_AI_URL = '/ai-api/api/v1/exercises';
 
     getTaskById(id: number): Observable<Task> {
         return this.http.get<Task>(`${this.API_URL}/${id}`);
@@ -21,5 +22,9 @@ export class TaskService implements TaskServicePort {
 
     deleteTask(id: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/${id}`);
+    }
+
+    generateExercise(task: string): Observable<{ taskProposal: string }> {
+        return this.http.post<{ taskProposal: string }>(this.EXERCISES_AI_URL, { task });
     }
 }

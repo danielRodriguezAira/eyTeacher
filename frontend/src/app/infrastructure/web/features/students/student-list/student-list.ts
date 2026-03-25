@@ -1,22 +1,31 @@
-import {Component, signal} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {of, switchMap} from 'rxjs';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
-import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatIconModule} from '@angular/material/icon';
+import {StudentService} from '../../../services/student.service';
+import {AuthenticationService} from '../../../services/auth.service';
+import {Student} from '../../../../../domain/entities/student';
 
 @Component({
     selector: 'app-student-list',
     standalone: true,
-    imports: [CommonModule, MatTableModule, MatProgressBarModule],
+    imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule],
     templateUrl: './student-list.html',
     styleUrl: './student-list.scss'
 })
 export class StudentList {
-    displayedColumns = signal<string[]>(['nombre', 'email', 'progreso']);
-    studentList = signal([
-        {nombre: 'Juan Pérez', email: 'juan.perez@example.com', progreso: 85},
-        {nombre: 'María García', email: 'maria.garcia@example.com', progreso: 92},
-        {nombre: 'Carlos Rodríguez', email: 'carlos.rod@example.com', progreso: 45},
-        {nombre: 'Ana Martínez', email: 'ana.mtz@example.com', progreso: 78},
-        {nombre: 'Luis Sánchez', email: 'luis.sanchez@example.com', progreso: 60}
-    ]);
+    private readonly studentService = inject(StudentService);
+    private readonly authService = inject(AuthenticationService);
+
+    displayedColumns = ['name', 'email'];
+
+    students = toSignal(
+        this.authService.getCurrentUserObservable().pipe(
+            switchMap(user => user ? this.studentService.getStudentsByOwner(user.id) : of([] as Student[]))
+        ),
+        {initialValue: [] as Student[]}
+    );
 }

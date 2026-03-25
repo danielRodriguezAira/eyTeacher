@@ -9,12 +9,13 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
-import {Observable, of, switchMap} from 'rxjs';
+import {map, Observable, of, switchMap} from 'rxjs';
 import {AuthenticationService} from './infrastructure/web/services/auth.service';
 import {CategoryService} from './infrastructure/web/services/category.service';
 import {Category} from './domain/entities/category';
 import {NotificationService} from './infrastructure/web/services/notification.service';
 import {Notification} from './domain/entities/notification';
+import {UserRole} from './domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
@@ -57,6 +58,12 @@ export class App {
     private readonly auth = inject(AuthenticationService);
     private readonly categoryService = inject(CategoryService);
     private readonly notificationService = inject(NotificationService);
+
+    protected readonly UserRole = UserRole;
+
+    userRole = toSignal(this.auth.getCurrentUserObservable().pipe(
+        map(user => user?.role ?? null)
+    ), {initialValue: null});
 
     notifications = toSignal(this.auth.getCurrentUserObservable().pipe(
         switchMap(user => {

@@ -35,10 +35,12 @@
                         <mat-icon matListItemIcon>category</mat-icon>
                         <span matListItemTitle>Categorías</span>
                     </a>
-                    <a mat-list-item routerLink="/student-list" routerLinkActive="active-link">
-                        <mat-icon matListItemIcon>people</mat-icon>
-                        <span matListItemTitle>Mis alumnos</span>
-                    </a>
+                    @if (userRole() === UserRole.TEACHER) {
+                        <a mat-list-item routerLink="/student-list" routerLinkActive="active-link">
+                            <mat-icon matListItemIcon>people</mat-icon>
+                            <span matListItemTitle>Mis alumnos</span>
+                        </a>
+                    }
                 </mat-nav-list>
             </mat-sidenav>
 
