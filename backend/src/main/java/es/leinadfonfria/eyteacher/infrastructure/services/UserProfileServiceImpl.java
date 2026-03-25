@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
 import es.leinadfonfria.eyteacher.application.dtos.auth.*;
+import es.leinadfonfria.eyteacher.application.services.auth.GetStudentsByOwnerIdUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.LoginUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.RegisterUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.UpdatePasswordUseCase;
@@ -15,6 +16,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
+import es.leinadfonfria.eyteacher.application.dtos.auth.UserResponseMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.INVALID_CREDENTIALS;
@@ -37,12 +40,13 @@ import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.UNKNOWN_ERROR;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, UpdateUserProfileUseCase, UpdatePasswordUseCase {
+public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, UpdateUserProfileUseCase, UpdatePasswordUseCase, GetStudentsByOwnerIdUseCase {
 
     private final UserRepository<User> userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final UserResponseMapper userResponseMapper;
 
     /**
      * Authenticates a user and generates a session response.
@@ -174,6 +178,33 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
         } catch (Exception e) {
             log.error("Unexpected error during profile update", e);
             return Result.fail(UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Retrieves the distinct list of students enrolled in any topic whose category is owned by the given teacher.
+     *
+     * @param ownerId The string representation of the teacher's UUID.
+     * @return Result containing the list of {@link UserResponse} students, or an error code on failure.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Result<List<UserResponse>, Integer> getStudentsByOwnerId(String ownerId) {
+        try {
+            UUID ownerUuid;
+            try {
+                ownerUuid = UUID.fromString(ownerId);
+            } catch (IllegalArgumentException e) {
+                throw new AuthException("Invalid owner ID format", e, ErrorCode.INVALID_USER_ID_FORMAT);
+            }
+
+            List<User> students = userRepository.findStudentsByOwnerId(ownerUuid);
+            return Result.ok(userResponseMapper.toStudentResponseList(students));
+        } catch (AuthException e) {
+            return Result.fail(e.getCode());
+        } catch (Exception e) {
+            log.error("Unexpected error retrieving students by owner id", e);
+            return Result.fail(ErrorCode.UNKNOWN_ERROR);
         }
     }
 
