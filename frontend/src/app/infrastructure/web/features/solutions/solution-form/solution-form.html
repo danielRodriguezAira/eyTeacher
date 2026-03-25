@@ -6,6 +6,34 @@
             </mat-card-title>
         </mat-card-header>
         <mat-card-content>
+            @if (taskDescription()) {
+                <div class="task-description">
+                    <h3>Tarea</h3>
+                    <p>{{ taskDescription() }}</p>
+                </div>
+                
+                @if (hintRequested() && !hint()) {
+                    <div class="loading-container">
+                        <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+                        <p>Obteniendo pista...</p>
+                    </div>
+                }
+
+                @if (hint()) {
+                    <div class="hint-container">
+                        <mat-icon color="accent">lightbulb</mat-icon>
+                        <p><strong>Pista:</strong> {{ hint() }}</p>
+                    </div>
+                } @else if (!hintRequested()) {
+                    <div class="hint-action">
+                        <button mat-button type="button" (click)="requestHint()" class="hint-button">
+                            <mat-icon>lightbulb</mat-icon>
+                            Dame una pista!
+                        </button>
+                    </div>
+                }
+                <hr>
+            }
             <form (ngSubmit)="sendSolution()" #solutionForm="ngForm">
                 <mat-form-field appearance="fill" class="full-width">
                     <mat-label>Descripción de la solución</mat-label>

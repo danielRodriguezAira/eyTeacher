@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.auth.LoginRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.RegisterRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.UpdatePasswordRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.UpdateUserProfileRequest;
+import es.leinadfonfria.eyteacher.application.services.auth.GetStudentsByOwnerIdUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.LoginUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.RegisterUseCase;
 import es.leinadfonfria.eyteacher.application.services.auth.UpdatePasswordUseCase;
@@ -31,6 +32,7 @@ public class AuthController {
     private final RegisterUseCase registerUseCase;
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
     private final UpdatePasswordUseCase updatePasswordUseCase;
+    private final GetStudentsByOwnerIdUseCase getStudentsByOwnerIdUseCase;
 
     /**
      * Handles user login requests.
@@ -98,6 +100,23 @@ public class AuthController {
     public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest request) {
         log.info("Updating password for id: {}", request.id());
         return updatePasswordUseCase.updatePassword(request)
+                .fold(
+                        ResponseEntity::ok,
+                        error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+                );
+    }
+
+    /**
+     * Retrieves all distinct students enrolled in any topic whose category is owned by the given teacher.
+     *
+     * @param ownerId The UUID string of the teacher.
+     * @return ResponseEntity<?> HTTP 200 with the list of students, or BAD_REQUEST with an error code.
+     */
+    @GetMapping("/students/owner/{ownerId}")
+    @Operation(summary = "Get students by owner", description = "Retrieves all distinct students subscribed to topics in categories owned by the given teacher")
+    public ResponseEntity<?> getStudentsByOwnerId(@PathVariable String ownerId) {
+        log.info("Getting students for owner id: {}", ownerId);
+        return getStudentsByOwnerIdUseCase.getStudentsByOwnerId(ownerId)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

@@ -493,3 +493,4 @@ INSERT INTO solutions (description, student_id, task_id) VALUES
 ('Modelé documentos embebidos vs referencias en MongoDB para optimizar consultas',                  UNHEX(REPLACE('00000000-0000-0000-0000-000000000012', '-', '')), 66),
 -- Task 67 (topic 27, students 11,12) - 1 solution
 ('Implementé operaciones CRUD en Redis usando strings, hashes y listas',                            UNHEX(REPLACE('00000000-0000-0000-0000-000000000011', '-', '')), 67);
+commit;

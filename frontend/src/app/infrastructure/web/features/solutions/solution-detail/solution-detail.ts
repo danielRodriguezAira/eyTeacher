@@ -42,6 +42,7 @@ export class SolutionDetail implements OnInit {
     private notificationService = inject(NotificationService);
 
     solution = signal<Solution | undefined>(undefined);
+    taskDescription = signal('');
     userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
         map(user => user?.role ?? null)
     ), {initialValue: null});
@@ -56,9 +57,11 @@ export class SolutionDetail implements OnInit {
         const solutionId = Number(this.route.snapshot.paramMap.get('id'));
         
         if (taskId && solutionId) {
-            this.taskService.getTaskById(taskId).pipe(
-                map(task => task.solutionList.find(s => s.id === solutionId))
-            ).subscribe(s => this.solution.set(s));
+            this.taskService.getTaskById(taskId).subscribe(task => {
+                this.taskDescription.set(task.description);
+                const sol = task.solutionList.find(s => s.id === solutionId);
+                this.solution.set(sol);
+            });
         }
     }
 

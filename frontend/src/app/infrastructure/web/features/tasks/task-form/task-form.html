@@ -14,6 +14,28 @@
                     </mat-form-field>
                 </div>
 
+                <div class="hint-action">
+                    <button mat-button type="button" (click)="requestExercise()"
+                            [disabled]="isLoadingExercise() || taskForm.get('description')?.value?.trim() === ''"
+                            class="hint-button">
+                        <mat-icon>lightbulb</mat-icon>
+                        Dame una idea!
+                    </button>
+                </div>
+
+                @if (isLoadingExercise()) {
+                    <div class="loading-container">
+                        <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+                        <p>Generando ejercicio...</p>
+                    </div>
+                }
+
+                @if (exerciseProposal()) {
+                    <div class="hint-container">
+                        <p><strong>Propuesta:</strong> {{ exerciseProposal() }}</p>
+                    </div>
+                }
+
                 <div class="actions">
                     <button mat-stroked-button type="button" (click)="onCancel()">
                         Cancelar

@@ -7,6 +7,7 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserJp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,5 +36,12 @@ public class UserRepositoryAdapter implements UserRepository<User> {
     @Override
     public User save(User user) {
         return userMapper.toDomain(userJpaRepository.save(userMapper.toEntity(user)));
+    }
+
+    @Override
+    public List<User> findStudentsByOwnerId(UUID ownerId) {
+        return userJpaRepository.findStudentsByOwnerId(ownerId).stream()
+                .map(userMapper::toDomain)
+                .toList();
     }
 }

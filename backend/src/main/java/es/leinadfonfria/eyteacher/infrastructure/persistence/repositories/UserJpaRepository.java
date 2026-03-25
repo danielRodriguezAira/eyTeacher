@@ -2,8 +2,11 @@ package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,4 +31,13 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
      * @return boolean True if a user exists with that email.
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Retrieves all distinct students subscribed to any topic whose category is owned by the given user.
+     *
+     * @param ownerId The UUID of the teacher who owns the categories.
+     * @return List of distinct {@link UserJpaEntity} students found across all topics of the owner's categories.
+     */
+    @Query("SELECT DISTINCT s FROM TopicJpaEntity t JOIN t.studentList s WHERE t.category.owner.id = :ownerId")
+    List<UserJpaEntity> findStudentsByOwnerId(@Param("ownerId") UUID ownerId);
 }
