@@ -26,11 +26,11 @@ public class HintController {
     @PostMapping
     @Operation(summary = "Genera una pista", description = "Recibe el enunciado de un ejercicio y devuelve una pista conceptual sin dar la solución.")
     public ResponseEntity<HintResponse> getHint(@RequestBody HintRequest request) {
-        if (request.exercise() == null || request.exercise().isBlank()) {
+        if (request.task() == null || request.task().isBlank()) {
             return ResponseEntity.badRequest().body(new HintResponse("El enunciado del ejercicio no puede estar vacío."));
         }
 
-        String hint = hintService.generateHint(request.exercise());
+        String hint = hintService.generateHint(request.task());
         return ResponseEntity.ok(new HintResponse(hint));
     }
 }
