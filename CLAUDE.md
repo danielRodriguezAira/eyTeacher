@@ -12,7 +12,7 @@ eyTeacher is a full-stack web application for teacher-student communication focu
 eyTeacher/
 ├── backend/       # Java 21 + Spring Boot 4.0.2 REST API
 ├── frontend/      # Angular 21 standalone components
-├── ai/ai/         # Spring Boot 4.0.4 + Spring AI 2.0.0-M3 (Ollama)
+├── ai/         # Spring Boot 4.0.4 + Spring AI 2.0.0-M3 (Ollama)
 └── compose.yaml   # Docker orchestration (root)
 ```
 
