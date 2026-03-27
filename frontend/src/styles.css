@@ -20,3 +20,11 @@ body {
 
 .active-link {
 }
+
+mat-card-actions button[mat-button] {
+    transition: background-color 0.2s;
+}
+
+mat-card-actions button[mat-button]:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}

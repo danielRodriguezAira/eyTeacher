@@ -48,6 +48,11 @@ export const routes: Routes = [
                     import('./infrastructure/web/features/students/student-list/student-list').then(m => m.StudentList)
             },
             {
+                path: 'student-tasks/:studentId',
+                loadComponent: () =>
+                    import('./infrastructure/web/features/students/student-tasks/student-tasks').then(m => m.StudentTasks)
+            },
+            {
                 path: 'account',
                 loadComponent: () =>
                     import('./infrastructure/web/features/account-page/account-page').then(m => m.AccountPage)
