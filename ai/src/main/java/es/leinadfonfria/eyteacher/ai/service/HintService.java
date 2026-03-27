@@ -1,33 +1,41 @@
 package es.leinadfonfria.eyteacher.ai.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Generates conceptual hints for student questions using an AI language model.
+ *
+ * <p>The service receives an exercise or question and returns a single conceptual
+ * hint that guides the student towards the answer without revealing it directly.
+ * This promotes autonomous learning across any academic discipline.</p>
+ */
 @Service
 public class HintService {
 
     private final ChatClient chatClient;
 
-    public HintService(ChatClient.Builder chatClientBuilder) {
-        System.out.println("[DEBUG_LOG] HintService initialized with ChatClient.Builder");
+    /**
+     * Creates a {@code HintService} and configures the {@link ChatClient} with
+     * the system prompt that governs hint generation behaviour.
+     *
+     * @param chatClientBuilder the Spring AI builder used to construct the chat client
+     * @param systemPrompt      the system prompt loaded from {@code ai.prompts.hint-system}
+     */
+    public HintService(ChatClient.Builder chatClientBuilder,
+                       @Value("${ai.prompts.hint-system}") String systemPrompt) {
         this.chatClient = chatClientBuilder
-                .defaultSystem("""
-                    Eres un tutor experto. Tu objetivo es dar UNA ÚNICA PISTA conceptual para que el usuario resuelva su duda por sí mismo (ya sea de gramática, programación, matemáticas, etc.).
-                    
-                    REGLAS INQUEBRANTABLES:
-                    1. NUNCA des la respuesta final ni la solución directa.
-                    2. Da solo la pista o el concepto clave necesario.
-                    3. NUNCA hagas preguntas de seguimiento.
-                    4. NUNCA ofrezcas más ayuda al final del mensaje.
-                    5. Tu respuesta debe terminar con un punto final y NADA MÁS.
-                    
-                    EJEMPLO DE INTERACCIÓN:
-                    Usuario: "¿Cuál es el sujeto en la frase 'El perro corre rápido'?"
-                    Tú: "Para identificar el sujeto de una oración, debes preguntarle '¿quién?' o '¿quiénes?' al verbo principal de la frase."
-                    """)
+                .defaultSystem(systemPrompt)
                 .build();
     }
 
+    /**
+     * Generates a single conceptual hint for the provided exercise or question.
+     *
+     * @param exercisePrompt the student's question or exercise description
+     * @return the AI-generated hint
+     */
     public String generateHint(String exercisePrompt) {
         return this.chatClient.prompt()
                 .user(exercisePrompt)

@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.ai.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,26 +22,12 @@ public class ExerciseService {
      * the system prompt that governs exercise generation behaviour.
      *
      * @param chatClientBuilder the Spring AI builder used to construct the chat client
+     * @param systemPrompt      the system prompt loaded from {@code ai.prompts.exercise-system}
      */
-    public ExerciseService(ChatClient.Builder chatClientBuilder) {
+    public ExerciseService(ChatClient.Builder chatClientBuilder,
+                           @Value("${ai.prompts.exercise-system}") String systemPrompt) {
         this.chatClient = chatClientBuilder
-                .defaultSystem("""
-                    Eres un profesor experto en múltiples disciplinas: ciencias, matemáticas, música, idiomas, historia, programación y cualquier otra materia.
-                    Tu única tarea es generar el ENUNCIADO de un ejercicio práctico breve.
-
-                    REGLAS INQUEBRANTABLES:
-                    1. El enunciado debe tener un MÁXIMO DE 100 PALABRAS. Sé conciso.
-                    2. El ejercicio debe poder resolverse con una respuesta corta o un desarrollo breve (no requiere cálculos extensos ni ensayos largos).
-                    3. Devuelve ÚNICAMENTE el enunciado del ejercicio. Sin título, sin encabezado, sin explicaciones previas, sin despedida, sin "Aquí tienes..." ni frases introductorias.
-                    4. El enunciado debe ser autocontenido: el alumno debe entender qué se le pide sin contexto adicional.
-                    5. Usa un lenguaje claro y apropiado para estudiantes de nivel medio.
-                    6. El ejercicio debe terminar con un punto final y NADA MÁS.
-
-                    EJEMPLOS DE ENUNCIADOS CORRECTOS:
-                    "Un tren parte de Madrid a las 9:00 h a 120 km/h. Otro tren sale de Barcelona a las 10:00 h a 100 km/h en dirección contraria. Si la distancia entre ambas ciudades es de 620 km, ¿a qué hora se cruzan?"
-                    "Identifica el modo verbal (indicativo, subjuntivo o imperativo) de los siguientes verbos y justifica brevemente tu elección: 'canta', 'cantara', 'canta tú'."
-                    "Escribe el acorde de Do mayor en notación anglosajona e indica qué notas lo componen."
-                    """)
+                .defaultSystem(systemPrompt)
                 .build();
     }
 
