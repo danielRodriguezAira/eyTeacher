@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -68,6 +69,21 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
         TaskJpaEntity taskJpaEntity = taskMapper.toEntity(task);
         taskJpaEntity.setTopic(topicEntity);
         return taskMapper.toDomain(taskJpaRepository.save(taskJpaEntity));
+    }
+
+    @Override
+    public List<Task> findByStudentId(UUID studentId) {
+        List<TaskJpaEntity> taskEntities = taskJpaRepository.findByStudentId(studentId);
+        return taskEntities.stream()
+                .map(taskEntity -> {
+                    Task task = taskMapper.toDomain(taskEntity);
+                    List<User> studentList = userMapper.toDomainList(taskEntity.getTopic().getStudentList());
+                    Topic topic = topicMapper.toDomain(taskEntity.getTopic(), studentList);
+                    List<Solution> solutionList = solutionMapper.toDomainList(
+                            solutionJpaRepository.findByTaskAndStudentId(taskEntity, studentId));
+                    return Task.create(task.getId(), task.getDescription(), topic, solutionList);
+                })
+                .toList();
     }
 
     @Override

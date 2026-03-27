@@ -22,6 +22,7 @@ public class TaskController {
     private final SaveTaskUseCase saveTaskUseCase;
     private final GetTaskUseCase getTaskUseCase;
     private final GetTasksByTopicUseCase getTasksByTopicUseCase;
+    private final GetTasksByStudentIdUseCase getTasksByStudentIdUseCase;
     private final DeleteTaskUseCase deleteTaskUseCase;
 
     /**
@@ -69,6 +70,24 @@ public class TaskController {
     public ResponseEntity<?> getTasksByTopic(@PathVariable Long topicId) {
         log.info("Getting tasks for topic: {}", topicId);
         return getTasksByTopicUseCase.getTasksByTopic(topicId)
+                .fold(
+                        ResponseEntity::ok,
+                        error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+                );
+    }
+
+    /**
+     * Retrieves all tasks for a student, grouped by status, category, and topic.
+     * Status order: without solution → without correction → corrected.
+     *
+     * @param studentId The UUID string of the student.
+     * @return ResponseEntity<?> HTTP 200 with the grouped task list or BAD_REQUEST with an error code.
+     */
+    @GetMapping("/student/{studentId}")
+    @Operation(summary = "Get tasks by student", description = "Retrieves all tasks for a student grouped by status, category, and topic")
+    public ResponseEntity<?> getTasksByStudentId(@PathVariable String studentId) {
+        log.info("Getting tasks for student: {}", studentId);
+        return getTasksByStudentIdUseCase.getTasksByStudentId(studentId)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
