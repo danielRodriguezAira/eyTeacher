@@ -2,6 +2,7 @@ import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {of, switchMap} from 'rxjs';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
 import {MatTableModule} from '@angular/material/table';
 import {MatIconModule} from '@angular/material/icon';
@@ -19,6 +20,7 @@ import {Student} from '../../../../../domain/entities/student';
 export class StudentList {
     private readonly studentService = inject(StudentService);
     private readonly authService = inject(AuthenticationService);
+    private readonly router = inject(Router);
 
     displayedColumns = ['name', 'email'];
 
@@ -28,4 +30,10 @@ export class StudentList {
         ),
         {initialValue: [] as Student[]}
     );
+
+    viewStudentTasks(student: Student): void {
+        this.router.navigate(['/student-tasks', student.id], {
+            state: {studentName: `${student.firstName} ${student.lastName}`}
+        });
+    }
 }

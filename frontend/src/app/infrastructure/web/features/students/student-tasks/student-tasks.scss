@@ -1,0 +1,201 @@
+.container {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-card {
+    padding: 16px;
+}
+
+h1 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.empty-message {
+    margin-top: 16px;
+    color: rgba(0, 0, 0, 0.54);
+}
+
+/* Status sections */
+.status-section {
+    margin-top: 24px;
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.status-count {
+    font-weight: 400;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.status-review {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.status-done {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+/* Category cards */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.category-card {
+    border-top: 3px solid rgba(0, 0, 0, 0.12);
+}
+
+.category-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+}
+
+/* Topic sections */
+.topic-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.topic-section:first-child {
+    border-top: none;
+    margin-top: 4px;
+}
+
+.topic-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.topic-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: rgba(0, 0, 0, 0.54);
+}
+
+.topic-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Task items */
+.task-item {
+    height: auto !important;
+    padding: 4px 0 !important;
+}
+
+.task-content {
+    width: 100%;
+    padding: 4px 0;
+}
+
+.task-description {
+    margin: 0 0 4px 0;
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.87);
+}
+
+.task-link {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.task-link:hover {
+    opacity: 0.65;
+}
+
+/* Solution block */
+.solution-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 4px 0 0 8px;
+    padding: 6px 8px;
+    background-color: rgba(0, 0, 0, 0.04);
+    border-radius: 4px;
+}
+
+.solution-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: rgba(0, 0, 0, 0.54);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.solution-text {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-style: italic;
+}
+
+.solution-link {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.solution-link:hover {
+    opacity: 0.65;
+}
+
+/* Correction block */
+.correction-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 4px 0 0 8px;
+    padding: 6px 8px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+}
+
+.correction-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #2e7d32;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.correction-text {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #2e7d32;
+}
+
+mat-card-actions {
+    justify-content: flex-start;
+    margin-top: 24px;
+}

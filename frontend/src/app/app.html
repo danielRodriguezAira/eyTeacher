@@ -41,6 +41,12 @@
                             <span matListItemTitle>Mis alumnos</span>
                         </a>
                     }
+                    @if (userRole() === UserRole.STUDENT) {
+                        <a mat-list-item [routerLink]="['/student-tasks', currentUserId()]" routerLinkActive="active-link">
+                            <mat-icon matListItemIcon>assignment</mat-icon>
+                            <span matListItemTitle>Mis tareas</span>
+                        </a>
+                    }
                 </mat-nav-list>
             </mat-sidenav>
 

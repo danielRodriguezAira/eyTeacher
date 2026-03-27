@@ -1,7 +1,8 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
-import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponse;
-import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponseMapper;
+import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponse;
+import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponseMapper;
+import es.leinadfonfria.eyteacher.application.dtos.task.*;
 import es.leinadfonfria.eyteacher.application.services.task.*;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
@@ -19,17 +20,22 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTasksByTopicUseCase, DeleteTaskUseCase {
+public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTasksByTopicUseCase, DeleteTaskUseCase, GetTasksByStudentIdUseCase {
+
+    private static final String STATUS_WITHOUT_SOLUTION = "WITHOUT_SOLUTION";
+    private static final String STATUS_WITHOUT_CORRECTION = "WITHOUT_CORRECTION";
+    private static final String STATUS_CORRECTED = "CORRECTED";
 
     private final TaskRepository<Task> taskRepository;
     private final TopicRepository<Topic> topicRepository;
     private final TaskResponseMapper taskResponseMapper;
+    private final SolutionResponseMapper solutionResponseMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -151,6 +157,99 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
             log.error("Unexpected error during task deletion", e);
             return Result.fail(ErrorCode.UNKNOWN_ERROR);
         }
+    }
+
+    /**
+     * Retrieves all tasks accessible to a student, grouped by status, then by category, then by topic.
+     * Only the authenticated student may query their own tasks; teachers may query any student.
+     *
+     * @param studentId The string representation of the student's UUID.
+     * @return Result containing the grouped {@link StudentTasksResponse} list, or an error code on failure.
+     */
+    @Override
+    public Result<List<StudentTasksResponse>, Integer> getTasksByStudentId(String studentId) {
+        try {
+            UUID studentUuid = UUID.fromString(studentId);
+
+            if (AuthenticationUtils.isStudent() && !AuthenticationUtils.getUserId().equals(studentUuid)) {
+                throw new AuthException("Student can only view their own tasks", ErrorCode.AUTHENTICATION_ERROR);
+            }
+
+            List<Task> tasks = taskRepository.findByStudentId(studentUuid);
+
+            Map<String, List<Task>> tasksByStatus = new LinkedHashMap<>();
+            tasksByStatus.put(STATUS_WITHOUT_SOLUTION, new ArrayList<>());
+            tasksByStatus.put(STATUS_WITHOUT_CORRECTION, new ArrayList<>());
+            tasksByStatus.put(STATUS_CORRECTED, new ArrayList<>());
+
+            for (Task task : tasks) {
+                if (task.getSolutionList().isEmpty()) {
+                    tasksByStatus.get(STATUS_WITHOUT_SOLUTION).add(task);
+                } else if (task.getSolutionList().get(0).getCorrection() == null) {
+                    tasksByStatus.get(STATUS_WITHOUT_CORRECTION).add(task);
+                } else {
+                    tasksByStatus.get(STATUS_CORRECTED).add(task);
+                }
+            }
+
+            List<StudentTasksResponse> response = tasksByStatus.entrySet().stream()
+                    .filter(entry -> !entry.getValue().isEmpty())
+                    .map(entry -> new StudentTasksResponse(entry.getKey(), buildCategoryGroups(entry.getValue())))
+                    .toList();
+
+            return Result.ok(response);
+        } catch (AuthException e) {
+            log.error("Authentication error during student tasks retrieval", e);
+            return Result.fail(e.getCode());
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid student ID format: {}", studentId, e);
+            return Result.fail(ErrorCode.INVALID_USER_ID_FORMAT);
+        } catch (Exception e) {
+            log.error("Unexpected error during student tasks retrieval", e);
+            return Result.fail(ErrorCode.UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Builds the list of category groups from a flat list of tasks, sub-grouping by topic within each category.
+     *
+     * @param tasks The list of tasks belonging to the same status group.
+     * @return List of {@link CategoryTaskGroup} objects.
+     */
+    private List<CategoryTaskGroup> buildCategoryGroups(List<Task> tasks) {
+        Map<Long, List<Task>> tasksByCategory = tasks.stream()
+                .collect(Collectors.groupingBy(t -> t.getTopic().getCategory().getId(),
+                        LinkedHashMap::new, Collectors.toList()));
+
+        return tasksByCategory.entrySet().stream()
+                .map(catEntry -> {
+                    List<Task> catTasks = catEntry.getValue();
+                    String categoryName = catTasks.getFirst().getTopic().getCategory().getName().value();
+
+                    Map<Long, List<Task>> tasksByTopic = catTasks.stream()
+                            .collect(Collectors.groupingBy(t -> t.getTopic().getId(),
+                                    LinkedHashMap::new, Collectors.toList()));
+
+                    List<TopicTaskGroup> topicGroups = tasksByTopic.entrySet().stream()
+                            .map(topicEntry -> {
+                                List<Task> topicTasks = topicEntry.getValue();
+                                String topicName = topicTasks.getFirst().getTopic().getName().value();
+
+                                List<StudentTaskItem> taskItems = topicTasks.stream()
+                                        .map(t -> {
+                                            SolutionResponse solution = t.getSolutionList().isEmpty() ? null
+                                                    : solutionResponseMapper.toSolutionResponse(t.getSolutionList().get(0));
+                                            return new StudentTaskItem(t.getId(), t.getDescription(), solution);
+                                        })
+                                        .toList();
+
+                                return new TopicTaskGroup(topicEntry.getKey(), topicName, taskItems);
+                            })
+                            .toList();
+
+                    return new CategoryTaskGroup(catEntry.getKey(), categoryName, topicGroups);
+                })
+                .toList();
     }
 
     /**

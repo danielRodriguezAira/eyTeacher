@@ -65,6 +65,10 @@ export class App {
         map(user => user?.role ?? null)
     ), {initialValue: null});
 
+    currentUserId = toSignal(this.auth.getCurrentUserObservable().pipe(
+        map(user => user?.id ?? null)
+    ), {initialValue: null});
+
     notifications = toSignal(this.auth.getCurrentUserObservable().pipe(
         switchMap(user => {
             if (user && user.id) {

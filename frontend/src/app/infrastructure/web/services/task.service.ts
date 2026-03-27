@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Task} from '../../../domain/entities/task';
 import {TaskServicePort} from '../../../application/services/task.service.port';
+import {StudentTasksResponse} from '../../../domain/entities/student-tasks-response';
 
 @Injectable({
     providedIn: 'root'
@@ -22,6 +23,10 @@ export class TaskService implements TaskServicePort {
 
     deleteTask(id: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/${id}`);
+    }
+
+    getStudentTasks(studentId: string): Observable<StudentTasksResponse[]> {
+        return this.http.get<StudentTasksResponse[]>(`${this.API_URL}/student/${studentId}`);
     }
 
     generateExercise(task: string): Observable<{ taskProposal: string }> {
