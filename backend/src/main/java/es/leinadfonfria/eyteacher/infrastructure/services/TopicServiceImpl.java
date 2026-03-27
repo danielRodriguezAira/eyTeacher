@@ -16,13 +16,12 @@ import es.leinadfonfria.eyteacher.domain.ports.CategoryRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
 import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
-import es.leinadfonfria.eyteacher.infrastructure.events.NewSolutionEvent;
-import es.leinadfonfria.eyteacher.infrastructure.events.NewSubscriptionEvent;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewSubscriptionMessage;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,7 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
     private final TaskRepository<Task> taskRepository;
     private final UserRepository<User> userRepository;
     private final TopicResponseMapper topicResponseMapper;
-    private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPublisher notificationPublisher;
 
     /**
      * Saves a new topic or updates an existing one.
@@ -207,7 +206,15 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             );
 
             topicRepository.save(updatedTopic);
-            eventPublisher.publishEvent(new NewSubscriptionEvent(this, topic, newStudents));
+            List<java.util.UUID> studentIds = newStudents.stream()
+                    .map(s -> s.getId().value())
+                    .toList();
+            notificationPublisher.publishNewSubscription(new NewSubscriptionMessage(
+                    topic.getId(),
+                    topic.getName().value(),
+                    topic.getCategory().getOwner().getFullName(),
+                    studentIds
+            ));
             return Result.ok(null);
 
         } catch (AuthException e) {

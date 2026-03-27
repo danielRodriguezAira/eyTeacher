@@ -13,11 +13,11 @@ import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.CorrectionRepository;
 import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
-import es.leinadfonfria.eyteacher.infrastructure.events.NewCorrectionEvent;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewCorrectionMessage;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
@@ -29,7 +29,7 @@ public class CorrectionServiceImpl implements AddCorrectionUseCase, GetCorrectio
     private final CorrectionRepository<Correction> correctionRepository;
     private final UserRepository<User> userRepository;
     private final CorrectionResponseMapper correctionResponseMapper;
-    private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPublisher notificationPublisher;
 
     /**
      * Adds a new correction to a solution (Only Teacher Role).
@@ -49,7 +49,10 @@ public class CorrectionServiceImpl implements AddCorrectionUseCase, GetCorrectio
                     .orElseThrow(() -> new AuthException("Teacher not found", ErrorCode.USER_NOT_FOUND));
             Correction correction = Correction.create(request.description(), teacher, request.solutionId());
             Correction saved = correctionRepository.save(correction, request.solutionId());
-            eventPublisher.publishEvent(new NewCorrectionEvent(this, teacher, request.solutionId()));
+            notificationPublisher.publishNewCorrection(new NewCorrectionMessage(
+                    teacher.getFullName(),
+                    request.solutionId()
+            ));
             return Result.ok(saved.getId());
         } catch (AuthException e) {
             log.error("Authentication error during correction addition", e);

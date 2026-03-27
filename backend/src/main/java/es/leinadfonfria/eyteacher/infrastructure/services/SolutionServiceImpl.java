@@ -16,11 +16,11 @@ import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.SolutionRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
 import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
-import es.leinadfonfria.eyteacher.infrastructure.events.NewSolutionEvent;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewSolutionMessage;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +36,7 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
     private final TaskRepository<Task> taskRepository;
     private final UserRepository<User> userRepository;
     private final SolutionResponseMapper solutionResponseMapper;
-    private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPublisher notificationPublisher;
 
     /**
      * Adds a new solution to a task (Only Student Role).
@@ -60,7 +60,13 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
 
             Solution solution = Solution.create(request.description(), student, task);
             Solution saved = solutionRepository.save(solution, request.taskId());
-            eventPublisher.publishEvent(new NewSolutionEvent(this, solution));
+            notificationPublisher.publishNewSolution(new NewSolutionMessage(
+                    task.getId(),
+                    task.getDescription(),
+                    task.getTopic().getName().value(),
+                    student.getFullName(),
+                    task.getTopic().getCategory().getOwner().getId().value()
+            ));
             return Result.ok(saved.getId());
         } catch (AuthException e) {
             log.error("Authentication error during solution addition", e);

@@ -20,6 +20,10 @@ services:
       SPRING_FLYWAY_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true&useSSL=false
       SPRING_FLYWAY_USER: ${MYSQL_USER:-eyteacher}
       SPRING_FLYWAY_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-eyteacher}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-eyteacher}
     depends_on:
       mysql:
         condition: service_healthy

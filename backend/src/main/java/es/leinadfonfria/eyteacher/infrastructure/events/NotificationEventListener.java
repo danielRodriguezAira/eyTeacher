@@ -4,19 +4,24 @@ import es.leinadfonfria.eyteacher.application.services.notification.AddNotificat
 import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationUseCase;
 import es.leinadfonfria.eyteacher.domain.entities.Solution;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
-import es.leinadfonfria.eyteacher.domain.entities.Topic;
-import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.SolutionRepository;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
+import es.leinadfonfria.eyteacher.infrastructure.config.RabbitMQConfig;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.event.EventListener;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+/**
+ * Consumes notification messages from RabbitMQ queues and creates the corresponding
+ * in-app notifications for teachers and students.
+ *
+ * <p>Each method listens to a dedicated queue declared in {@link RabbitMQConfig}.
+ * Messages arrive as JSON and are deserialized automatically by the configured</p>
+ */
 @Log4j2
 @Component
 @RequiredArgsConstructor
@@ -26,78 +31,83 @@ public class NotificationEventListener {
     private final SolutionRepository<Solution> solutionRepository;
     private final TaskRepository<Task> taskRepository;
 
-    @EventListener
-    public void onNewSolution(NewSolutionEvent event) {
+    /**
+     * Notifies each enrolled student that a new or updated task is available.
+     *
+     * @param message The deserialized message from the {@code notifications.new-task} queue.
+     */
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_NEW_TASK)
+    public void onNewTask(NewTaskMessage message) {
         try {
-            Solution solution = event.getSolution();
-            User student = solution.getStudent();
-            Task task = solution.getTask();
-            User teacher = task.getTopic().getCategory().getOwner();
-
-            String studentName = student.getFirstName().value() + " " + student.getLastName().value();
-            String topicName = task.getTopic().getName().value();
-            String message = studentName + " ha entregado una solución a la tarea " + topicName + " - " + task.getDescription();
-            String goTo = "/tasks/" + task.getId();
-
-            addNotificationUseCase.addNotification(new AddNotificationRequest(teacher.getId().value(), message, goTo));
+            String notification = message.teacherFullName() + " ha creado/modificado la tarea: "
+                    + message.topicName() + " - " + message.taskDescription();
+            String goTo = "/tasks/" + message.taskId();
+            for (java.util.UUID studentId : message.studentIds()) {
+                addNotificationUseCase.addNotification(new AddNotificationRequest(studentId, notification, goTo));
+            }
         } catch (Exception e) {
-            log.error("Error creating notification for new solution event", e);
+            log.error("Error creating notification for new-task message: {}", message, e);
         }
     }
 
-    @EventListener
-    public void onNewCorrection(NewCorrectionEvent event) {
+    /**
+     * Notifies the teacher that a student has submitted a solution.
+     *
+     * @param message The deserialized message from the {@code notifications.new-solution} queue.
+     */
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_NEW_SOLUTION)
+    public void onNewSolution(NewSolutionMessage message) {
         try {
-            User teacher = event.getTeacher();
-            Long solutionId = event.getSolutionId();
+            String notification = message.studentFullName() + " ha entregado una solución a la tarea "
+                    + message.topicName() + " - " + message.taskDescription();
+            String goTo = "/tasks/" + message.taskId();
+            addNotificationUseCase.addNotification(new AddNotificationRequest(message.teacherId(), notification, goTo));
+        } catch (Exception e) {
+            log.error("Error creating notification for new-solution message: {}", message, e);
+        }
+    }
 
-            Solution solution = solutionRepository.findById(solutionId)
+    /**
+     * Notifies the student that their solution has been corrected.
+     * Looks up the solution and task from the database to retrieve the student and task details.
+     *
+     * @param message The deserialized message from the {@code notifications.new-correction} queue.
+     */
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_NEW_CORRECTION)
+    public void onNewCorrection(NewCorrectionMessage message) {
+        try {
+            Solution solution = solutionRepository.findById(message.solutionId())
                     .orElseThrow(() -> new NotFoundException("Solution not found", ErrorCode.SOLUTION_NOT_FOUND));
-            User student = solution.getStudent();
 
             Task task = taskRepository.findById(solution.getTask().getId());
             String topicName = task.getTopic().getName().value();
 
-            String teacherName = teacher.getFirstName().value() + " " + teacher.getLastName().value();
-            String message = teacherName + " ha realizado una corrección en la tarea: " + topicName + " - " + task.getDescription();
+            String notification = message.teacherFullName() + " ha realizado una corrección en la tarea: "
+                    + topicName + " - " + task.getDescription();
             String goTo = "/tasks/" + task.getId();
 
-            addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
+            addNotificationUseCase.addNotification(
+                    new AddNotificationRequest(solution.getStudent().getId().value(), notification, goTo));
         } catch (Exception e) {
-            log.error("Error creating notification for new correction event", e);
+            log.error("Error creating notification for new-correction message: {}", message, e);
         }
     }
 
-    @EventListener
-    public void onNewSubscription(NewSubscriptionEvent event) {
+    /**
+     * Notifies each newly subscribed student that they have been added to a topic.
+     *
+     * @param message The deserialized message from the {@code notifications.new-subscription} queue.
+     */
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_NEW_SUBSCRIPTION)
+    public void onNewSubscription(NewSubscriptionMessage message) {
         try {
-            Topic topic = event.getTopic();
-            User teacher = topic.getCategory().getOwner();
-            List<User> studentList = event.getNewStudents();
-
-            for (User student : studentList) {
-                String message = teacher.getFullName() + " te ha suscrito al tema: " + topic.getName().value();
-                String goTo = "/topics/" + topic.getId();
-                addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
+            String notification = message.teacherFullName() + " te ha suscrito al tema: " + message.topicName();
+            String goTo = "/topics/" + message.topicId();
+            for (java.util.UUID studentId : message.studentIds()) {
+                addNotificationUseCase.addNotification(new AddNotificationRequest(studentId, notification, goTo));
             }
         } catch (Exception e) {
-            log.error("Error creating notification for new subscription event", e);
-        }
-    }
-
-    @EventListener
-    public void onNewTask(NewTaskEvent event) {
-        try {
-            Task task = event.getTask();
-            User teacher =  task.getTopic().getCategory().getOwner();
-            List<User> studentList = task.getTopic().getStudentList();
-            String message = teacher.getFullName() + " ha creado/modificado la tarea: " + task.getTopic().getName().value() + " - " + task.getDescription();
-            String goTo = "/tasks/" + task.getId();
-            for (User student : studentList) {
-                addNotificationUseCase.addNotification(new AddNotificationRequest(student.getId().value(), message, goTo));
-            }
-        } catch (Exception e) {
-            log.error("Error creating notification for new subscription event", e);
+            log.error("Error creating notification for new-subscription message: {}", message, e);
         }
     }
 }
