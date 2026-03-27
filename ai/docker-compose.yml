@@ -11,4 +11,7 @@ services:
     network_mode: host
     environment:
       - SERVER_PORT=8081
-      - SPRING_AI_OLLAMA_BASE_URL=http://localhost:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_MODEL=gpt-4o-mini
+      - AI_TEMPERATURE=0.5
+      - AI_PROVIDER=openai
