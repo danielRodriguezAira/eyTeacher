@@ -73,7 +73,15 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
 
     @Override
     public List<Task> findByStudentId(UUID studentId) {
-        List<TaskJpaEntity> taskEntities = taskJpaRepository.findByStudentId(studentId);
+        return mapTaskEntitiesForStudent(taskJpaRepository.findByStudentId(studentId), studentId);
+    }
+
+    @Override
+    public List<Task> findByStudentIdAndTeacherId(UUID studentId, UUID teacherId) {
+        return mapTaskEntitiesForStudent(taskJpaRepository.findByStudentIdAndTeacherId(studentId, teacherId), studentId);
+    }
+
+    private List<Task> mapTaskEntitiesForStudent(List<TaskJpaEntity> taskEntities, UUID studentId) {
         return taskEntities.stream()
                 .map(taskEntity -> {
                     Task task = taskMapper.toDomain(taskEntity);

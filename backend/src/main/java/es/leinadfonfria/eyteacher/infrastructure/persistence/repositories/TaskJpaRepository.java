@@ -24,4 +24,15 @@ public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, Long> {
      */
     @Query("SELECT DISTINCT t FROM TaskJpaEntity t JOIN t.topic.studentList s WHERE s.id = :studentId")
     List<TaskJpaEntity> findByStudentId(@Param("studentId") UUID studentId);
+
+    /**
+     * Retrieves all tasks that belong to topics in which the given student is enrolled,
+     * restricted to topics whose category is owned by the given teacher.
+     *
+     * @param studentId The UUID of the student.
+     * @param teacherId The UUID of the teacher who owns the category.
+     * @return List of tasks accessible to the student within the teacher's categories.
+     */
+    @Query("SELECT DISTINCT t FROM TaskJpaEntity t JOIN t.topic.studentList s WHERE s.id = :studentId AND t.topic.category.owner.id = :teacherId")
+    List<TaskJpaEntity> findByStudentIdAndTeacherId(@Param("studentId") UUID studentId, @Param("teacherId") UUID teacherId);
 }

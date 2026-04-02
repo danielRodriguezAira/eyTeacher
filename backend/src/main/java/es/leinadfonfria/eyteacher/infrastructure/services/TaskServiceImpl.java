@@ -184,7 +184,12 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
                 throw new AuthException("Student can only view their own tasks", ErrorCode.AUTHENTICATION_ERROR);
             }
 
-            List<Task> tasks = taskRepository.findByStudentId(studentUuid);
+            List<Task> tasks;
+            if (AuthenticationUtils.isTeacher()) {
+                tasks = taskRepository.findByStudentIdAndTeacherId(studentUuid, AuthenticationUtils.getUserId());
+            } else {
+                tasks = taskRepository.findByStudentId(studentUuid);
+            }
 
             Map<String, List<Task>> tasksByStatus = new LinkedHashMap<>();
             tasksByStatus.put(STATUS_WITHOUT_SOLUTION, new ArrayList<>());
