@@ -43,7 +43,7 @@ export class StudentTasks implements OnInit {
     taskGroups = signal<StudentTasksResponse[]>([]);
 
     readonly statusConfig: Record<TaskStatus, { label: string; icon: string; cssClass: string }> = {
-        WITHOUT_SOLUTION: {label: 'Sin solución', icon: 'pending_actions', cssClass: 'status-pending'},
+        WITHOUT_SOLUTION: {label: 'Sin solucionar', icon: 'pending_actions', cssClass: 'status-pending'},
         WITHOUT_CORRECTION: {label: 'Sin corregir', icon: 'rate_review', cssClass: 'status-review'},
         CORRECTED: {label: 'Corregidas', icon: 'check_circle', cssClass: 'status-done'},
     };

@@ -28,7 +28,7 @@ public class TopicJpaEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)

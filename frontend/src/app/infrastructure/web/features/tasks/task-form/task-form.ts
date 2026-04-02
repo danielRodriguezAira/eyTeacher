@@ -10,6 +10,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {switchMap} from 'rxjs';
+import {RichTextEditor} from '../../../../../shared/components/rich-text-editor/rich-text-editor';
 import {TaskService} from '../../../services/task.service';
 import {TopicService} from '../../../services/topic.service';
 import {CategoryService} from '../../../services/category.service';
@@ -29,7 +30,8 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
         MatInputModule,
         MatButtonModule,
         MatIconModule,
-        MatProgressBarModule
+        MatProgressBarModule,
+        RichTextEditor,
     ],
     templateUrl: './task-form.html',
     styleUrls: ['./task-form.scss']
@@ -103,8 +105,14 @@ export class TaskForm implements OnInit {
         });
     }
 
+    hasDescriptionContent(): boolean {
+        const value = this.taskForm.get('description')?.value ?? '';
+        return value.replace(/<[^>]*>/g, '').trim() !== '';
+    }
+
     requestExercise(): void {
-        const description = this.taskForm.get('description')?.value?.trim();
+        const rawValue = this.taskForm.get('description')?.value ?? '';
+        const description = rawValue.replace(/<[^>]*>/g, '').trim();
         if (!description || this.isLoadingExercise()) {
             return;
         }

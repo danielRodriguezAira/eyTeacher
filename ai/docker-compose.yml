@@ -1,17 +1,21 @@
-version: "3.8"
-
 services:
   eyteacher-ai-app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: eyteacher-ai-app
     ports:
       - "8081:8081"
-    container_name: eyteacher-ai-app
-    network_mode: host
+    networks:
+      - eyteacher-network
     environment:
       - SERVER_PORT=8081
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
       - AI_MODEL=gpt-4o-mini
       - AI_TEMPERATURE=0.5
       - AI_PROVIDER=openai
+
+networks:
+  eyteacher-network:
+    external: true

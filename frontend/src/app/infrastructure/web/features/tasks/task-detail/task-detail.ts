@@ -13,11 +13,12 @@ import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
 import {Solution} from '../../../../../domain/entities/solution';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 
 @Component({
     selector: 'app-task-detail',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger],
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, SafeHtmlPipe],
     templateUrl: './task-detail.html',
     styleUrl: './task-detail.scss'
 })

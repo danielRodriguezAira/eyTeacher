@@ -1,0 +1,18 @@
+<div class="rich-text-wrapper">
+    @if (label) {
+        <label class="editor-label">{{ label }}</label>
+    }
+    <quill-editor
+        [ngModel]="value"
+        (onEditorCreated)="onEditorCreated($event)"
+        (onContentChanged)="onContentChanged($event)"
+        (onBlur)="onBlur()"
+        [placeholder]="placeholder"
+        [modules]="modules"
+        format="html"
+        class="editor">
+    </quill-editor>
+    @if (showError) {
+        <span class="editor-error">Este campo es obligatorio</span>
+    }
+</div>

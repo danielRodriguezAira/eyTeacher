@@ -7,6 +7,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import {RichTextEditor} from '../../../../../shared/components/rich-text-editor/rich-text-editor';
 import {TopicService} from '../../../services/topic.service';
 import {Topic} from '../../../../../domain/entities/topic';
 import {NotificationService} from '../../../services/notification.service';
@@ -22,7 +23,8 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
-        MatIconModule
+        MatIconModule,
+        RichTextEditor,
     ],
     templateUrl: './topic-form.html',
     styleUrls: ['./topic-form.scss']

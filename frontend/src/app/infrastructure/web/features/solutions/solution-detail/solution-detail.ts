@@ -8,6 +8,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {map} from 'rxjs';
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
+import {RichTextEditor} from '../../../../../shared/components/rich-text-editor/rich-text-editor';
 import {Solution} from '../../../../../domain/entities/solution';
 import {Correction} from '../../../../../domain/entities/correction';
 import {TaskService} from '../../../services/task.service';
@@ -21,14 +23,16 @@ import {toSignal} from '@angular/core/rxjs-interop';
     selector: 'app-solution-detail',
     standalone: true,
     imports: [
-        CommonModule, 
-        MatCardModule, 
-        MatButtonModule, 
-        MatIconModule, 
-        RouterLink, 
-        MatFormFieldModule, 
-        MatInputModule, 
-        FormsModule
+        CommonModule,
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        RouterLink,
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        SafeHtmlPipe,
+        RichTextEditor,
     ],
     templateUrl: './solution-detail.html',
     styleUrl: './solution-detail.scss'

@@ -24,7 +24,7 @@ public class TaskJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)

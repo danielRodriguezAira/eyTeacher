@@ -13,13 +13,11 @@
                         }
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Descripción</mat-label>
-                        <textarea matInput rows="4" formControlName="description"></textarea>
-                        @if (topicForm.get('description')?.hasError('required')) {
-                            <mat-error>La descripción es obligatoria</mat-error>
-                        }
-                    </mat-form-field>
+                    <app-rich-text-editor
+                        formControlName="description"
+                        label="Descripción"
+                        [required]="true">
+                    </app-rich-text-editor>
                 </div>
 
                 <div class="actions">

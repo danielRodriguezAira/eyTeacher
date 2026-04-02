@@ -1,29 +1,30 @@
 services:
   eyteacher-backend-app:
+    container_name: eyteacher-backend-app
     build: .
     restart: on-failure:5
-    ports:
-      - "8080:8080"
     profiles:
       - production
     labels:
       - "org.springframework.boot.ignore=true"
+    expose:
+      - "8080"
     networks:
       - default
       - eyteacher-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-eyteacher-super-secret-key-512bits-long-enough-for-hs512-algorithm-validation}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-eyteacher}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_FLYWAY_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_FLYWAY_USER: ${MYSQL_USER:-eyteacher}
-      SPRING_FLYWAY_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
+      SPRING_FLYWAY_USER: ${MYSQL_USER}
+      SPRING_FLYWAY_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-eyteacher}
-      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-eyteacher}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,9 +36,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: eyteacherdb
-      MYSQL_USER: ${MYSQL_USER:-eyteacher}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-eyteacher}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "3306:3306"
     networks:
@@ -54,8 +55,8 @@ services:
     image: rabbitmq:3-management
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-eyteacher}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-eyteacher}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     ports:
       - "5672:5672"
       - "15672:15672"

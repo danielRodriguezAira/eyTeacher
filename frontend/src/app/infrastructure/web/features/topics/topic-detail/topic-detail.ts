@@ -13,11 +13,12 @@ import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 
 @Component({
     selector: 'app-topic-detail',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule],
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule, SafeHtmlPipe],
     templateUrl: './topic-detail.html',
     styleUrl: './topic-detail.scss'
 })
