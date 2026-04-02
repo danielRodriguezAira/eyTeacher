@@ -1,5 +1,6 @@
 services:
   eyteacher-backend-app:
+    container_name: eyteacher-backend-app
     build: .
     restart: on-failure:5
     ports:
@@ -13,7 +14,7 @@ services:
       - eyteacher-network
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-eyteacher-super-secret-key-512bits-long-enough-for-hs512-algorithm-validation}
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eyteacherdb?connectTimeout=10000&socketTimeout=30000&allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-eyteacher}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-eyteacher}

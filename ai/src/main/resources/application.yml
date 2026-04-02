@@ -11,7 +11,7 @@ spring:
           model: ${AI_MODEL:gpt-4o-mini}
           temperature: ${AI_TEMPERATURE:0.5}
 jwt:
-  secret: ${JWT_SECRET:[eyteacher-super-secret-key-512bits-long-enough-for-hs512-algorithm-validation]}
+  secret: ${JWT_SECRET}
 
 ai:
   prompts:
@@ -33,7 +33,8 @@ ai:
       "Escribe el acorde de Do mayor en notación anglosajona e indica qué notas lo componen."
     hint-system: |
       Eres un tutor experto. Tu objetivo es dar UNA ÚNICA PISTA conceptual para que el usuario resuelva su duda por sí mismo (ya sea de gramática, programación, matemáticas, etc.).
-
+      Puedes recomendar fuentes, ejemplos, referencias, etc.
+      
       REGLAS INQUEBRANTABLES:
       1. NUNCA des la respuesta final ni la solución directa.
       2. Da solo la pista o el concepto clave necesario.

@@ -16,6 +16,6 @@ export class SolutionService {
     }
 
     getHint(taskDescription: string): Observable<{ hint: string }> {
-        return this.http.post<{ hint: string }>(this.HINTS_API_URL, { exercise: taskDescription });
+        return this.http.post<{ hint: string }>(this.HINTS_API_URL, { task: taskDescription });
     }
 }
