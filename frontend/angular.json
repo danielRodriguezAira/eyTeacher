@@ -61,6 +61,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "ssl": false,
+            "port": 8082,
             "proxyConfig": "proxy.conf.js"
           },
           "configurations": {
