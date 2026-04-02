@@ -13,11 +13,12 @@ import {map} from 'rxjs';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 
 @Component({
     selector: 'app-category-detail',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule],
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, RouterLink, MatMenu, MatMenuItem, MatMenuTrigger, MatListModule, SafeHtmlPipe],
     templateUrl: './category-detail.html',
     styleUrl: './category-detail.scss'
 })

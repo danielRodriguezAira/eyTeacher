@@ -13,7 +13,7 @@
             <mat-card-content>
                 <div class="task-description">
                     <h3>Tarea</h3>
-                    <p>{{ taskDescription() }}</p>
+                    <div [innerHTML]="taskDescription() | safeHtml"></div>
                 </div>
                 <hr>
                 <div class="solution-description">
@@ -22,13 +22,13 @@
                     } @else {
                         <h3>Mi Solución</h3>
                     }
-                    <p class="description">{{ sol.description }}</p>
+                    <div class="description" [innerHTML]="sol.description | safeHtml"></div>
                 </div>
 
                 @if (sol.correction) {
                     <div class="correction-display">
                         <h3>Corrección</h3>
-                        <p class="description">{{ sol.correction.description }}</p>
+                        <div class="description" [innerHTML]="sol.correction.description | safeHtml"></div>
                     </div>
                 }
 
@@ -40,10 +40,12 @@
                                 Corregir
                             </button>
                         } @else {
-                            <mat-form-field appearance="outline" class="full-width">
-                                <mat-label>Corrección</mat-label>
-                                <textarea matInput [ngModel]="correctionText()" (ngModelChange)="correctionText.set($event)" rows="5"></textarea>
-                            </mat-form-field>
+                            <app-rich-text-editor
+                                [ngModel]="correctionText()"
+                                (ngModelChange)="correctionText.set($event)"
+                                label="Corrección"
+                                name="correction">
+                            </app-rich-text-editor>
                             <button mat-raised-button color="accent" (click)="sendCorrection()">
                                 <mat-icon>send</mat-icon>
                                 Enviar corrección

@@ -9,7 +9,7 @@
             @if (taskDescription()) {
                 <div class="task-description">
                     <h3>Tarea</h3>
-                    <p>{{ taskDescription() }}</p>
+                    <div [innerHTML]="taskDescription() | safeHtml"></div>
                 </div>
                 
                 @if (hintRequested() && !hint()) {
@@ -34,16 +34,14 @@
                 <hr>
             }
             <form (ngSubmit)="sendSolution()" #solutionForm="ngForm">
-                <mat-form-field appearance="fill" class="full-width">
-                    <mat-label>Descripción de la solución</mat-label>
-                    <textarea matInput
-                              placeholder="Escribe aquí tu solución..."
-                              [(ngModel)]="description"
-                              name="description"
-                              rows="6"
-                              required></textarea>
-                </mat-form-field>
-                
+                <app-rich-text-editor
+                    [ngModel]="description()"
+                    (ngModelChange)="description.set($event)"
+                    name="description"
+                    placeholder="Escribe aquí tu solución..."
+                    [required]="true">
+                </app-rich-text-editor>
+
                 <div class="actions">
                     <button mat-button type="button" (click)="cancel()">
                         Cancelar

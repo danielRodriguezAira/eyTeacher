@@ -8,6 +8,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {RichTextEditor} from '../../../../../shared/components/rich-text-editor/rich-text-editor';
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 import {SolutionService} from '../../../services/solution.service';
 import {NotificationService} from '../../../services/notification.service';
 import {TaskService} from '../../../services/task.service';
@@ -23,7 +25,9 @@ import {TaskService} from '../../../services/task.service';
         MatFormFieldModule,
         MatInputModule,
         MatProgressBarModule,
-        FormsModule
+        FormsModule,
+        RichTextEditor,
+        SafeHtmlPipe,
     ],
     templateUrl: './solution-form.html',
     styleUrl: './solution-form.scss'
