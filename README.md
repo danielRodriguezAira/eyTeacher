@@ -89,7 +89,7 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-**Frontend** (puerto 4200):
+**Frontend** (puerto 8082):
 ```bash
 cd frontend
 npm install
@@ -120,7 +120,7 @@ npm run build           # Build de producción
 ### URLs de desarrollo
 | Servicio | URL |
 |---|---|
-| Frontend | http://localhost:4200 |
+| Frontend | http://localhost:8082 |
 | Backend API | http://localhost:8080 |
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Servicio IA | http://localhost:8081 |
