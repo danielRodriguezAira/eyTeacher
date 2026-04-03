@@ -5,6 +5,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatListModule} from '@angular/material/list';
+import {MatDialog} from '@angular/material/dialog';
 import {Category} from '../../../../../domain/entities/category';
 import {CategoryService} from '../../../services/category.service';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
@@ -14,6 +15,7 @@ import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
+import {ConfirmDialog} from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
     selector: 'app-category-detail',
@@ -28,6 +30,7 @@ export class CategoryDetail implements OnInit {
     private authService = inject(AuthenticationService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private dialog = inject(MatDialog);
 
     category = signal<Category | undefined>(undefined);
     userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
@@ -48,18 +51,26 @@ export class CategoryDetail implements OnInit {
     }
 
     deleteCategory(category: Category) {
-        if (confirm(`¿Seguro que quieres borrar la categoría "${category.name}"?`)) {
-            this.categoryService.deleteCategory(category.id).subscribe({
-                next: () => {
-                    this.notificationService.openSnackBar('Categoría borrada correctamente');
-                    this.router.navigate(['/category-list']);
-                },
-                error: (err) => {
-                    this.notificationService.openSnackBar('Error al borrar la categoría');
-                    console.error(err);
-                }
-            });
-        }
+        const ref = this.dialog.open(ConfirmDialog, {
+            data: {
+                title: 'Borrar categoría',
+                message: `¿Seguro que quieres borrar la categoría "${category.name}"?`
+            }
+        });
+        ref.afterClosed().subscribe(confirmed => {
+            if (confirmed) {
+                this.categoryService.deleteCategory(category.id).subscribe({
+                    next: () => {
+                        this.notificationService.openSnackBar('Categoría borrada correctamente');
+                        this.router.navigate(['/category-list']);
+                    },
+                    error: (err) => {
+                        this.notificationService.openSnackBar('Error al borrar la categoría');
+                        console.error(err);
+                    }
+                });
+            }
+        });
     }
 
     addTopic(categoryId: number | null) {

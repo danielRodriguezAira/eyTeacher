@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Solution} from '../../../domain/entities/solution';
+import {PageResponse} from '../../../domain/entities/page-response';
 
 @Injectable({
     providedIn: 'root'
@@ -13,6 +14,14 @@ export class SolutionService {
 
     addSolution(solution: { description: string, taskId: number }): Observable<Solution> {
         return this.http.put<Solution>(this.API_URL, solution);
+    }
+
+    getSolutionById(id: number): Observable<Solution> {
+        return this.http.get<Solution>(`${this.API_URL}/${id}`);
+    }
+
+    getSolutionsByTask(taskId: number, page: number, size: number): Observable<PageResponse<Solution>> {
+        return this.http.get<PageResponse<Solution>>(`${this.API_URL}/task/${taskId}`, {params: {page, size}});
     }
 
     getHint(taskDescription: string): Observable<{ hint: string }> {

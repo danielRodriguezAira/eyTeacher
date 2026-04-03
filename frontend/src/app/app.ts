@@ -73,7 +73,8 @@ export class App {
         switchMap(user => {
             if (user && user.id) {
                 return this.notificationService.getRefreshObservable().pipe(
-                    switchMap(() => this.notificationService.getNotificationsByOwner(user.id))
+                    switchMap(() => this.notificationService.getNotificationsByOwner(user.id, 0, 10)),
+                    map(page => page.content)
                 );
             }
             return of([] as Notification[]);
@@ -94,10 +95,8 @@ export class App {
             return true;
         }
         // Para '/register', es pública (sin layout) siempre
-        if (url.startsWith('/register')) {
-            return true;
-        }
-        return false;
+        return url.startsWith('/register');
+
     }
 
     onLogout() {
