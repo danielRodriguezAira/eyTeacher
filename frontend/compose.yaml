@@ -8,7 +8,7 @@ services:
       - eyteacher-network
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8082:80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.eyteacher.rule=Host(`${DOMAIN}`)"

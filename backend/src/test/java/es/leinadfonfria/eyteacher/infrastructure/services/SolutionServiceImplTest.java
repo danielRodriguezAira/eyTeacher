@@ -14,6 +14,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.SolutionRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TaskRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.UserRepositoryAdapter;
@@ -53,6 +54,9 @@ class SolutionServiceImplTest {
 
     @Mock
     private SolutionResponseMapper solutionResponseMapper;
+
+    @Mock
+    private NotificationPublisher notificationPublisher;
 
     @InjectMocks
     private SolutionServiceImpl solutionService;

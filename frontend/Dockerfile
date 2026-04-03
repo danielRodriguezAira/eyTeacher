@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Etapa 2: Serve con Nginx
+# Etapa 2: Serve con Ngi
 FROM nginx:stable-alpine
 
 # Configuración de Nginx para soportar Angular Routing y proxy de API en HTTP

@@ -11,7 +11,6 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.SolutionMap
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.SolutionJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,7 +35,7 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
     public PageResult<Solution> findByTaskId(Long taskId, int page, int size) {
         taskJpaRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
-        List<SolutionJpaEntity> raw = solutionJpaRepository.findByTaskIdOrderByCreatedAtDesc(taskId, PageRequest.of(page, size + 1));
+        List<SolutionJpaEntity> raw = solutionJpaRepository.findPageByTaskId(taskId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
         return new PageResult<>(content, hasNext);
@@ -55,7 +54,7 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
     public PageResult<Solution> findByTaskIdAndStudentId(Long taskId, UUID studentId, int page, int size) {
         taskJpaRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
-        List<SolutionJpaEntity> raw = solutionJpaRepository.findByTaskIdAndStudentId(taskId, studentId, PageRequest.of(page, size + 1));
+        List<SolutionJpaEntity> raw = solutionJpaRepository.findPageByTaskIdAndStudentId(taskId, studentId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
         return new PageResult<>(content, hasNext);

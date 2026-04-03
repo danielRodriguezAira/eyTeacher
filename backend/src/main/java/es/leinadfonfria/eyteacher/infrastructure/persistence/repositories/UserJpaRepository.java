@@ -42,4 +42,15 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
      */
     @Query("SELECT DISTINCT s FROM TopicJpaEntity t JOIN t.studentList s WHERE t.category.owner.id = :ownerId")
     List<UserJpaEntity> findStudentsByOwnerId(@Param("ownerId") UUID ownerId, Pageable pageable);
+
+    /**
+     * Retrieves a page of distinct students for the given teacher owner using explicit LIMIT/OFFSET.
+     *
+     * @param ownerId The UUID of the teacher who owns the categories.
+     * @param offset  Number of rows to skip (= {@code page * size}).
+     * @param limit   Maximum rows to fetch (= {@code size + 1} to detect next page).
+     * @return List of distinct student {@link UserJpaEntity} for the requested page.
+     */
+    @Query(value = "SELECT DISTINCT u.* FROM users u JOIN topics_students ts ON ts.student_id = u.id JOIN topics t ON t.id = ts.topic_id JOIN categories c ON c.id = t.category_id WHERE c.owner_id = :ownerId ORDER BY u.id LIMIT :limit OFFSET :offset", nativeQuery = true)
+    List<UserJpaEntity> findPageStudentsByOwnerId(@Param("ownerId") UUID ownerId, @Param("offset") int offset, @Param("limit") int limit);
 }

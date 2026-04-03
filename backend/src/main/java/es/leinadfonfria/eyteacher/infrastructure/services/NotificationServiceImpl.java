@@ -27,7 +27,7 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
     @Transactional
     public void addNotification(AddNotificationRequest request) {
         try {
-            Notification notification = Notification.create(null, request.message(), request.entityType(), request.entityId());
+            Notification notification = Notification.create(null, sanitizeMessage(request.message()), request.entityType(), request.entityId());
             Notification saved = notificationRepository.save(notification, request.ownerId());
             Result.ok(saved.getId());
         } catch (NotFoundException e) {
@@ -67,6 +67,29 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
             log.error("Unexpected error during notifications retrieval by owner", e);
             return Result.fail(ErrorCode.UNKNOWN_ERROR);
         }
+    }
+
+    /**
+     * Strips HTML tags from the message, normalises whitespace, and truncates to 100 characters.
+     *
+     * @param raw The raw message, potentially containing HTML markup.
+     * @return Plain-text message of at most 100 characters, ending in "..." if truncated.
+     */
+    private static final int MAX_MESSAGE_LENGTH = 100;
+
+    private String sanitizeMessage(String raw) {
+        if (raw == null) return "";
+        String plain = raw
+                .replaceAll("<[^>]+>", " ")
+                .replaceAll("&nbsp;", " ")
+                .replaceAll("&amp;", "&")
+                .replaceAll("&lt;", "<")
+                .replaceAll("&gt;", ">")
+                .replaceAll("&quot;", "\"")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (plain.length() <= MAX_MESSAGE_LENGTH) return plain;
+        return plain.substring(0, MAX_MESSAGE_LENGTH) + "...";
     }
 
     @Override
