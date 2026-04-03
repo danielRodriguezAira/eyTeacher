@@ -1,5 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
+import es.leinadfonfria.eyteacher.config.TestRabbitConfig;
+import es.leinadfonfria.eyteacher.domain.entities.NotificationEntityType;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.NotificationJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
+@Import(TestRabbitConfig.class)
 class NotificationJpaRepositoryTest {
 
     @Autowired
@@ -53,25 +57,28 @@ class NotificationJpaRepositoryTest {
         NotificationJpaEntity unreadOld = NotificationJpaEntity.builder()
                 .owner(owner)
                 .message("Unread Old")
-                .goTo("/tasks/1")
+                .entityType(NotificationEntityType.TASK)
+                .entityId(1L)
                 .read(false)
                 .createdAt(now.minusDays(2))
                 .build();
-        
+
         // No leída, más reciente
         NotificationJpaEntity unreadNew = NotificationJpaEntity.builder()
                 .owner(owner)
                 .message("Unread New")
-                .goTo("/tasks/2")
+                .entityType(NotificationEntityType.TASK)
+                .entityId(2L)
                 .read(false)
                 .createdAt(now.minusDays(1))
                 .build();
-        
+
         // Leída, más reciente
         NotificationJpaEntity readNew = NotificationJpaEntity.builder()
                 .owner(owner)
                 .message("Read New")
-                .goTo("/tasks/3")
+                .entityType(NotificationEntityType.TASK)
+                .entityId(3L)
                 .read(true)
                 .createdAt(now)
                 .build();
@@ -80,7 +87,8 @@ class NotificationJpaRepositoryTest {
         NotificationJpaEntity readOld = NotificationJpaEntity.builder()
                 .owner(owner)
                 .message("Read Old")
-                .goTo("/tasks/4")
+                .entityType(NotificationEntityType.TASK)
+                .entityId(4L)
                 .read(true)
                 .createdAt(now.minusDays(3))
                 .build();
@@ -96,7 +104,7 @@ class NotificationJpaRepositoryTest {
         entityManager.clear();
 
         // Act
-        List<NotificationJpaEntity> result = notificationJpaRepository.findByOwnerOrderByReadAscCreatedAtDesc(owner);
+        List<NotificationJpaEntity> result = notificationJpaRepository.findByOwnerIdOrderByReadAscCreatedAtDesc(owner.getId());
 
         // Assert
         assertEquals(4, result.size());
@@ -114,12 +122,13 @@ class NotificationJpaRepositoryTest {
     }
 
     private void insertNotification(NotificationJpaEntity entity) {
-        entityManager.createNativeQuery("INSERT INTO notifications (owner_id, message, go_to, is_read, created_at) VALUES (?, ?, ?, ?, ?)")
+        entityManager.createNativeQuery("INSERT INTO notifications (owner_id, message, entity_type, entity_id, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)")
                 .setParameter(1, entity.getOwner().getId())
                 .setParameter(2, entity.getMessage())
-                .setParameter(3, entity.getGoTo())
-                .setParameter(4, entity.isRead())
-                .setParameter(5, java.sql.Timestamp.valueOf(entity.getCreatedAt()))
+                .setParameter(3, entity.getEntityType().name())
+                .setParameter(4, entity.getEntityId())
+                .setParameter(5, entity.isRead())
+                .setParameter(6, java.sql.Timestamp.valueOf(entity.getCreatedAt()))
                 .executeUpdate();
     }
 }

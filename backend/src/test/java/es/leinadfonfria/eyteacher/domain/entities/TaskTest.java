@@ -1,14 +1,7 @@
 package es.leinadfonfria.eyteacher.domain.entities;
 
-import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
-import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
-import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
-import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 

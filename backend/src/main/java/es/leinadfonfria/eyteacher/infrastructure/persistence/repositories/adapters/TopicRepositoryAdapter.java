@@ -33,7 +33,7 @@ public class TopicRepositoryAdapter implements TopicRepository<Topic> {
     public List<Topic> findByCategory(Long categoryId) {
         CategoryJpaEntity categoryEntity = categoryJpaRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Category not found", ErrorCode.TOPIC_CATEGORY_NOT_FOUND));
-        return topicMapper.toDomainList(topicJpaRepository.findByCategory(categoryEntity));
+        return topicMapper.toDomainList(topicJpaRepository.findByCategoryId(categoryEntity.getId()));
     }
 
     @Override

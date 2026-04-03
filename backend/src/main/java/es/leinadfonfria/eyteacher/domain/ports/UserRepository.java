@@ -1,8 +1,8 @@
 package es.leinadfonfria.eyteacher.domain.ports;
 
 import es.leinadfonfria.eyteacher.domain.entities.User;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,10 +13,12 @@ public interface UserRepository<U extends User> {
     U save(U user);
 
     /**
-     * Retrieves all distinct students subscribed to any topic whose category is owned by the given user.
+     * Retrieves a page of distinct students subscribed to any topic whose category is owned by the given user.
      *
      * @param ownerId The UUID of the teacher who owns the categories.
-     * @return List of students found across all topics of the owner's categories.
+     * @param page    Zero-based page number.
+     * @param size    Maximum number of items to return.
+     * @return PageResult containing up to {@code size} students and a hasNext flag.
      */
-    List<U> findStudentsByOwnerId(UUID ownerId);
+    PageResult<U> findStudentsByOwnerId(UUID ownerId, int page, int size);
 }

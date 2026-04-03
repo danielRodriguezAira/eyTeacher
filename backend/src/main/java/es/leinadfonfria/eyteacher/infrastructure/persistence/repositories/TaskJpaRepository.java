@@ -1,7 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TaskJpaEntity;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +14,9 @@ import java.util.UUID;
 @Repository
 public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, Long> {
 
-    Optional<List<TaskJpaEntity>> findByTopic(TopicJpaEntity topic);
+    Optional<List<TaskJpaEntity>> findByTopicIdOrderByCreatedAtDesc(Long topicId);
+
+    List<TaskJpaEntity> findByTopicIdOrderByCreatedAtDesc(Long topicId, Pageable pageable);
 
     /**
      * Retrieves all tasks that belong to topics in which the given student is enrolled.

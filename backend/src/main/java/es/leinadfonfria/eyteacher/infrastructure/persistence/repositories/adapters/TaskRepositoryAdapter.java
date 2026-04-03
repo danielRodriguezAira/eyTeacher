@@ -7,6 +7,7 @@ import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.TaskRepository;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TaskJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.SolutionMapper;
@@ -18,6 +19,7 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJp
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -48,18 +50,28 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
             solutionList = task.getSolutionList();
         } else {
             solutionList = solutionMapper.toDomainList(
-                    solutionJpaRepository.findByTaskAndStudentId(taskEntity, AuthenticationUtils.getUserId()));
+                    solutionJpaRepository.findByTaskIdAndStudentId(taskEntity.getId(), AuthenticationUtils.getUserId()));
         }
-        return Task.create(task.getId(), task.getDescription(), topic, solutionList);
+        return Task.create(task.getId(), task.getDescription(), topic, solutionList, task.getCreatedAt());
     }
 
     @Override
     public List<Task> findByTopicId(Long topicId) {
         TopicJpaEntity topicEntity = topicJpaRepository.findById(topicId)
                 .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
-        List<TaskJpaEntity> taskList = taskJpaRepository.findByTopic(topicEntity)
+        List<TaskJpaEntity> taskList = taskJpaRepository.findByTopicIdOrderByCreatedAtDesc(topicEntity.getId())
                 .orElse(Collections.emptyList());
         return taskMapper.toDomainList(taskList);
+    }
+
+    @Override
+    public PageResult<Task> findByTopicId(Long topicId, int page, int size) {
+        topicJpaRepository.findById(topicId)
+                .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+        List<TaskJpaEntity> raw = taskJpaRepository.findByTopicIdOrderByCreatedAtDesc(topicId, PageRequest.of(page, size + 1));
+        boolean hasNext = raw.size() > size;
+        List<Task> content = taskMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
+        return new PageResult<>(content, hasNext);
     }
 
     @Override
@@ -88,8 +100,8 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
                     List<User> studentList = userMapper.toDomainList(taskEntity.getTopic().getStudentList());
                     Topic topic = topicMapper.toDomain(taskEntity.getTopic(), studentList);
                     List<Solution> solutionList = solutionMapper.toDomainList(
-                            solutionJpaRepository.findByTaskAndStudentId(taskEntity, studentId));
-                    return Task.create(task.getId(), task.getDescription(), topic, solutionList);
+                            solutionJpaRepository.findByTaskIdAndStudentId(taskEntity.getId(), studentId));
+                    return Task.create(task.getId(), task.getDescription(), topic, solutionList, task.getCreatedAt());
                 })
                 .toList();
     }

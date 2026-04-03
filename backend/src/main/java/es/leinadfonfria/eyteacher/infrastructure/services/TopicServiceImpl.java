@@ -4,11 +4,12 @@ import es.leinadfonfria.eyteacher.application.dtos.topic.AddTopicSubscriptionToS
 import es.leinadfonfria.eyteacher.application.dtos.topic.SaveTopicRequest;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponse;
 import es.leinadfonfria.eyteacher.application.dtos.topic.TopicResponseMapper;
-import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationRequest;
-import es.leinadfonfria.eyteacher.application.services.notification.AddNotificationUseCase;
 import es.leinadfonfria.eyteacher.application.services.topic.*;
 import es.leinadfonfria.eyteacher.application.shared.Result;
-import es.leinadfonfria.eyteacher.domain.entities.*;
+import es.leinadfonfria.eyteacher.domain.entities.Category;
+import es.leinadfonfria.eyteacher.domain.entities.Task;
+import es.leinadfonfria.eyteacher.domain.entities.Topic;
+import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.AuthException;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;

@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.entities;
 
+import es.leinadfonfria.eyteacher.domain.entities.NotificationEntityType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,8 +29,12 @@ public class NotificationJpaEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String message;
 
-    @Column(name = "go_to", nullable = false)
-    private String goTo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entity_type", nullable = false)
+    private NotificationEntityType entityType;
+
+    @Column(name = "entity_id", nullable = false)
+    private Long entityId;
 
     @Column(name = "is_read", nullable = false)
     private boolean read;

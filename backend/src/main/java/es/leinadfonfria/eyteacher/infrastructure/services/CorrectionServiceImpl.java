@@ -50,6 +50,7 @@ public class CorrectionServiceImpl implements AddCorrectionUseCase, GetCorrectio
             Correction correction = Correction.create(request.description(), teacher, request.solutionId());
             Correction saved = correctionRepository.save(correction, request.solutionId());
             notificationPublisher.publishNewCorrection(new NewCorrectionMessage(
+                    saved.getId(),
                     teacher.getFullName(),
                     request.solutionId()
             ));

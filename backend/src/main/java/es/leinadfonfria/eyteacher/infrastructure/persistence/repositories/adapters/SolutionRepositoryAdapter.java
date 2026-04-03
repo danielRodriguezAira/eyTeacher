@@ -4,12 +4,14 @@ import es.leinadfonfria.eyteacher.domain.entities.Solution;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.SolutionRepository;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.SolutionJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TaskJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.SolutionMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.SolutionJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,10 +33,13 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
     }
 
     @Override
-    public List<Solution> findByTaskId(Long taskId) {
-        TaskJpaEntity taskEntity = taskJpaRepository.findById(taskId)
+    public PageResult<Solution> findByTaskId(Long taskId, int page, int size) {
+        taskJpaRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
-        return solutionMapper.toDomainList(solutionJpaRepository.findByTask(taskEntity));
+        List<SolutionJpaEntity> raw = solutionJpaRepository.findByTaskIdOrderByCreatedAtDesc(taskId, PageRequest.of(page, size + 1));
+        boolean hasNext = raw.size() > size;
+        List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
+        return new PageResult<>(content, hasNext);
     }
 
     @Override
@@ -46,10 +51,13 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
         return solutionMapper.toDomain(solutionJpaRepository.save(solutionJpaEntity));
     }
 
-    public List<Solution> findByTaskIdAndStudentId(Long taskId, UUID studentId) {
-        TaskJpaEntity task = taskJpaRepository.findById(taskId)
+    @Override
+    public PageResult<Solution> findByTaskIdAndStudentId(Long taskId, UUID studentId, int page, int size) {
+        taskJpaRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
-        List<SolutionJpaEntity> solutionList = solutionJpaRepository.findByTaskAndStudentId(task, studentId);
-        return solutionMapper.toDomainList(solutionList);
+        List<SolutionJpaEntity> raw = solutionJpaRepository.findByTaskIdAndStudentId(taskId, studentId, PageRequest.of(page, size + 1));
+        boolean hasNext = raw.size() > size;
+        List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
+        return new PageResult<>(content, hasNext);
     }
 }

@@ -6,6 +6,7 @@ import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionReque
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionUseCase;
 import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionByIdUseCase;
 import es.leinadfonfria.eyteacher.application.services.solution.GetSolutionsByTaskUseCase;
+import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Solution;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
@@ -24,7 +25,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Log4j2
@@ -61,6 +61,7 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
             Solution solution = Solution.create(request.description(), student, task);
             Solution saved = solutionRepository.save(solution, request.taskId());
             notificationPublisher.publishNewSolution(new NewSolutionMessage(
+                    saved.getId(),
                     task.getId(),
                     task.getDescription(),
                     task.getTopic().getName().value(),
@@ -81,23 +82,22 @@ public class SolutionServiceImpl implements AddSolutionUseCase, GetSolutionsByTa
     }
 
     /**
-     * Retrieves solutions by task ID.
-     * Teachers can see all solutions, Students can only see their own.
+     * Retrieves a page of solutions for the given task.
+     * Teachers see all student solutions; students see only their own.
+     *
      * @param taskId The ID of the task to retrieve solutions for.
-     * @return Result containing a list of SolutionResponse objects or an error code.
+     * @param page   Zero-based page number.
+     * @param size   Maximum number of items per page.
+     * @return Result containing a {@link PageResponse} of solution responses, or an error code.
      */
     @Override
-    public Result<List<SolutionResponse>, Integer> getSolutionsByTask(Long taskId) {
+    public Result<PageResponse<SolutionResponse>, Integer> getSolutionsByTask(Long taskId, int page, int size) {
         try {
-            List<Solution> solutions;
-            if (AuthenticationUtils.isTeacher()) {
-                // Teachers can see all solutions
-                solutions = solutionRepository.findByTaskId(taskId);
-            } else {
-                // Students can only see their own solutions
-                solutions = solutionRepository.findByTaskIdAndStudentId(taskId, AuthenticationUtils.getUserId());
-            }
-            return Result.ok(solutions.stream().map(solutionResponseMapper::toSolutionResponse).toList());
+            var pageResult = AuthenticationUtils.isTeacher()
+                    ? solutionRepository.findByTaskId(taskId, page, size)
+                    : solutionRepository.findByTaskIdAndStudentId(taskId, AuthenticationUtils.getUserId(), page, size);
+            var content = pageResult.content().stream().map(solutionResponseMapper::toSolutionResponse).toList();
+            return Result.ok(new PageResponse<>(content, page, size, pageResult.hasNext()));
         } catch (AuthException e) {
             log.error("Authentication error during solutions retrieval", e);
             return Result.fail(e.getCode());

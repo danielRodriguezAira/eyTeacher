@@ -21,14 +21,14 @@ public class CategoryRepositoryAdapter implements CategoryRepository<Category> {
     
     @Override
     public List<Category> findByOwnerId(UserId ownerId) {
-        return categoryRepository.findByOwnerId(ownerId.value())
+        return categoryRepository.findByOwnerIdOrderByCreatedAtDesc(ownerId.value())
                 .map(categoryMapper::toDomainList)
                 .orElseThrow(() -> new NotFoundException("Category owner not found", ErrorCode.CATEGORY_USER_NOT_FOUND));
     }
 
     @Override
     public List<Category> findByStudentId(UserId studentId) {
-        return categoryRepository.findByStudentId(studentId.value())
+        return categoryRepository.findByStudentIdOrderByCreatedAtDesc(studentId.value())
                 .map(categoryMapper::toDomainList)
                 .orElseThrow(() -> new NotFoundException("Category student not found", ErrorCode.CATEGORY_USER_NOT_FOUND));
     }

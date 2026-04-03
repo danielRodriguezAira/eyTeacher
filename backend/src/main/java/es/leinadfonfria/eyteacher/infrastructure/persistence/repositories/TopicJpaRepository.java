@@ -1,6 +1,5 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
-import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +21,7 @@ public interface TopicJpaRepository extends JpaRepository<TopicJpaEntity, Long> 
      * @param category The category entity.
      * @return List<TopicJpaEntity> The list of topics in the specified category.
      */
-    List<TopicJpaEntity> findByCategory(CategoryJpaEntity category);
+    List<TopicJpaEntity> findByCategoryId(Long category);
 
     @Query("SELECT t FROM TopicJpaEntity t JOIN t.studentList s WHERE s.id = :userId and t.category.id = :categoryId")
     List<TopicJpaEntity> findTopicByCategoryIdAndStudentId(Long categoryId, UUID userId);

@@ -33,7 +33,7 @@ public class CorrectionRepositoryAdapter implements CorrectionRepository<Correct
     public Optional<Correction> findBySolutionId(Long solutionId) {
         SolutionJpaEntity solutionEntity = solutionJpaRepository.findById(solutionId)
                 .orElseThrow(() -> new NotFoundException("Solution not found", ErrorCode.SOLUTION_NOT_FOUND));
-        return correctionJpaRepository.findBySolution(solutionEntity)
+        return correctionJpaRepository.findBySolutionId(solutionEntity.getId())
                 .map(correctionMapper::toDomain);
     }
 }

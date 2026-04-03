@@ -5,9 +5,11 @@ import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponse;
 import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponseMapper;
 import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponse;
 import es.leinadfonfria.eyteacher.application.services.solution.AddSolutionRequest;
+import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.*;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
@@ -52,14 +54,10 @@ class SolutionServiceImplTest {
     @Mock
     private SolutionResponseMapper solutionResponseMapper;
 
-    @Mock
-    private org.springframework.context.ApplicationEventPublisher eventPublisher;
-
     @InjectMocks
     private SolutionServiceImpl solutionService;
 
     private User studentDomain;
-    private Task taskDomain;
     private Topic topicDomain;
     private Solution solutionDomain;
 
@@ -91,7 +89,7 @@ class SolutionServiceImplTest {
 
         topicDomain = Topic.edit(1L, new Name("Algebra"), "Basic algebra", categoryDomain, List.of(studentDomain), List.of());
 
-        taskDomain = Task.create("Solve equations", topicDomain);
+        Task taskDomain = Task.create("Solve equations", topicDomain);
 
         solutionDomain = Solution.builder()
                 .id(solutionId)
@@ -171,19 +169,19 @@ class SolutionServiceImplTest {
         @DisplayName("Debe añadir una solución correctamente")
         void getSolutionsByTask_Success() {
             UserResponse student = new UserResponse(studentDomain.getId().value().toString(), "Jane", "Smith", "jane.smith@example.com");
-            TaskResponse task = new TaskResponse(taskId, "Task description", 1L, Collections.emptyList());
-            SolutionResponse solutionResponse = new SolutionResponse(solutionId, "My solution", student, task, null);
+            TaskResponse task = new TaskResponse(taskId, "Task description", 1L, Collections.emptyList(), null);
+            SolutionResponse solutionResponse = new SolutionResponse(solutionId, "My solution", student, task, null, null);
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(solutionRepositoryAdapter.findByTaskId(taskId)).thenReturn(List.of(solutionDomain));
+                when(solutionRepositoryAdapter.findByTaskId(taskId, 0, 10)).thenReturn(new PageResult<>(List.of(solutionDomain), false));
                 when(solutionResponseMapper.toSolutionResponse(solutionDomain)).thenReturn(solutionResponse);
 
-                Result<List<SolutionResponse>, Integer> result = solutionService.getSolutionsByTask(taskId);
+                Result<PageResponse<SolutionResponse>, Integer> result = solutionService.getSolutionsByTask(taskId, 0, 10);
 
                 assertTrue(result.isSuccess());
-                assertEquals(1, result.getValue().size());
-                assertEquals(solutionId, result.getValue().getFirst().id());
+                assertEquals(1, result.getValue().content().size());
+                assertEquals(solutionId, result.getValue().content().getFirst().id());
             }
         }
     }

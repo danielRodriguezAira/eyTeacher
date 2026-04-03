@@ -1,11 +1,8 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
 import es.leinadfonfria.eyteacher.application.dtos.auth.*;
-import es.leinadfonfria.eyteacher.application.services.auth.GetStudentsByOwnerIdUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.LoginUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.RegisterUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.UpdatePasswordUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.UpdateUserProfileUseCase;
+import es.leinadfonfria.eyteacher.application.services.auth.*;
+import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.entities.User;
@@ -16,7 +13,6 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.application.dtos.auth.UserResponseMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.UUID;
 
 import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.INVALID_CREDENTIALS;
@@ -182,14 +177,16 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
     }
 
     /**
-     * Retrieves the distinct list of students enrolled in any topic whose category is owned by the given teacher.
+     * Retrieves a page of distinct students enrolled in any topic whose category is owned by the given teacher.
      *
      * @param ownerId The string representation of the teacher's UUID.
-     * @return Result containing the list of {@link UserResponse} students, or an error code on failure.
+     * @param page    Zero-based page number.
+     * @param size    Maximum number of items per page.
+     * @return Result containing a {@link PageResponse} of {@link UserResponse} students, or an error code on failure.
      */
     @Override
     @Transactional(readOnly = true)
-    public Result<List<UserResponse>, Integer> getStudentsByOwnerId(String ownerId) {
+    public Result<PageResponse<UserResponse>, Integer> getStudentsByOwnerId(String ownerId, int page, int size) {
         try {
             UUID ownerUuid;
             try {
@@ -198,8 +195,8 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
                 throw new AuthException("Invalid owner ID format", e, ErrorCode.INVALID_USER_ID_FORMAT);
             }
 
-            List<User> students = userRepository.findStudentsByOwnerId(ownerUuid);
-            return Result.ok(userResponseMapper.toStudentResponseList(students));
+            var pageResult = userRepository.findStudentsByOwnerId(ownerUuid, page, size);
+            return Result.ok(new PageResponse<>(userResponseMapper.toStudentResponseList(pageResult.content()), page, size, pageResult.hasNext()));
         } catch (AuthException e) {
             return Result.fail(e.getCode());
         } catch (Exception e) {

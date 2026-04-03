@@ -17,10 +17,10 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.CategoryRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
-import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,12 +53,11 @@ class TopicServiceImplTest {
     @Mock
     private UserRepository<User> userRepository;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private NotificationPublisher notificationPublisher;
 
     @InjectMocks
     private TopicServiceImpl topicService;
 
-    private User ownerDomain;
     private Category categoryDomain;
     private Topic topicDomain;
     private final UUID ownerUuid = UUID.randomUUID();
@@ -67,7 +66,7 @@ class TopicServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ownerDomain = User.create(
+        User ownerDomain = User.create(
                 new UserId(ownerUuid),
                 new Email("owner@example.com"),
                 Password.hashed("encodedPassword"),
@@ -290,7 +289,7 @@ class TopicServiceImplTest {
 
                 assertFalse(result.isFailure());
                 verify(topicRepositoryAdapter).save(any(Topic.class));
-                verify(eventPublisher, times(1)).publishEvent(any());
+                verify(notificationPublisher, times(1)).publishNewSubscription(any());
             }
         }
 
