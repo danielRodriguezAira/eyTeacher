@@ -40,8 +40,8 @@ npm run build                                # Production build
 
 ### Docker (full stack, run from `eyTeacher/`)
 ```bash
-docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/ai/docker-compose.yml --profile production up --build -d
-docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/ai/docker-compose.yml --profile production stop
+docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/docker-compose.yml --profile production up --build -d
+docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/docker-compose.yml --profile production stop
 ```
 Requires an external Docker network named `eyteacher-network` to be created first.
 
