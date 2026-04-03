@@ -11,11 +11,12 @@ import {TaskService} from '../../../services/task.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {StudentTasksResponse, TaskStatus} from '../../../../../domain/entities/student-tasks-response';
 import {UserRole} from "../../../../../domain/entities/auth-user";
+import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 
 @Component({
     selector: 'app-student-tasks',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatListModule],
+    imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatListModule, SafeHtmlPipe],
     templateUrl: './student-tasks.html',
     styleUrl: './student-tasks.scss'
 })

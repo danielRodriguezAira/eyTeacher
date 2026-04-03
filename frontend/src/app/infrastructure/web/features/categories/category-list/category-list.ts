@@ -12,11 +12,12 @@ import {CategoryService} from '../../../services/category.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {SafeHtmlPipe} from "../../../../../shared/pipes/safe-html.pipe";
 
 @Component({
     selector: 'app-category-list',
     standalone: true,
-    imports: [CommonModule, RouterLink, MatCardModule, MatListModule, MatIconModule, MatButtonModule, MatMenuModule],
+    imports: [CommonModule, RouterLink, MatCardModule, MatListModule, MatIconModule, MatButtonModule, MatMenuModule, SafeHtmlPipe],
     templateUrl: './category-list.html',
     styleUrl: './category-list.scss'
 })

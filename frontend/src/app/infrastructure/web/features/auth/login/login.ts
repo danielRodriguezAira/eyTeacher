@@ -52,12 +52,11 @@ export class Login implements OnInit {
 
     private loadSavedUser() {
         const savedUserEmail = localStorage.getItem('savedUserEmail');
-        if (savedUserEmail) {
-            this.loginForm.patchValue({
-                email: savedUserEmail,
-                rememberMe: true
-            });
-        }
+        const savedRole = localStorage.getItem('savedRole') as UserRole | null;
+        this.loginForm.patchValue({
+            ...(savedUserEmail && {email: savedUserEmail, rememberMe: true}),
+            ...(savedRole && {role: savedRole}),
+        });
     }
 
     login() {
@@ -77,6 +76,7 @@ export class Login implements OnInit {
                     } else {
                         localStorage.removeItem('savedUserEmail');
                     }
+                    localStorage.setItem('savedRole', role);
                     this.router.navigate(['/']);
                 },
                 error: (error) => {
