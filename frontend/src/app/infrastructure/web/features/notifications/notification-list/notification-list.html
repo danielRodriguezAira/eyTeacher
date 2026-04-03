@@ -16,6 +16,14 @@
                     </a>
                 }
             </mat-nav-list>
+            @if (hasMore()) {
+                <div class="load-more">
+                    <button mat-button (click)="loadNotifications()">
+                        <mat-icon>expand_more</mat-icon>
+                        Ver más
+                    </button>
+                </div>
+            }
         } @else {
             <p class="no-notifications">No tienes avisos en este momento.</p>
         }

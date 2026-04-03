@@ -60,16 +60,21 @@ public class TaskController {
     }
 
     /**
-     * Retrieves tasks by topic ID.
+     * Retrieves a page of tasks by topic ID.
      *
      * @param topicId The ID of the topic.
-     * @return ResponseEntity<?> HTTP 200 with the list of tasks or BAD_REQUEST with an error code.
+     * @param page    Zero-based page number (default 0).
+     * @param size    Number of items per page (default 10).
+     * @return ResponseEntity<?> HTTP 200 with the page of tasks or BAD_REQUEST with an error code.
      */
     @GetMapping("/topic/{topicId}")
-    @Operation(summary = "Get tasks by topic", description = "Retrieves all tasks for the given topic")
-    public ResponseEntity<?> getTasksByTopic(@PathVariable Long topicId) {
-        log.info("Getting tasks for topic: {}", topicId);
-        return getTasksByTopicUseCase.getTasksByTopic(topicId)
+    @Operation(summary = "Get tasks by topic", description = "Retrieves a page of tasks for the given topic")
+    public ResponseEntity<?> getTasksByTopic(
+            @PathVariable Long topicId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Getting tasks for topic: {}, page: {}, size: {}", topicId, page, size);
+        return getTasksByTopicUseCase.getTasksByTopic(topicId, page, size)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

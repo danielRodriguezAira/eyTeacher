@@ -1,0 +1,3 @@
+ALTER TABLE notifications DROP COLUMN go_to;
+ALTER TABLE notifications ADD COLUMN entity_type VARCHAR(20) NOT NULL DEFAULT 'TASK';
+ALTER TABLE notifications ADD COLUMN entity_id BIGINT NOT NULL DEFAULT 0;

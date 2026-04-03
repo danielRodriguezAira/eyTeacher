@@ -3,12 +3,14 @@ package es.leinadfonfria.eyteacher.infrastructure.services;
 import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponse;
 import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponseMapper;
 import es.leinadfonfria.eyteacher.application.services.task.SaveTaskRequest;
+import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Category;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
@@ -26,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -47,14 +50,10 @@ class TaskServiceImplTest {
     @Mock
     private TaskResponseMapper taskResponseMapper;
 
-    @Mock
-    private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private TaskServiceImpl taskService;
 
-    private User ownerDomain;
-    private Category categoryDomain;
     private Topic topicDomain;
     private Task taskDomain;
 
@@ -64,7 +63,7 @@ class TaskServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ownerDomain = User.create(
+        User ownerDomain = User.create(
                 new UserId(ownerUuid),
                 new Email("teacher@example.com"),
                 Password.hashed("password"),
@@ -73,7 +72,7 @@ class TaskServiceImplTest {
                 false
         );
 
-        categoryDomain = Category.edit(1L, new Name("Math"), "Math category", ownerDomain);
+        Category categoryDomain = Category.edit(1L, new Name("Math"), "Math category", ownerDomain);
 
         topicDomain = Topic.edit(topicId, new Name("Algebra"), "Basic algebra", categoryDomain, List.of(), List.of());
 
@@ -146,21 +145,21 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Debe retornar la lista de tasks para un topic")
         void getTasksByTopic_Success() {
-            TaskResponse taskResponse = new TaskResponse(taskId, "Solve equations", topicId, Collections.emptyList());
+            TaskResponse taskResponse = new TaskResponse(taskId, "Solve equations", topicId, Collections.emptyList(), LocalDateTime.now());
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
                 authUtils.when(AuthenticationUtils::isStudent).thenReturn(false);
                 authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
                 when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
-                when(taskRepositoryAdapter.findByTopicId(topicId)).thenReturn(List.of(taskDomain));
+                when(taskRepositoryAdapter.findByTopicId(topicId, 0, 10)).thenReturn(new PageResult<>(List.of(taskDomain), false));
                 when(taskResponseMapper.toTaskResponse(taskDomain)).thenReturn(taskResponse);
 
-                Result<List<TaskResponse>, Integer> result = taskService.getTasksByTopic(topicId);
+                Result<PageResponse<TaskResponse>, Integer> result = taskService.getTasksByTopic(topicId, 0, 10);
 
                 assertTrue(result.isSuccess());
-                assertEquals(1, result.getValue().size());
-                assertEquals(taskId, result.getValue().getFirst().id());
+                assertEquals(1, result.getValue().content().size());
+                assertEquals(taskId, result.getValue().content().getFirst().id());
             }
         }
     }

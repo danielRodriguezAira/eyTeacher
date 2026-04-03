@@ -23,7 +23,7 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryJpaEntity, 
      * @param ownerId The owner user entity.
      * @return List<CategoryJpaEntity> The list of categories owned by the user.
      */
-    Optional<List<CategoryJpaEntity>> findByOwnerId(UUID ownerId);
+    Optional<List<CategoryJpaEntity>> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
 
     /**
      * Retrieves all distinct categories related to a specific student through their subscribed topics.
@@ -31,8 +31,8 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryJpaEntity, 
      * @param studentId The unique identifier of the student.
      * @return List<CategoryJpaEntity> The list of categories for the student.
      */
-    @Query("SELECT DISTINCT c FROM CategoryJpaEntity c JOIN c.topicList t JOIN t.studentList s WHERE s.id = :studentId")
-    Optional<List<CategoryJpaEntity>> findByStudentId(@Param("studentId") UUID studentId);
+    @Query("SELECT DISTINCT c FROM CategoryJpaEntity c JOIN c.topicList t JOIN t.studentList s WHERE s.id = :studentId ORDER BY c.createdAt DESC")
+    Optional<List<CategoryJpaEntity>> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") UUID studentId);
 
     int countTopicListById(Long categoryId);
 }

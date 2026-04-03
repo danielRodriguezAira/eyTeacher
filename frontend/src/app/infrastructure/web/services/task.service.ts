@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {Task} from '../../../domain/entities/task';
 import {TaskServicePort} from '../../../application/services/task.service.port';
 import {StudentTasksResponse} from '../../../domain/entities/student-tasks-response';
+import {PageResponse} from '../../../domain/entities/page-response';
 
 @Injectable({
     providedIn: 'root'
@@ -23,6 +24,10 @@ export class TaskService implements TaskServicePort {
 
     deleteTask(id: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/${id}`);
+    }
+
+    getTasksByTopic(topicId: number, page: number, size: number): Observable<PageResponse<Task>> {
+        return this.http.get<PageResponse<Task>>(`${this.API_URL}/topic/${topicId}`, {params: {page, size}});
     }
 
     getStudentTasks(studentId: string): Observable<StudentTasksResponse[]> {

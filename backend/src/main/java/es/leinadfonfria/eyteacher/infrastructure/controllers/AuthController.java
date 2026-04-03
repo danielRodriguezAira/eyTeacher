@@ -4,11 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.auth.LoginRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.RegisterRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.UpdatePasswordRequest;
 import es.leinadfonfria.eyteacher.application.dtos.auth.UpdateUserProfileRequest;
-import es.leinadfonfria.eyteacher.application.services.auth.GetStudentsByOwnerIdUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.LoginUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.RegisterUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.UpdatePasswordUseCase;
-import es.leinadfonfria.eyteacher.application.services.auth.UpdateUserProfileUseCase;
+import es.leinadfonfria.eyteacher.application.services.auth.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -107,16 +103,21 @@ public class AuthController {
     }
 
     /**
-     * Retrieves all distinct students enrolled in any topic whose category is owned by the given teacher.
+     * Retrieves a page of distinct students enrolled in any topic whose category is owned by the given teacher.
      *
      * @param ownerId The UUID string of the teacher.
-     * @return ResponseEntity<?> HTTP 200 with the list of students, or BAD_REQUEST with an error code.
+     * @param page    Zero-based page number (default 0).
+     * @param size    Number of items per page (default 10).
+     * @return ResponseEntity<?> HTTP 200 with the page of students, or BAD_REQUEST with an error code.
      */
     @GetMapping("/students/owner/{ownerId}")
-    @Operation(summary = "Get students by owner", description = "Retrieves all distinct students subscribed to topics in categories owned by the given teacher")
-    public ResponseEntity<?> getStudentsByOwnerId(@PathVariable String ownerId) {
-        log.info("Getting students for owner id: {}", ownerId);
-        return getStudentsByOwnerIdUseCase.getStudentsByOwnerId(ownerId)
+    @Operation(summary = "Get students by owner", description = "Retrieves a page of distinct students subscribed to topics in categories owned by the given teacher")
+    public ResponseEntity<?> getStudentsByOwnerId(
+            @PathVariable String ownerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Getting students for owner id: {}, page: {}, size: {}", ownerId, page, size);
+        return getStudentsByOwnerIdUseCase.getStudentsByOwnerId(ownerId, page, size)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

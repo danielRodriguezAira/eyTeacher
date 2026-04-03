@@ -5,15 +5,20 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
+import {MatDialog} from '@angular/material/dialog';
 import {map} from 'rxjs';
 import {Task} from '../../../../../domain/entities/task';
+import {Solution} from '../../../../../domain/entities/solution';
 import {TaskService} from '../../../services/task.service';
+import {SolutionService} from '../../../services/solution.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
-import {Solution} from '../../../../../domain/entities/solution';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
+import {ConfirmDialog} from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+
+const PAGE_SIZE = 10;
 
 @Component({
     selector: 'app-task-detail',
@@ -25,11 +30,18 @@ import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 export class TaskDetail implements OnInit {
     private route = inject(ActivatedRoute);
     private taskService = inject(TaskService);
+    private solutionService = inject(SolutionService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private authService = inject(AuthenticationService);
+    private dialog = inject(MatDialog);
 
     task = signal<Task | undefined>(undefined);
+    solutions = signal<Solution[]>([]);
+    hasMoreSolutions = signal(false);
+    private currentPage = 0;
+    private taskId = 0;
+
     userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
         map(user => user?.role ?? null)
     ), {initialValue: null});
@@ -38,10 +50,19 @@ export class TaskDetail implements OnInit {
     user = toSignal(this.authService.getCurrentUserObservable(), {initialValue: null});
 
     ngOnInit(): void {
-        const id = Number(this.route.snapshot.paramMap.get('id'));
-        if (id) {
-            this.taskService.getTaskById(id).subscribe(t => this.task.set(t));
+        this.taskId = Number(this.route.snapshot.paramMap.get('id'));
+        if (this.taskId) {
+            this.taskService.getTaskById(this.taskId).subscribe(t => this.task.set(t));
+            this.loadSolutions();
         }
+    }
+
+    loadSolutions(): void {
+        this.solutionService.getSolutionsByTask(this.taskId, this.currentPage, PAGE_SIZE).subscribe(page => {
+            this.solutions.update(existing => [...existing, ...page.content]);
+            this.hasMoreSolutions.set(page.hasNext);
+            this.currentPage++;
+        });
     }
 
     viewSolution(taskId: number, solution: Solution) {
@@ -56,36 +77,38 @@ export class TaskDetail implements OnInit {
         this.router.navigate(['/task', task.id, 'solution-form']);
     }
 
-    canAddSolution(task: Task): boolean {
+    canAddSolution(): boolean {
         if (this.userRole() !== UserRole.STUDENT) {
             return false;
         }
-
-        if (!task.solutionList || task.solutionList.length === 0) {
-            return true;
-        }
-
-        const mySolutions = task.solutionList.filter(s => s.student.id === this.user()?.id);
+        const mySolutions = this.solutions().filter(s => s.student.id === this.user()?.id);
         if (mySolutions.length === 0) {
             return true;
         }
-
         const latestSolution = mySolutions[mySolutions.length - 1];
         return !!latestSolution.correction;
     }
 
     deleteTask(task: Task) {
-        if (confirm(`¿Seguro que quieres borrar la tarea #${task.id}?`)) {
-            this.taskService.deleteTask(task.id!).subscribe({
-                next: () => {
-                    this.notificationService.openSnackBar('Tarea borrada correctamente');
-                    this.router.navigate(['/topic-detail', task.topicId]);
-                },
-                error: (err) => {
-                    this.notificationService.openSnackBar('Error al borrar la tarea');
-                    console.error(err);
-                }
-            });
-        }
+        const ref = this.dialog.open(ConfirmDialog, {
+            data: {
+                title: 'Borrar tarea',
+                message: `¿Seguro que quieres borrar la tarea #${task.id}?`
+            }
+        });
+        ref.afterClosed().subscribe(confirmed => {
+            if (confirmed) {
+                this.taskService.deleteTask(task.id!).subscribe({
+                    next: () => {
+                        this.notificationService.openSnackBar('Tarea borrada correctamente');
+                        this.router.navigate(['/topic-detail', task.topicId]);
+                    },
+                    error: (err) => {
+                        this.notificationService.openSnackBar('Error al borrar la tarea');
+                        console.error(err);
+                    }
+                });
+            }
+        });
     }
 }

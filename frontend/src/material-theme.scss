@@ -35,7 +35,7 @@ $green-palette: (
         80: #5ae090,
         90: #78fdab,
         95: #bcffcf,
-        98: #a9b5aa,
+        98: #a3aea8,
         99: #f3fff4,
         100: #ffffff,
 );
@@ -108,7 +108,7 @@ html {
 
   .content-wrapper {
     background-color: var(--app-feature-container);
-    min-height: 100vh;
+    min-height: 100%;
   }
 
   mat-sidenav-container,
@@ -118,6 +118,7 @@ html {
 
   mat-sidenav {
     background-color: var(--app-sidenav) !important;
+    border-radius: 0 !important;
   }
 
   mat-toolbar {

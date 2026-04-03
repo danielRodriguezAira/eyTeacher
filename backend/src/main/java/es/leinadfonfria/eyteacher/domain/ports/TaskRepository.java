@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.domain.ports;
 
 import es.leinadfonfria.eyteacher.domain.entities.Task;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 
 import java.util.List;
 import java.util.UUID;
@@ -8,6 +9,16 @@ import java.util.UUID;
 public interface TaskRepository<T extends Task> {
     T findById(Long id);
     List<T> findByTopicId(Long topicId);
+
+    /**
+     * Retrieves a page of tasks belonging to the given topic.
+     *
+     * @param topicId The ID of the topic.
+     * @param page    Zero-based page number.
+     * @param size    Maximum number of items to return.
+     * @return PageResult containing up to {@code size} tasks and a hasNext flag.
+     */
+    PageResult<T> findByTopicId(Long topicId, int page, int size);
 
     /**
      * Retrieves all tasks belonging to topics in which the given student is enrolled.

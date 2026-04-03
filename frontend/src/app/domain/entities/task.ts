@@ -5,7 +5,8 @@ export class Task {
         public id: number | null,
         public description: string,
         public topicId: number,
-        public solutionList: Solution[] = []
+        public solutionList: Solution[] = [],
+        public createdAt?: string
     ) {
     }
 }

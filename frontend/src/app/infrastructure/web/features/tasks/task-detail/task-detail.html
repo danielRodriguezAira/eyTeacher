@@ -26,10 +26,13 @@
             </mat-card-header>
             <mat-card-content>
                 <div class="description" [innerHTML]="task.description | safeHtml"></div>
+                @if (task.createdAt) {
+                    <div class="card-date">{{ task.createdAt | date:'dd/MM/yyyy' }}</div>
+                }
 
                 <div class="solutions-section">
                     <h3 class="solutions-header">
-                        @if (canAddSolution(task)) {
+                        @if (canAddSolution()) {
                             <button mat-icon-button [matMenuTriggerFor]="solutionMenu" aria-label="Opciones de solución"
                                     (click)="$event.stopPropagation()">
                                 <mat-icon>more_vert</mat-icon>
@@ -43,9 +46,9 @@
                         }
                         <span>Soluciones</span>
                     </h3>
-                    @if (task.solutionList && task.solutionList.length > 0) {
+                    @if (solutions().length > 0) {
                         <div class="solutions-grid">
-                            @for (solution of task.solutionList; track solution.id) {
+                            @for (solution of solutions(); track solution.id) {
                                 <mat-card class="solution-card" (click)="viewSolution(task.id!, solution)">
                                     <mat-card-header>
                                         <mat-card-title>
@@ -58,10 +61,21 @@
                                     </mat-card-header>
                                     <mat-card-content>
                                         <div [innerHTML]="solution.description | safeHtml"></div>
+                                        @if (solution.createdAt) {
+                                            <div class="card-date">{{ solution.createdAt | date:'dd/MM/yyyy' }}</div>
+                                        }
                                     </mat-card-content>
                                 </mat-card>
                             }
                         </div>
+                        @if (hasMoreSolutions()) {
+                            <div class="load-more">
+                                <button mat-button (click)="loadSolutions()">
+                                    <mat-icon>expand_more</mat-icon>
+                                    Ver más
+                                </button>
+                            </div>
+                        }
                     } @else {
                         <p>No hay soluciones para esta tarea.</p>
                     }

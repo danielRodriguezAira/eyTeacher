@@ -98,6 +98,11 @@ export const routes: Routes = [
                     import('./infrastructure/web/features/solutions/solution-detail/solution-detail').then(m => m.SolutionDetail)
             },
             {
+                path: 'solution/:id',
+                loadComponent: () =>
+                    import('./infrastructure/web/features/solutions/solution-detail/solution-detail').then(m => m.SolutionDetail)
+            },
+            {
                 path: 'task/:taskId/solution-form',
                 loadComponent: () =>
                     import('./infrastructure/web/features/solutions/solution-form/solution-form').then(m => m.SolutionForm)

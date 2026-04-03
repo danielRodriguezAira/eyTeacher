@@ -1,7 +1,10 @@
 package es.leinadfonfria.eyteacher.infrastructure.events;
 
 import es.leinadfonfria.eyteacher.infrastructure.config.RabbitMQConfig;
-import es.leinadfonfria.eyteacher.infrastructure.events.messages.*;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewCorrectionMessage;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewSolutionMessage;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewSubscriptionMessage;
+import es.leinadfonfria.eyteacher.infrastructure.events.messages.NewTaskMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

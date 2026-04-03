@@ -57,6 +57,7 @@
 
 .content-wrapper {
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .notification-menu-item {

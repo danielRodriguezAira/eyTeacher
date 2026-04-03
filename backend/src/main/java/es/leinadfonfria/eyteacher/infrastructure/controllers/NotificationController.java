@@ -44,16 +44,21 @@ public class NotificationController {
     }
 
     /**
-     * Retrieves all notifications for a given owner.
+     * Retrieves a page of notifications for a given owner.
      *
      * @param ownerId The UUID of the owner.
-     * @return ResponseEntity<?> HTTP 200 with the list of notifications or BAD_REQUEST with an error code.
+     * @param page    Zero-based page number (default 0).
+     * @param size    Number of items per page (default 10).
+     * @return ResponseEntity<?> HTTP 200 with the page of notifications or BAD_REQUEST with an error code.
      */
     @GetMapping("/owner/{ownerId}")
-    @Operation(summary = "Get notifications by owner", description = "Retrieves all notifications for the given owner.")
-    public ResponseEntity<?> getNotificationsByOwner(@PathVariable UUID ownerId) {
-        log.info("Getting notifications for owner: {}", ownerId);
-        return getNotificationsByOwnerUseCase.getNotificationsByOwner(ownerId)
+    @Operation(summary = "Get notifications by owner", description = "Retrieves a page of notifications for the given owner.")
+    public ResponseEntity<?> getNotificationsByOwner(
+            @PathVariable UUID ownerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Getting notifications for owner: {}, page: {}, size: {}", ownerId, page, size);
+        return getNotificationsByOwnerUseCase.getNotificationsByOwner(ownerId, page, size)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

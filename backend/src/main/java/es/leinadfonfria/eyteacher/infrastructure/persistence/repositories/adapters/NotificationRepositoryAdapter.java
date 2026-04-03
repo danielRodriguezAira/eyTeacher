@@ -4,12 +4,14 @@ import es.leinadfonfria.eyteacher.domain.entities.Notification;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.NotificationRepository;
+import es.leinadfonfria.eyteacher.domain.shared.PageResult;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.NotificationJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.NotificationMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.NotificationJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,13 +41,16 @@ public class NotificationRepositoryAdapter implements NotificationRepository<Not
     }
 
     @Override
-    public List<Notification> findByOwnerId(UUID ownerId) {
-        UserJpaEntity ownerEntity = userJpaRepository.findById(ownerId)
+    public PageResult<Notification> findByOwnerId(UUID ownerId, int page, int size) {
+        userJpaRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
-        return notificationJpaRepository.findByOwnerOrderByReadAscCreatedAtDesc(ownerEntity)
-                .stream()
+        List<NotificationJpaEntity> raw = notificationJpaRepository
+                .findByOwnerIdOrderByReadAscCreatedAtDesc(ownerId, PageRequest.of(page, size + 1));
+        boolean hasNext = raw.size() > size;
+        List<Notification> content = (hasNext ? raw.subList(0, size) : raw).stream()
                 .map(notificationMapper::toDomain)
                 .toList();
+        return new PageResult<>(content, hasNext);
     }
 
     @Override

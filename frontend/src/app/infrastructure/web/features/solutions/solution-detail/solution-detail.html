@@ -23,12 +23,18 @@
                         <h3>Mi Solución</h3>
                     }
                     <div class="description" [innerHTML]="sol.description | safeHtml"></div>
+                    @if (sol.createdAt) {
+                        <div class="card-date">{{ sol.createdAt | date:'dd/MM/yyyy' }}</div>
+                    }
                 </div>
 
                 @if (sol.correction) {
                     <div class="correction-display">
                         <h3>Corrección</h3>
                         <div class="description" [innerHTML]="sol.correction.description | safeHtml"></div>
+                        @if (sol.correction.createdAt) {
+                            <div class="card-date">{{ sol.correction.createdAt | date:'dd/MM/yyyy' }}</div>
+                        }
                     </div>
                 }
 

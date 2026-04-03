@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,11 +34,12 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
     boolean existsByEmail(String email);
 
     /**
-     * Retrieves all distinct students subscribed to any topic whose category is owned by the given user.
+     * Retrieves a page of distinct students subscribed to any topic whose category is owned by the given user.
      *
-     * @param ownerId The UUID of the teacher who owns the categories.
-     * @return List of distinct {@link UserJpaEntity} students found across all topics of the owner's categories.
+     * @param ownerId  The UUID of the teacher who owns the categories.
+     * @param pageable Pageable with offset and limit.
+     * @return List of distinct {@link UserJpaEntity} students for the requested page.
      */
     @Query("SELECT DISTINCT s FROM TopicJpaEntity t JOIN t.studentList s WHERE t.category.owner.id = :ownerId")
-    List<UserJpaEntity> findStudentsByOwnerId(@Param("ownerId") UUID ownerId);
+    List<UserJpaEntity> findStudentsByOwnerId(@Param("ownerId") UUID ownerId, Pageable pageable);
 }

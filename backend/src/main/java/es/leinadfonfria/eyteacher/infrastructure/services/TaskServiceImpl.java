@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponse;
 import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponseMapper;
 import es.leinadfonfria.eyteacher.application.dtos.task.*;
 import es.leinadfonfria.eyteacher.application.services.task.*;
+import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
@@ -114,18 +115,23 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
     }
 
     /**
-     * Retrieves tasks by topic ID.
+     * Retrieves a page of tasks for the given topic.
      * @param topicId The ID of the topic to retrieve tasks for.
-     * @return Result containing a list of TaskResponse objects or an error code.
+     * @param page    Zero-based page number.
+     * @param size    Maximum number of items per page.
+     * @return Result containing a PageResponse of TaskResponse objects or an error code.
      */
     @Override
-    public Result<List<TaskResponse>, Integer> getTasksByTopic(Long topicId) {
+    public Result<PageResponse<TaskResponse>, Integer> getTasksByTopic(Long topicId, int page, int size) {
         try {
             Topic topic = topicRepository.findById(topicId);
             validateUserHasPermission(topic);
 
-            List<Task> tasks = taskRepository.findByTopicId(topicId);
-            return Result.ok(tasks.stream().map(taskResponseMapper::toTaskResponse).toList());
+            var pageResult = taskRepository.findByTopicId(topicId, page, size);
+            List<TaskResponse> content = pageResult.content().stream()
+                    .map(taskResponseMapper::toTaskResponse)
+                    .toList();
+            return Result.ok(new PageResponse<>(content, page, size, pageResult.hasNext()));
         } catch (AuthException e) {
             log.error("Authentication error during tasks retrieval", e);
             return Result.fail(e.getCode());
@@ -199,7 +205,7 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
             for (Task task : tasks) {
                 if (task.getSolutionList().isEmpty()) {
                     tasksByStatus.get(STATUS_WITHOUT_SOLUTION).add(task);
-                } else if (task.getSolutionList().get(0).getCorrection() == null) {
+                } else if (task.getSolutionList().getFirst().getCorrection() == null) {
                     tasksByStatus.get(STATUS_WITHOUT_CORRECTION).add(task);
                 } else {
                     tasksByStatus.get(STATUS_CORRECTED).add(task);
@@ -252,8 +258,8 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
                                 List<StudentTaskItem> taskItems = topicTasks.stream()
                                         .map(t -> {
                                             SolutionResponse solution = t.getSolutionList().isEmpty() ? null
-                                                    : solutionResponseMapper.toSolutionResponse(t.getSolutionList().get(0));
-                                            return new StudentTaskItem(t.getId(), t.getDescription(), solution);
+                                                    : solutionResponseMapper.toSolutionResponse(t.getSolutionList().getFirst());
+                                            return new StudentTaskItem(t.getId(), t.getDescription(), solution, t.getCreatedAt());
                                         })
                                         .toList();
 

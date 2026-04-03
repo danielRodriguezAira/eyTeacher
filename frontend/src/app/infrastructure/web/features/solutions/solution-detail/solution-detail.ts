@@ -13,6 +13,7 @@ import {RichTextEditor} from '../../../../../shared/components/rich-text-editor/
 import {Solution} from '../../../../../domain/entities/solution';
 import {Correction} from '../../../../../domain/entities/correction';
 import {TaskService} from '../../../services/task.service';
+import {SolutionService} from '../../../services/solution.service';
 import {CorrectionService} from '../../../services/correction.service';
 import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
@@ -41,6 +42,7 @@ export class SolutionDetail implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private taskService = inject(TaskService);
+    private solutionService = inject(SolutionService);
     private authService = inject(AuthenticationService);
     private correctionService = inject(CorrectionService);
     private notificationService = inject(NotificationService);
@@ -59,12 +61,16 @@ export class SolutionDetail implements OnInit {
     ngOnInit(): void {
         const taskId = Number(this.route.snapshot.paramMap.get('taskId'));
         const solutionId = Number(this.route.snapshot.paramMap.get('id'));
-        
+
         if (taskId && solutionId) {
             this.taskService.getTaskById(taskId).subscribe(task => {
                 this.taskDescription.set(task.description);
-                const sol = task.solutionList.find(s => s.id === solutionId);
-                this.solution.set(sol);
+                this.solution.set(task.solutionList.find(s => s.id === solutionId));
+            });
+        } else if (solutionId) {
+            this.solutionService.getSolutionById(solutionId).subscribe(solution => {
+                this.taskDescription.set(solution.task.description);
+                this.solution.set(solution);
             });
         }
     }

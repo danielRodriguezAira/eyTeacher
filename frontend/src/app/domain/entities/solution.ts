@@ -10,7 +10,8 @@ export class Solution {
         public description: string,
         public student: Student,
         public task: Task,
-        public correction?: Correction
+        public correction?: Correction,
+        public createdAt?: string
     ) {
     }
 }

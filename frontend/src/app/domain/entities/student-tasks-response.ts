@@ -7,6 +7,7 @@ export interface StudentTaskSolutionCorrection {
         lastName: string;
     };
     solutionId: number;
+    createdAt?: string;
 }
 
 export interface StudentTaskSolution {
@@ -19,12 +20,14 @@ export interface StudentTaskSolution {
         lastName: string;
     };
     correction: StudentTaskSolutionCorrection | null;
+    createdAt?: string;
 }
 
 export interface StudentTaskItem {
     id: number;
     description: string;
     solution: StudentTaskSolution | null;
+    createdAt?: string;
 }
 
 export interface TopicTaskGroup {

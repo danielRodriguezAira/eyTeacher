@@ -3,6 +3,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {HttpClient} from '@angular/common/http';
 import {Notification} from '../../../domain/entities/notification';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
+import {PageResponse} from '../../../domain/entities/page-response';
 
 @Injectable({
     providedIn: 'root'
@@ -18,8 +19,8 @@ export class NotificationService {
     constructor() {
     }
 
-    public getNotificationsByOwner(ownerId: string): Observable<Notification[]> {
-        return this.http.get<Notification[]>(`${this.API_URL}/owner/${ownerId}`);
+    public getNotificationsByOwner(ownerId: string, page: number, size: number): Observable<PageResponse<Notification>> {
+        return this.http.get<PageResponse<Notification>>(`${this.API_URL}/owner/${ownerId}`, {params: {page, size}});
     }
 
     public getRefreshObservable(): Observable<void> {

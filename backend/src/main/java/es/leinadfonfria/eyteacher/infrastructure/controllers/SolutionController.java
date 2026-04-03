@@ -61,16 +61,22 @@ public class SolutionController {
     }
 
     /**
-     * Retrieves solutions by task ID.
+     * Retrieves a page of solutions by task ID.
+     * Teachers see all student solutions; students see only their own.
      *
      * @param taskId The ID of the task.
-     * @return ResponseEntity<?> HTTP 200 with the list of solutions or BAD_REQUEST with an error code.
+     * @param page   Zero-based page number (default 0).
+     * @param size   Number of items per page (default 10).
+     * @return ResponseEntity<?> HTTP 200 with the page of solutions or BAD_REQUEST with an error code.
      */
     @GetMapping("/task/{taskId}")
-    @Operation(summary = "Get solutions by task", description = "Retrieves all solutions for the given task. Only for TEACHER role.")
-    public ResponseEntity<?> getSolutionsByTask(@PathVariable Long taskId) {
-        log.info("Getting solutions for task: {}", taskId);
-        return getSolutionsByTaskUseCase.getSolutionsByTask(taskId)
+    @Operation(summary = "Get solutions by task", description = "Retrieves a page of solutions for the given task.")
+    public ResponseEntity<?> getSolutionsByTask(
+            @PathVariable Long taskId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Getting solutions for task: {}, page: {}, size: {}", taskId, page, size);
+        return getSolutionsByTaskUseCase.getSolutionsByTask(taskId, page, size)
                 .fold(
                         ResponseEntity::ok,
                         error -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)

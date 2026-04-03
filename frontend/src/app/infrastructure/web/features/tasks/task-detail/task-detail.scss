@@ -1,6 +1,6 @@
 .container {
     padding: 20px;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -57,4 +57,11 @@ mat-card-actions {
 
 .solution-card:hover {
     transform: translateY(-4px);
+}
+
+.card-date {
+    text-align: right;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
 }
