@@ -29,6 +29,16 @@ public class AuthenticationUtils {
         }
     }
 
+    /**
+     * Returns {@code true} if there is an active, authenticated principal in the current thread's security context.
+     *
+     * @return {@code true} when an authenticated user is present; {@code false} otherwise.
+     */
+    public static boolean hasAuthentication() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() && auth.getPrincipal() != null;
+    }
+
     public static Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
     }

@@ -11,7 +11,6 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.Notificatio
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.NotificationJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class NotificationRepositoryAdapter implements NotificationRepository<Not
         userJpaRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
         List<NotificationJpaEntity> raw = notificationJpaRepository
-                .findByOwnerIdOrderByReadAscCreatedAtDesc(ownerId, PageRequest.of(page, size + 1));
+                .findPageByOwnerId(ownerId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Notification> content = (hasNext ? raw.subList(0, size) : raw).stream()
                 .map(notificationMapper::toDomain)

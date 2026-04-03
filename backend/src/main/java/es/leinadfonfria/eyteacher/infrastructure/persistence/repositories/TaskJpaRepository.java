@@ -19,6 +19,18 @@ public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, Long> {
     List<TaskJpaEntity> findByTopicIdOrderByCreatedAtDesc(Long topicId, Pageable pageable);
 
     /**
+     * Retrieves a page of tasks for the given topic using explicit LIMIT/OFFSET,
+     * avoiding the Spring Data offset miscalculation when using {@code size+1} trick.
+     *
+     * @param topicId The topic identifier.
+     * @param offset  Number of rows to skip (= {@code page * size}).
+     * @param limit   Maximum rows to fetch (= {@code size + 1} to detect next page).
+     * @return List of task entities ordered by creation date descending.
+     */
+    @Query(value = "SELECT * FROM tasks WHERE topic_id = :topicId ORDER BY created_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
+    List<TaskJpaEntity> findPageByTopicId(@Param("topicId") Long topicId, @Param("offset") int offset, @Param("limit") int limit);
+
+    /**
      * Retrieves all tasks that belong to topics in which the given student is enrolled.
      *
      * @param studentId The UUID of the student.

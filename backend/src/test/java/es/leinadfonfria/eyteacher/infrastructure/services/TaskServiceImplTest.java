@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.services;
 
+import es.leinadfonfria.eyteacher.application.dtos.solution.SolutionResponseMapper;
 import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponse;
 import es.leinadfonfria.eyteacher.application.dtos.task.TaskResponseMapper;
 import es.leinadfonfria.eyteacher.application.services.task.SaveTaskRequest;
@@ -15,6 +16,7 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
+import es.leinadfonfria.eyteacher.infrastructure.events.NotificationPublisher;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TaskRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters.TopicRepositoryAdapter;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
@@ -50,6 +52,11 @@ class TaskServiceImplTest {
     @Mock
     private TaskResponseMapper taskResponseMapper;
 
+    @Mock
+    private SolutionResponseMapper solutionResponseMapper;
+
+    @Mock
+    private NotificationPublisher notificationPublisher;
 
     @InjectMocks
     private TaskServiceImpl taskService;

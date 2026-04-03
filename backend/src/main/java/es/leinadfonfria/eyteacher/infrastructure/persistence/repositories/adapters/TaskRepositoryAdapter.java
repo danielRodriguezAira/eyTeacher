@@ -19,7 +19,6 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJp
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -46,7 +45,7 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
         List<User> studentList = userMapper.toDomainList(taskEntity.getTopic().getStudentList());
         Topic topic = topicMapper.toDomain(taskEntity.getTopic(), studentList);
         List<Solution> solutionList;
-        if(AuthenticationUtils.isTeacher()) {
+        if (!AuthenticationUtils.hasAuthentication() || AuthenticationUtils.isTeacher()) {
             solutionList = task.getSolutionList();
         } else {
             solutionList = solutionMapper.toDomainList(
@@ -68,7 +67,7 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
     public PageResult<Task> findByTopicId(Long topicId, int page, int size) {
         topicJpaRepository.findById(topicId)
                 .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
-        List<TaskJpaEntity> raw = taskJpaRepository.findByTopicIdOrderByCreatedAtDesc(topicId, PageRequest.of(page, size + 1));
+        List<TaskJpaEntity> raw = taskJpaRepository.findPageByTopicId(topicId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Task> content = taskMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
         return new PageResult<>(content, hasNext);

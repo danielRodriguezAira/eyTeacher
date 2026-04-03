@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Consumes notification messages from RabbitMQ queues and creates the corresponding
@@ -77,6 +78,7 @@ public class NotificationEventListener {
      *
      * @param message The deserialized message from the {@code notifications.new-correction} queue.
      */
+    @Transactional
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NEW_CORRECTION)
     public void onNewCorrection(NewCorrectionMessage message) {
         try {
