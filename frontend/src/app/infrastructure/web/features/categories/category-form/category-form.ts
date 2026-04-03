@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
-import {Title} from '@angular/platform-browser';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
@@ -31,7 +30,6 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
 })
 export class CategoryForm implements OnInit {
     private fb = inject(NonNullableFormBuilder);
-    private titleService = inject(Title);
     private categoryService = inject(CategoryService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
@@ -59,7 +57,6 @@ export class CategoryForm implements OnInit {
         this.categoryId = idParam ? Number(idParam) : null;
         if (this.categoryId) {
             this.isEditMode.set(true);
-            this.titleService.setTitle('Editar Categoría');
             this.categoryService.getCategoryById(this.categoryId).subscribe(category => {
                 if (category) {
                     this.categoryForm.patchValue({
@@ -69,8 +66,6 @@ export class CategoryForm implements OnInit {
                     this.cdr.detectChanges();
                 }
             });
-        } else {
-            this.titleService.setTitle('Nueva Categoría');
         }
     }
 

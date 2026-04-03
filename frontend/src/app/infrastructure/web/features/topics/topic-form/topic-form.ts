@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
-import {Title} from '@angular/platform-browser';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
@@ -31,7 +30,6 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
 })
 export class TopicForm implements OnInit {
     private fb = inject(NonNullableFormBuilder);
-    private titleService = inject(Title);
     private topicService = inject(TopicService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
@@ -64,7 +62,6 @@ export class TopicForm implements OnInit {
 
         if (this.topicId) {
             this.isEditMode.set(true);
-            this.titleService.setTitle('Editar Tema');
             this.topicService.getTopicById(this.topicId).subscribe(topic => {
                 if (topic) {
                     this.topicForm.patchValue({
@@ -75,8 +72,6 @@ export class TopicForm implements OnInit {
                     this.cdr.detectChanges();
                 }
             });
-        } else {
-            this.titleService.setTitle('Nuevo Tema');
         }
     }
 

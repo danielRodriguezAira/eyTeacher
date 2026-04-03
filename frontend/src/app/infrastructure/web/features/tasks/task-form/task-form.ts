@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
-import {Title} from '@angular/platform-browser';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
@@ -38,7 +37,6 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
 })
 export class TaskForm implements OnInit {
     private fb = inject(NonNullableFormBuilder);
-    private titleService = inject(Title);
     private taskService = inject(TaskService);
     private topicService = inject(TopicService);
     private categoryService = inject(CategoryService);
@@ -77,7 +75,6 @@ export class TaskForm implements OnInit {
 
         if (this.taskId) {
             this.isEditMode.set(true);
-            this.titleService.setTitle('Editar Tarea');
             this.taskService.getTaskById(this.taskId).subscribe(task => {
                 if (task) {
                     this.taskForm.patchValue({ description: task.description });
@@ -87,7 +84,6 @@ export class TaskForm implements OnInit {
                 }
             });
         } else {
-            this.titleService.setTitle('Nueva Tarea');
             if (this.topicId) {
                 this.loadTopicAndCategory(this.topicId);
             }
