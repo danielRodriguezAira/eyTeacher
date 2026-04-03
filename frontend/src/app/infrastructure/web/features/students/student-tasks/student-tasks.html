@@ -42,16 +42,16 @@
                                                 @for (task of topic.tasks; track task.id) {
                                                     <mat-list-item class="task-item">
                                                         <div class="task-content">
-                                                            <p class="task-description task-link" (click)="viewTask(task.id)">{{ task.description }}</p>
+                                                            <p class="task-description task-link" (click)="viewTask(task.id)" [innerHTML]="task.description"></p>
                                                             @if (task.solution) {
                                                                 <div class="solution-block">
                                                                     <mat-icon class="solution-icon">edit_note</mat-icon>
-                                                                    <p class="solution-text solution-link" (click)="viewSolution(task.id, task.solution.id)">{{ task.solution.description }}</p>
+                                                                    <p class="solution-text solution-link" (click)="viewSolution(task.id, task.solution.id)" [innerHTML]="task.solution.description"></p>
                                                                 </div>
                                                                 @if (task.solution.correction) {
                                                                     <div class="correction-block">
                                                                         <mat-icon class="correction-icon">rate_review</mat-icon>
-                                                                        <p class="correction-text">{{ task.solution.correction.description }}</p>
+                                                                        <p class="correction-text" [innerHTML]="task.solution.correction.description"></p>
                                                                     </div>
                                                                 }
                                                             }

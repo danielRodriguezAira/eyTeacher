@@ -122,6 +122,10 @@ h1 {
     margin: 0 0 4px 0;
     font-size: 0.875rem;
     color: rgba(0, 0, 0, 0.87);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .task-link {
@@ -158,6 +162,10 @@ h1 {
     font-size: 0.8rem;
     color: rgba(0, 0, 0, 0.6);
     font-style: italic;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .solution-link {
@@ -193,6 +201,10 @@ h1 {
     margin: 0;
     font-size: 0.8rem;
     color: #2e7d32;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 mat-card-actions {
