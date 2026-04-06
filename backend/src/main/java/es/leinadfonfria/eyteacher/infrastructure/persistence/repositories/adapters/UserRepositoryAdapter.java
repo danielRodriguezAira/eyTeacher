@@ -1,8 +1,11 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters;
 
 import es.leinadfonfria.eyteacher.domain.entities.User;
+import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
+import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.UserRepository;
 import es.leinadfonfria.eyteacher.domain.shared.PageResult;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +40,17 @@ public class UserRepositoryAdapter implements UserRepository<User> {
     @Override
     public User save(User user) {
         return userMapper.toDomain(userJpaRepository.save(userMapper.toEntity(user)));
+    }
+
+    @Override
+    public User update(User user) {
+        UserJpaEntity existing = userJpaRepository.findById(user.getId().value())
+                .orElseThrow(() -> new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
+        existing.setEmail(user.getEmail().value());
+        existing.setFirstName(user.getFirstName().value());
+        existing.setLastName(user.getLastName().value());
+        existing.setPassword(user.getPassword().value());
+        return userMapper.toDomain(userJpaRepository.save(existing));
     }
 
     @Override

@@ -1,23 +1,20 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
+import es.leinadfonfria.eyteacher.application.shared.ValueObjectMapper;
 import es.leinadfonfria.eyteacher.domain.entities.User;
-import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
-import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
-import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.UserJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Mapper for converting between User domain entities and JPA entities.
  * Uses MapStruct to automate the mapping of value objects and standard fields.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ValueObjectMapper.class})
 public interface UserMapper {
 
     /**
@@ -52,36 +49,6 @@ public interface UserMapper {
     @Mapping(target = "isAdmin", ignore = true)
     UserJpaEntity toEntity(User domain);
 
-    @Named("toUserId")
-    default UserId toUserId(UUID value) {
-        return new UserId(value);
-    }
-
-    @Named("fromUserId")
-    default UUID fromUserId(UserId userId) {
-        return userId.value();
-    }
-
-    @Named("toEmail")
-    default Email toEmail(String value) {
-        return new Email(value);
-    }
-
-    @Named("fromEmail")
-    default String fromEmail(Email email) {
-        return email.value();
-    }
-
-    @Named("toName")
-    default Name toName(String value) {
-        return new Name(value);
-    }
-
-    @Named("fromName")
-    default String fromName(Name name) {
-        return name.value();
-    }
-
     @Named("toPassword")
     default Password toPassword(String value) {
         return Password.hashed(value);
@@ -91,4 +58,6 @@ public interface UserMapper {
     default String fromPassword(Password password) {
         return password.value();
     }
+
+    List<UserJpaEntity> toEntityList(List<User> userList);
 }

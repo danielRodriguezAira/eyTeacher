@@ -13,6 +13,16 @@ public interface UserRepository<U extends User> {
     U save(U user);
 
     /**
+     * Updates an existing user's own fields (email, firstName, lastName, password and isAdmin).
+     * Retrieves the persisted entity and applies only the provided values,
+     * leaving audit fields untouched.
+     *
+     * @param user The domain entity carrying the updated values. Must have a non-null id.
+     * @return The updated domain entity.
+     */
+    U update(U user);
+
+    /**
      * Retrieves a page of distinct students subscribed to any topic whose category is owned by the given user.
      *
      * @param ownerId The UUID of the teacher who owns the categories.

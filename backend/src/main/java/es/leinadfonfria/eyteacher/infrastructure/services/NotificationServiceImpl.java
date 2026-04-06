@@ -71,9 +71,6 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
 
     /**
      * Strips HTML tags from the message, normalises whitespace, and truncates to 100 characters.
-     *
-     * @param raw The raw message, potentially containing HTML markup.
-     * @return Plain-text message of at most 100 characters, ending in "..." if truncated.
      */
     private static final int MAX_MESSAGE_LENGTH = 100;
 
@@ -81,11 +78,11 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
         if (raw == null) return "";
         String plain = raw
                 .replaceAll("<[^>]+>", " ")
-                .replaceAll("&nbsp;", " ")
-                .replaceAll("&amp;", "&")
-                .replaceAll("&lt;", "<")
-                .replaceAll("&gt;", ">")
-                .replaceAll("&quot;", "\"")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
                 .replaceAll("\\s+", " ")
                 .trim();
         if (plain.length() <= MAX_MESSAGE_LENGTH) return plain;

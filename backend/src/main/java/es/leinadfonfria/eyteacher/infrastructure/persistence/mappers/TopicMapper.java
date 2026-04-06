@@ -1,12 +1,11 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
+import es.leinadfonfria.eyteacher.application.shared.ValueObjectMapper;
 import es.leinadfonfria.eyteacher.domain.entities.Topic;
 import es.leinadfonfria.eyteacher.domain.entities.User;
-import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TopicJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 import java.util.List;
 
@@ -14,7 +13,7 @@ import java.util.List;
  * Mapper for converting between Topic domain entities and JPA entities.
  * Uses MapStruct to automate the mapping of value objects and standard fields.
  */
-@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class, ValueObjectMapper.class})
 public interface TopicMapper {
 
     /**
@@ -23,26 +22,16 @@ public interface TopicMapper {
      * @param entity The persistence entity.
      * @return Topic The domain entity.
      */
-    @Mapping(target = "name", source = "name", qualifiedByName = "toTopicName")
+    @Mapping(target = "name", source = "name", qualifiedByName = "toName")
     @Mapping(target = "taskList", ignore = true)
     Topic toDomain(TopicJpaEntity entity);
 
-    @Mapping(target = "name", source = "entity.name", qualifiedByName = "toTopicName")
+    @Mapping(target = "name", source = "entity.name", qualifiedByName = "toName")
     @Mapping(target = "description", source = "entity.description")
     @Mapping(target = "category", source = "entity.category")
     @Mapping(target = "studentList", source = "studentList")
     @Mapping(target = "taskList", ignore = true)
     Topic toDomain(TopicJpaEntity entity, List<User> studentList);
-
-    @Named("toTopicName")
-    default Name toName(String name) {
-        return new Name(name);
-    }
-
-    @Named("fromTopicName")
-    default String fromName(Name name) {
-        return name.value();
-    }
 
     /**
      * Converts a JPA entity list to a domain entity list.
@@ -60,6 +49,7 @@ public interface TopicMapper {
      */
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "name", source = "name", qualifiedByName = "fromTopicName")
+    @Mapping(target = "name", source = "name", qualifiedByName = "fromName")
+    @Mapping(target = "taskList", ignore = true)
     TopicJpaEntity toEntity(Topic domain);
 }

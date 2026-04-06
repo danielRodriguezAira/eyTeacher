@@ -68,3 +68,13 @@ mat-card-actions {
     color: rgba(255, 255, 255, 0.4);
     margin-top: 8px;
 }
+
+.solution-description {
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  ::ng-deep p, ::ng-deep ul, ::ng-deep ol {
+    margin: 0;
+  }
+}

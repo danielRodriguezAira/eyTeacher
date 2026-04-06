@@ -52,13 +52,13 @@ class CategoryTest {
     @Test
     @DisplayName("Should edit a Category with id")
     void shouldEditCategoryWithId() {
-        Category category = Category.edit(1L, new Name("Math"), "Mathematics category", owner);
+        Category category = Category.edit(1L, new Name("Math"), "Mathematics category");
 
         assertNotNull(category);
         assertEquals(1L, category.getId());
         assertEquals("Math", category.getName().value());
         assertEquals("Mathematics category", category.getDescription());
-        assertEquals(owner, category.getOwner());
+        assertNull(category.getOwner());
     }
 
     @Test

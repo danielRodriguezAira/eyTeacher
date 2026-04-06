@@ -60,7 +60,7 @@
                                         </mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content>
-                                        <div [innerHTML]="solution.description | safeHtml"></div>
+                                        <div class="solution-description" [innerHTML]="solution.description | safeHtml"></div>
                                         @if (solution.createdAt) {
                                             <div class="card-date">{{ solution.createdAt | date:'dd/MM/yyyy' }}</div>
                                         }

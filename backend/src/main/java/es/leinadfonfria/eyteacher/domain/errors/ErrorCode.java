@@ -39,6 +39,10 @@ public class ErrorCode {
     public static final int TOPIC_NOT_FOUND = 3003;
     /** The requested topic category could not be found. */
     public static final int TOPIC_CATEGORY_NOT_FOUND = 3004;
+    /** The topic data is invalid. */
+    public static final int TOPIC_INVALID_DATA = 3005;
+    /** The topic has tasks, cannot be deleted. */
+    public static final int TOPIC_HAS_TASKS = 3006;
     /** The requested topic could not be found. */
     public static final int TASK_NOT_FOUND = 4001;
     /** The requested solution could not be found. */

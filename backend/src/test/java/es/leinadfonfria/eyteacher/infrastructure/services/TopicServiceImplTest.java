@@ -36,7 +36,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,8 +73,19 @@ class TopicServiceImplTest {
                 new Name("Doe"),
                 false
         );
-        categoryDomain = Category.edit(categoryId, new Name("Math"), "Mathematics category", ownerDomain);
-        topicDomain = Topic.edit(topicId, new Name("Algebra"), "Algebra topic", categoryDomain, List.of(), List.of());
+        categoryDomain = Category.builder()
+                .id(categoryId)
+                .name(new Name("Math"))
+                .description("Mathematics category")
+                .owner(ownerDomain)
+                .build();
+        topicDomain = Topic.builder()
+                .id(topicId)
+                .name(new Name("Algebra"))
+                .description("Algebra topic")
+                .category(categoryDomain)
+                .studentList(List.of())
+                .build();
     }
 
     @Nested
@@ -89,14 +99,12 @@ class TopicServiceImplTest {
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
                 when(topicRepositoryAdapter.save(any(Topic.class))).thenReturn(topicDomain);
 
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
                 assertFalse(result.isFailure());
                 assertEquals(topicId, result.getValue());
-                verify(categoryRepositoryAdapter).findById(categoryId);
                 verify(topicRepositoryAdapter).save(any(Topic.class));
             }
         }
@@ -124,14 +132,13 @@ class TopicServiceImplTest {
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepositoryAdapter.findById(categoryId))
+                when(topicRepositoryAdapter.save(any(Topic.class)))
                         .thenThrow(new NotFoundException("Category not found", ErrorCode.TOPIC_CATEGORY_NOT_FOUND));
 
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.TOPIC_CATEGORY_NOT_FOUND, result.getError());
-                verifyNoInteractions(topicRepositoryAdapter);
             }
         }
 
@@ -142,15 +149,12 @@ class TopicServiceImplTest {
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
-                when(categoryRepositoryAdapter.findById(categoryId)).thenReturn(categoryDomain);
-                when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
-                when(topicRepositoryAdapter.save(any(Topic.class))).thenReturn(topicDomain);
+                when(topicRepositoryAdapter.update(any(Topic.class))).thenReturn(topicDomain);
 
                 Result<Long, Integer> result = topicService.saveTopic(request);
 
                 assertFalse(result.isFailure());
-                verify(topicRepositoryAdapter).findById(topicId);
-                verify(topicRepositoryAdapter).save(any(Topic.class));
+                verify(topicRepositoryAdapter).update(any(Topic.class));
             }
         }
     }
@@ -165,15 +169,14 @@ class TopicServiceImplTest {
             TopicResponse topicResponse = new TopicResponse(topicId, "Algebra", "Algebra topic", categoryId, List.of(), List.of());
 
             when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
-            when(taskRepository.findByTopicId(topicId)).thenReturn(List.of());
-            when(topicResponseMapper.toTopicResponse(eq(topicDomain), any())).thenReturn(topicResponse);
+            when(topicResponseMapper.toTopicResponse(topicDomain)).thenReturn(topicResponse);
 
             Result<TopicResponse, Integer> result = topicService.getTopic(topicId);
 
             assertFalse(result.isFailure());
             assertEquals(topicId, result.getValue().id());
             verify(topicRepositoryAdapter).findById(topicId);
-            verify(topicResponseMapper).toTopicResponse(eq(topicDomain), any());
+            verify(topicResponseMapper).toTopicResponse(topicDomain);
         }
 
         @Test
@@ -288,7 +291,7 @@ class TopicServiceImplTest {
                 Result<Void, Integer> result = topicService.addTopicSubscriptionToStudents(request);
 
                 assertFalse(result.isFailure());
-                verify(topicRepositoryAdapter).save(any(Topic.class));
+                verify(topicRepositoryAdapter).updateStudents(any(Topic.class));
                 verify(notificationPublisher, times(1)).publishNewSubscription(any());
             }
         }
@@ -307,7 +310,7 @@ class TopicServiceImplTest {
 
                 assertTrue(result.isFailure());
                 assertEquals(ErrorCode.AUTHENTICATION_ERROR, result.getError());
-                verify(topicRepositoryAdapter, never()).save(any());
+                verify(topicRepositoryAdapter, never()).updateStudents(any());
             }
         }
 

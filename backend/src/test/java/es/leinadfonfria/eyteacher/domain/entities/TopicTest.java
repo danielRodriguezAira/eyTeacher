@@ -56,14 +56,14 @@ class TopicTest {
         Long topicId = 1L;
 
         // Act
-        Topic topic = Topic.edit(topicId, new Name("Calculus"), "Advanced calculus", category, List.of(), List.of());
+        Topic topic = Topic.edit(topicId, new Name("Calculus"), "Advanced calculus");
 
         // Assert
         assertNotNull(topic);
         assertEquals(topicId, topic.getId());
         assertEquals("Calculus", topic.getName().value());
         assertEquals("Advanced calculus", topic.getDescription());
-        assertEquals(category, topic.getCategory());
+        assertNull(topic.getCategory());
         assertTrue(topic.getStudentList().isEmpty());
         assertTrue(topic.getTaskList().isEmpty());
     }

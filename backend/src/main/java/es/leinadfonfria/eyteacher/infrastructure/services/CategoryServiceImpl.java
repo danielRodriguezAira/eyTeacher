@@ -69,23 +69,23 @@ public class CategoryServiceImpl implements SaveCategoryUseCase, GetCategoriesBy
                     .orElseThrow(() -> new AuthException("Category owner not found", ErrorCode.CATEGORY_USER_NOT_FOUND));
 
             Category category;
+            Category updatedCategory;
             if (request.id() == null) {
                 category = Category.create(
                         new Name(request.name()),
                         request.description(),
                         owner
                 );
+                updatedCategory = categoryRepository.save(category);
             } else {
                 category = Category.edit(
                         request.id(),
                         new Name(request.name()),
-                        request.description(),
-                        owner
+                        request.description()
                 );
+                updatedCategory = categoryRepository.update(category);
             }
-
-            Category persistedCategory = categoryRepository.save(category);
-            return Result.ok(persistedCategory.getId());
+            return Result.ok(updatedCategory.getId());
         } catch (AuthException e) {
             log.error("Authentication error", e);
             return Result.fail(e.getCode());
@@ -217,7 +217,7 @@ public class CategoryServiceImpl implements SaveCategoryUseCase, GetCategoriesBy
             if (!categoryRepository.existsById(categoryId)) {
                 throw new NotFoundException("Category not found", ErrorCode.CATEGORY_NOT_FOUND);
             }
-            if (categoryRepository.countTopicList(categoryId) > 0) {
+            if (topicRepository.existsByCategoryId(categoryId)) {
                 throw new NotFoundException("Category has topics, cannot be deleted", ErrorCode.CATEGORY_HAS_TOPICS);
             }
             categoryRepository.delete(categoryId);

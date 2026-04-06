@@ -59,15 +59,9 @@ export class SolutionDetail implements OnInit {
     UserRole = UserRole;
 
     ngOnInit(): void {
-        const taskId = Number(this.route.snapshot.paramMap.get('taskId'));
         const solutionId = Number(this.route.snapshot.paramMap.get('id'));
 
-        if (taskId && solutionId) {
-            this.taskService.getTaskById(taskId).subscribe(task => {
-                this.taskDescription.set(task.description);
-                this.solution.set(task.solutionList.find(s => s.id === solutionId));
-            });
-        } else if (solutionId) {
+        if (solutionId) {
             this.solutionService.getSolutionById(solutionId).subscribe(solution => {
                 this.taskDescription.set(solution.task.description);
                 this.solution.set(solution);
