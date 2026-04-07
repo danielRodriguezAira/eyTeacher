@@ -16,6 +16,7 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 import {ConfirmDialog} from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-category-detail',
@@ -42,7 +43,10 @@ export class CategoryDetail implements OnInit {
     ngOnInit(): void {
         const id = Number(this.route.snapshot.paramMap.get('id'));
         if (id) {
-            this.categoryService.getCategoryById(id).subscribe(cat => this.category.set(cat));
+            this.categoryService.getCategoryById(id).subscribe({
+                next: (cat) => this.category.set(cat),
+                error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar la categoría'))
+            });
         }
     }
 
@@ -65,7 +69,7 @@ export class CategoryDetail implements OnInit {
                         this.router.navigate(['/category-list']);
                     },
                     error: (err) => {
-                        this.notificationService.openSnackBar('Error al borrar la categoría');
+                        this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al borrar la categoría'));
                         console.error(err);
                     }
                 });

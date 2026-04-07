@@ -17,6 +17,7 @@ import {AuthenticationService} from '../../../services/auth.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 import {ConfirmDialog} from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 const PAGE_SIZE = 10;
 
@@ -52,16 +53,22 @@ export class TaskDetail implements OnInit {
     ngOnInit(): void {
         this.taskId = Number(this.route.snapshot.paramMap.get('id'));
         if (this.taskId) {
-            this.taskService.getTaskById(this.taskId).subscribe(t => this.task.set(t));
+            this.taskService.getTaskById(this.taskId).subscribe({
+                next: (t) => this.task.set(t),
+                error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar la tarea'))
+            });
             this.loadSolutions();
         }
     }
 
     loadSolutions(): void {
-        this.solutionService.getSolutionsByTask(this.taskId, this.currentPage, PAGE_SIZE).subscribe(page => {
-            this.solutions.update(existing => [...existing, ...page.content]);
-            this.hasMoreSolutions.set(page.hasNext);
-            this.currentPage++;
+        this.solutionService.getSolutionsByTask(this.taskId, this.currentPage, PAGE_SIZE).subscribe({
+            next: (page) => {
+                this.solutions.update(existing => [...existing, ...page.content]);
+                this.hasMoreSolutions.set(page.hasNext);
+                this.currentPage++;
+            },
+            error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar las soluciones'))
         });
     }
 
@@ -104,7 +111,7 @@ export class TaskDetail implements OnInit {
                         this.router.navigate(['/topic-detail', task.topicId]);
                     },
                     error: (err) => {
-                        this.notificationService.openSnackBar('Error al borrar la tarea');
+                        this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al borrar la tarea'));
                         console.error(err);
                     }
                 });

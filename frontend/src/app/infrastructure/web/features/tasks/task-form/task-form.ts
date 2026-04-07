@@ -17,6 +17,7 @@ import {Task} from '../../../../../domain/entities/task';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-task-form',
@@ -75,12 +76,17 @@ export class TaskForm implements OnInit {
 
         if (this.taskId) {
             this.isEditMode.set(true);
-            this.taskService.getTaskById(this.taskId).subscribe(task => {
-                if (task) {
-                    this.taskForm.patchValue({ description: task.description });
-                    this.topicId = task.topicId;
-                    this.loadTopicAndCategory(this.topicId);
-                    this.cdr.detectChanges();
+            this.taskService.getTaskById(this.taskId).subscribe({
+                next: (task) => {
+                    if (task) {
+                        this.taskForm.patchValue({ description: task.description });
+                        this.topicId = task.topicId;
+                        this.loadTopicAndCategory(this.topicId);
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar la tarea'));
                 }
             });
         } else {
@@ -96,8 +102,13 @@ export class TaskForm implements OnInit {
                 this.topicName.set(topic.name);
                 return this.categoryService.getCategoryById(topic.categoryId);
             })
-        ).subscribe(category => {
-            this.categoryName.set(category.name);
+        ).subscribe({
+            next: (category) => {
+                this.categoryName.set(category.name);
+            },
+            error: (err) => {
+                this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar los datos del tema'));
+            }
         });
     }
 
@@ -143,7 +154,7 @@ export class TaskForm implements OnInit {
                 this.router.navigate(['/topic-detail', this.topicId]);
             },
             error: (error) => {
-                this.notificationService.openSnackBar(error.error || 'Error al guardar la tarea');
+                this.notificationService.openSnackBar(getErrorMessage(error.error, 'Error al guardar la tarea'));
             }
         });
     }

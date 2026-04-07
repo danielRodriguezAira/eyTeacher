@@ -18,6 +18,7 @@ import {AuthenticationService} from '../../../services/auth.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
 import {ConfirmDialog} from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 const PAGE_SIZE = 10;
 
@@ -52,16 +53,22 @@ export class TopicDetail implements OnInit {
     ngOnInit(): void {
         this.topicId = Number(this.route.snapshot.paramMap.get('id'));
         if (this.topicId) {
-            this.topicService.getTopicById(this.topicId).subscribe(t => this.topic.set(t));
+            this.topicService.getTopicById(this.topicId).subscribe({
+                next: (t) => this.topic.set(t),
+                error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar el tema'))
+            });
             this.loadTasks();
         }
     }
 
     loadTasks(): void {
-        this.taskService.getTasksByTopic(this.topicId, this.currentPage, PAGE_SIZE).subscribe(page => {
-            this.tasks.update(existing => [...existing, ...page.content]);
-            this.hasMoreTasks.set(page.hasNext);
-            this.currentPage++;
+        this.taskService.getTasksByTopic(this.topicId, this.currentPage, PAGE_SIZE).subscribe({
+            next: (page) => {
+                this.tasks.update(existing => [...existing, ...page.content]);
+                this.hasMoreTasks.set(page.hasNext);
+                this.currentPage++;
+            },
+            error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar las tareas'))
         });
     }
 
@@ -88,7 +95,7 @@ export class TopicDetail implements OnInit {
                         this.router.navigate(['/category-detail', topic.categoryId]);
                     },
                     error: (err) => {
-                        this.notificationService.openSnackBar('Error al borrar el tema');
+                        this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al borrar el tema'));
                         console.error(err);
                     }
                 });

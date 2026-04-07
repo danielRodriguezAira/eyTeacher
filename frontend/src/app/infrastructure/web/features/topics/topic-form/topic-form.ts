@@ -12,6 +12,7 @@ import {Topic} from '../../../../../domain/entities/topic';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-topic-form',
@@ -62,14 +63,19 @@ export class TopicForm implements OnInit {
 
         if (this.topicId) {
             this.isEditMode.set(true);
-            this.topicService.getTopicById(this.topicId).subscribe(topic => {
-                if (topic) {
-                    this.topicForm.patchValue({
-                        name: topic.name,
-                        description: topic.description
-                    });
-                    this.categoryId = topic.categoryId;
-                    this.cdr.detectChanges();
+            this.topicService.getTopicById(this.topicId).subscribe({
+                next: (topic) => {
+                    if (topic) {
+                        this.topicForm.patchValue({
+                            name: topic.name,
+                            description: topic.description
+                        });
+                        this.categoryId = topic.categoryId;
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar el tema'));
                 }
             });
         }
@@ -94,7 +100,7 @@ export class TopicForm implements OnInit {
                 this.router.navigate(['/category-detail', this.categoryId]);
             },
             error: (error) => {
-                this.notificationService.openSnackBar(error.error || 'Error al guardar el tema');
+                this.notificationService.openSnackBar(getErrorMessage(error.error, 'Error al guardar el tema'));
             }
         });
     }

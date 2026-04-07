@@ -19,6 +19,7 @@ import {NotificationService} from '../../../services/notification.service';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {AuthenticationService} from '../../../services/auth.service';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-solution-detail',
@@ -62,9 +63,12 @@ export class SolutionDetail implements OnInit {
         const solutionId = Number(this.route.snapshot.paramMap.get('id'));
 
         if (solutionId) {
-            this.solutionService.getSolutionById(solutionId).subscribe(solution => {
-                this.taskDescription.set(solution.task.description);
-                this.solution.set(solution);
+            this.solutionService.getSolutionById(solutionId).subscribe({
+                next: (solution) => {
+                    this.taskDescription.set(solution.task.description);
+                    this.solution.set(solution);
+                },
+                error: (err) => this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar la solución'))
             });
         }
     }
@@ -86,8 +90,8 @@ export class SolutionDetail implements OnInit {
                     this.router.navigate(['/task-detail', sol.task.id]);
                     this.notificationService.openSnackBar('Corrección enviada correctamente');
                 },
-                error: () => {
-                    this.notificationService.openSnackBar('Error al enviar la corrección');
+                error: (err) => {
+                    this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al enviar la corrección'));
                 }
             });
         }

@@ -12,6 +12,7 @@ import {AuthenticationService} from '../../../services/auth.service';
 import {StudentTasksResponse, TaskStatus} from '../../../../../domain/entities/student-tasks-response';
 import {UserRole} from "../../../../../domain/entities/auth-user";
 import {SafeHtmlPipe} from '../../../../../shared/pipes/safe-html.pipe';
+import {NotificationService} from '../../../services/notification.service';
 
 @Component({
     selector: 'app-student-tasks',
@@ -25,6 +26,7 @@ export class StudentTasks implements OnInit {
     private router = inject(Router);
     private taskService = inject(TaskService);
     private authService = inject(AuthenticationService);
+    private notificationService = inject(NotificationService);
 
     private currentUser = toSignal(this.authService.getCurrentUserObservable().pipe(
         map(user => user ?? null)
@@ -52,7 +54,10 @@ export class StudentTasks implements OnInit {
     ngOnInit(): void {
         this.studentId = this.route.snapshot.paramMap.get('studentId') ?? '';
         if (this.studentId) {
-            this.taskService.getStudentTasks(this.studentId).subscribe(groups => this.taskGroups.set(groups));
+            this.taskService.getStudentTasks(this.studentId).subscribe({
+                next: (groups) => this.taskGroups.set(groups),
+                error: () => this.notificationService.openSnackBar('Error al cargar las tareas del alumno')
+            });
         }
     }
 

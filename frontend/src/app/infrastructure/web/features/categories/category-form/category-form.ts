@@ -12,6 +12,7 @@ import {Category} from '../../../../../domain/entities/category';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-category-form',
@@ -57,13 +58,18 @@ export class CategoryForm implements OnInit {
         this.categoryId = idParam ? Number(idParam) : null;
         if (this.categoryId) {
             this.isEditMode.set(true);
-            this.categoryService.getCategoryById(this.categoryId).subscribe(category => {
-                if (category) {
-                    this.categoryForm.patchValue({
-                        name: category.name,
-                        description: category.description
-                    });
-                    this.cdr.detectChanges();
+            this.categoryService.getCategoryById(this.categoryId).subscribe({
+                next: (category) => {
+                    if (category) {
+                        this.categoryForm.patchValue({
+                            name: category.name,
+                            description: category.description
+                        });
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar la categoría'));
                 }
             });
         }
@@ -84,7 +90,7 @@ export class CategoryForm implements OnInit {
                 this.router.navigate(targetId ? ['/category-detail', targetId] : ['/category-list']);
             },
             error: (error) => {
-                this.notificationService.openSnackBar(error.error || 'Error al guardar la categoría');
+                this.notificationService.openSnackBar(getErrorMessage(error.error, 'Error al guardar la categoría'));
             }
         });
     }
