@@ -19,7 +19,7 @@
                         </button>
                         <button mat-menu-item (click)="subscribeStudents(topic)">
                             <mat-icon>group_add</mat-icon>
-                            <span>Subscribir estudiantes</span>
+                            <span>Subscribir alumnos</span>
                         </button>
                         <button mat-menu-item (click)="deleteTopic(topic)" class="delete-action">
                             <mat-icon class="delete-icon">delete</mat-icon>
@@ -57,7 +57,7 @@
                                     </mat-card-title>
                                 </mat-card-header>
                                 <mat-card-content>
-                                    <div [innerHTML]="task.description | safeHtml"></div>
+                                    <div class="task-description" [innerHTML]="task.description | safeHtml"></div>
                                     @if (task.createdAt) {
                                         <div class="card-date">{{ task.createdAt | date:'dd/MM/yyyy' }}</div>
                                     }

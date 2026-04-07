@@ -1,5 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
+import es.leinadfonfria.eyteacher.application.shared.ValueObjectMapper;
 import es.leinadfonfria.eyteacher.domain.entities.Task;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.TaskJpaEntity;
 import org.mapstruct.Mapper;
@@ -7,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {TopicMapper.class, SolutionMapper.class})
+@Mapper(componentModel = "spring", uses = {TopicMapper.class, SolutionMapper.class, ValueObjectMapper.class})
 public interface TaskMapper {
 
     @Mapping(target = "topic.name", ignore = true)

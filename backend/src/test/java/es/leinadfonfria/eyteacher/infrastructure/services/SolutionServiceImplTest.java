@@ -89,9 +89,20 @@ class SolutionServiceImplTest {
                 false
         );
 
-        Category categoryDomain = Category.edit(1L, new Name("Math"), "Math category", ownerDomain);
+        Category categoryDomain = Category.builder()
+                .id(1L)
+                .name(new Name("Math"))
+                .description("Math category")
+                .owner(ownerDomain)
+                .build();
 
-        topicDomain = Topic.edit(1L, new Name("Algebra"), "Basic algebra", categoryDomain, List.of(studentDomain), List.of());
+        topicDomain = Topic.builder()
+                .id(1L)
+                .name(new Name("Algebra"))
+                .description("Basic algebra")
+                .category(categoryDomain)
+                .studentList(List.of(studentDomain))
+                .build();
 
         Task taskDomain = Task.create("Solve equations", topicDomain);
 
@@ -120,14 +131,13 @@ class SolutionServiceImplTest {
                 when(userRepositoryAdapter.findById(studentUuid)).thenReturn(Optional.of(studentDomain));
                 
                 List<User> students = List.of(studentDomain);
-                Topic topicWithStudent = Topic.edit(
-                        topicDomain.getId(),
-                        topicDomain.getName(),
-                        topicDomain.getDescription(),
-                        topicDomain.getCategory(),
-                        students,
-                        List.of()
-                );
+                Topic topicWithStudent = Topic.builder()
+                        .id(topicDomain.getId())
+                        .name(topicDomain.getName())
+                        .description(topicDomain.getDescription())
+                        .category(topicDomain.getCategory())
+                        .studentList(students)
+                        .build();
                 Task taskWithTopicWithStudent = Task.create(taskId, "Task Description", topicWithStudent, List.of());
                 when(taskRepositoryAdapter.findById(taskId)).thenReturn(taskWithTopicWithStudent);
                 

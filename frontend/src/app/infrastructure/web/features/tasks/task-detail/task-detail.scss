@@ -16,6 +16,9 @@ h1 {
     font-size: 1.2rem;
     line-height: 1.6;
     margin-top: 20px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
 }
 
 mat-card-actions {
@@ -64,4 +67,14 @@ mat-card-actions {
     font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.4);
     margin-top: 8px;
+}
+
+.solution-description {
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  ::ng-deep p, ::ng-deep ul, ::ng-deep ol {
+    margin: 0;
+  }
 }

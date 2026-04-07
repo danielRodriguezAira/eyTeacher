@@ -31,6 +31,10 @@ public class Category {
         this.studentList = studentList != null ? studentList : Collections.emptyList();
     }
 
+    public static Category create(Long id) {
+        return new Category(id, null, null, null, null, null);
+    }
+
     /**
      * Creates a new Category instance.
      *
@@ -49,25 +53,10 @@ public class Category {
      * @param id          The unique identifier of the category.
      * @param name        The category firstName.
      * @param description The category description.
-     * @param owner       The user who owns this category.
      * @return Category A new category domain entity.
      */
-    public static Category edit(Long id, Name name, String description, User owner) {
-        return new Category(id, name, description, owner, Collections.emptyList(), Collections.emptyList());
-    }
-
-    /**
-     * Recreates a Category instance with its topics (usually from persistence).
-     *
-     * @param id          The unique identifier of the category.
-     * @param name        The category firstName.
-     * @param description The category description.
-     * @param owner       The user who owns this category.
-     * @param topicList   The list of topics in this category.
-     * @return Category A new category domain entity.
-     */
-    public static Category withTopics(Long id, Name name, String description, User owner, List<Topic> topicList) {
-        return new Category(id, name, description, owner, topicList, Collections.emptyList());
+    public static Category edit(Long id, Name name, String description) {
+        return new Category(id, name, description, null, null, null);
     }
 
     /**

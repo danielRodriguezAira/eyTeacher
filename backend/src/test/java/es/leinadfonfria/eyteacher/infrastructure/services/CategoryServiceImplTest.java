@@ -79,7 +79,7 @@ class CategoryServiceImplTest {
         @DisplayName("Debe crear la categoría correctamente con datos válidos")
         void saveCategory_Success() {
             SaveCategoryRequest request = new SaveCategoryRequest("Math", "Mathematics category", ownerIdStr);
-            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category");
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
@@ -170,7 +170,7 @@ class CategoryServiceImplTest {
         @Test
         @DisplayName("Debe retornar la lista de categorías del owner correctamente")
         void getCategoriesByOwner_Success() {
-            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category");
             CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
 
             when(userRepositoryAdapter.findById(ownerUuid)).thenReturn(Optional.of(ownerDomain));
@@ -215,7 +215,7 @@ class CategoryServiceImplTest {
         @Test
         @DisplayName("Debe retornar la lista de categorías del estudiante correctamente")
         void getCategoriesByStudent_Success() {
-            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category", ownerDomain);
+            Category savedCategory = Category.edit(1L, new Name("Math"), "Mathematics category");
             CategoryResponse categoryResponse = new CategoryResponse(1L, "Math", "Mathematics category", ownerIdStr, List.of(), List.of());
 
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
@@ -296,7 +296,7 @@ class CategoryServiceImplTest {
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
                 when(categoryRepositoryAdapter.existsById(1L)).thenReturn(true);
-                when(categoryRepositoryAdapter.countTopicList(1L)).thenReturn(0);
+                when(topicRepositoryAdapter.existsByCategoryId(1L)).thenReturn(false);
 
                 Result<Void, Integer> result = categoryService.deleteCategory(1L);
 
@@ -340,7 +340,7 @@ class CategoryServiceImplTest {
             try (MockedStatic<AuthenticationUtils> authUtils = mockStatic(AuthenticationUtils.class)) {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
                 when(categoryRepositoryAdapter.existsById(1L)).thenReturn(true);
-                when(categoryRepositoryAdapter.countTopicList(1L)).thenReturn(2);
+                when(topicRepositoryAdapter.existsByCategoryId(1L)).thenReturn(true);
 
                 Result<Void, Integer> result = categoryService.deleteCategory(1L);
 

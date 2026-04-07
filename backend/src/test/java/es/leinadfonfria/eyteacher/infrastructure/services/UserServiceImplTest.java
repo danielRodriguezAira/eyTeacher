@@ -196,7 +196,7 @@ class UserServiceImplTest {
             verify(passwordEncoder).matches(password, encodedPassword);
             verify(passwordEncoder).matches(newPassword, encodedPassword);
             verify(passwordEncoder).encode(newPassword);
-            verify(userRepositoryAdapter).save(any(User.class));
+            verify(userRepositoryAdapter).update(any(User.class));
         }
 
         @Test

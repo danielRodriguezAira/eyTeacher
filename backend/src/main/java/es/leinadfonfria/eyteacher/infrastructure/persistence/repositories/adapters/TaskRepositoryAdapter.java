@@ -17,11 +17,9 @@ import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.SolutionJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TaskJpaRepository;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.TopicJpaRepository;
-import es.leinadfonfria.eyteacher.infrastructure.security.AuthenticationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,23 +42,7 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
         Task task = taskMapper.toDomain(taskEntity);
         List<User> studentList = userMapper.toDomainList(taskEntity.getTopic().getStudentList());
         Topic topic = topicMapper.toDomain(taskEntity.getTopic(), studentList);
-        List<Solution> solutionList;
-        if (!AuthenticationUtils.hasAuthentication() || AuthenticationUtils.isTeacher()) {
-            solutionList = task.getSolutionList();
-        } else {
-            solutionList = solutionMapper.toDomainList(
-                    solutionJpaRepository.findByTaskIdAndStudentId(taskEntity.getId(), AuthenticationUtils.getUserId()));
-        }
-        return Task.create(task.getId(), task.getDescription(), topic, solutionList, task.getCreatedAt());
-    }
-
-    @Override
-    public List<Task> findByTopicId(Long topicId) {
-        TopicJpaEntity topicEntity = topicJpaRepository.findById(topicId)
-                .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
-        List<TaskJpaEntity> taskList = taskJpaRepository.findByTopicIdOrderByCreatedAtDesc(topicEntity.getId())
-                .orElse(Collections.emptyList());
-        return taskMapper.toDomainList(taskList);
+        return Task.create(task.getId(), task.getDescription(), topic, task.getCreatedAt());
     }
 
     @Override
@@ -74,12 +56,21 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
     }
 
     @Override
-    public Task save(Task task, Long topicId) {
-        TopicJpaEntity topicEntity = topicJpaRepository.findById(topicId)
+    public Task save(Task task) {
+        TopicJpaEntity topicEntity = topicJpaRepository.findById(task.getTopic().getId())
                 .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
         TaskJpaEntity taskJpaEntity = taskMapper.toEntity(task);
         taskJpaEntity.setTopic(topicEntity);
         return taskMapper.toDomain(taskJpaRepository.save(taskJpaEntity));
+    }
+
+    @Override
+    public Task update(Task task) {
+        TaskJpaEntity existing = taskJpaRepository.findById(task.getId())
+                .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
+        existing.setDescription(task.getDescription());
+        return taskMapper.toDomain(
+                taskJpaRepository.save(existing));
     }
 
     @Override
@@ -108,6 +99,17 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
     @Override
     public boolean existsById(Long id) {
         return taskJpaRepository.existsById(id);
+    }
+
+    /**
+     * Checks whether any task exists for the given topic.
+     *
+     * @param topicId The topic identifier.
+     * @return {@code true} if at least one task belongs to the topic, {@code false} otherwise.
+     */
+    @Override
+    public boolean existsByTopicId(Long topicId) {
+        return taskJpaRepository.existsByTopicId(topicId);
     }
 
     @Override

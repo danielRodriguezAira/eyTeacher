@@ -14,9 +14,13 @@ import java.util.UUID;
 @Repository
 public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, Long> {
 
-    Optional<List<TaskJpaEntity>> findByTopicIdOrderByCreatedAtDesc(Long topicId);
-
-    List<TaskJpaEntity> findByTopicIdOrderByCreatedAtDesc(Long topicId, Pageable pageable);
+    /**
+     * Checks whether any task exists for the given topic.
+     *
+     * @param topicId The topic identifier.
+     * @return {@code true} if at least one task belongs to the topic, {@code false} otherwise.
+     */
+    boolean existsByTopicId(Long topicId);
 
     /**
      * Retrieves a page of tasks for the given topic using explicit LIMIT/OFFSET,

@@ -8,7 +8,6 @@ import java.util.UUID;
 
 public interface TaskRepository<T extends Task> {
     T findById(Long id);
-    List<T> findByTopicId(Long topicId);
 
     /**
      * Retrieves a page of tasks belonging to the given topic.
@@ -39,7 +38,27 @@ public interface TaskRepository<T extends Task> {
      */
     List<T> findByStudentIdAndTeacherId(UUID studentId, UUID teacherId);
 
-    T save(T task, Long topicId);
+    T save(T task);
+
+    /**
+     * Updates an existing task's own fields (description).
+     * Retrieves the persisted entity and applies only the provided values,
+     * leaving the topic relation, solutions and audit fields untouched.
+     *
+     * @param task    The domain entity carrying the updated values. Must have a non-null id.
+     * @return The updated domain entity.
+     */
+    T update(T task);
+
     boolean existsById(Long id);
+
+    /**
+     * Checks whether any task exists for the given topic.
+     *
+     * @param topicId The topic identifier.
+     * @return {@code true} if at least one task belongs to the topic, {@code false} otherwise.
+     */
+    boolean existsByTopicId(Long topicId);
+
     void delete(Long id);
 }

@@ -1,7 +1,6 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Title} from '@angular/platform-browser';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
@@ -36,7 +35,6 @@ export class Login implements OnInit {
 
     private fb = inject(NonNullableFormBuilder);
     private router = inject(Router);
-    private titleService = inject(Title);
     private notificationService = inject(NotificationService);
     private authenticationService = inject(AuthenticationService);
 
@@ -48,19 +46,17 @@ export class Login implements OnInit {
     });
 
     ngOnInit() {
-        this.titleService.setTitle('angular-material-template - Login');
         this.authenticationService.logout();
         this.loadSavedUser();
     }
 
     private loadSavedUser() {
         const savedUserEmail = localStorage.getItem('savedUserEmail');
-        if (savedUserEmail) {
-            this.loginForm.patchValue({
-                email: savedUserEmail,
-                rememberMe: true
-            });
-        }
+        const savedRole = localStorage.getItem('savedRole') as UserRole | null;
+        this.loginForm.patchValue({
+            ...(savedUserEmail && {email: savedUserEmail, rememberMe: true}),
+            ...(savedRole && {role: savedRole}),
+        });
     }
 
     login() {
@@ -80,6 +76,7 @@ export class Login implements OnInit {
                     } else {
                         localStorage.removeItem('savedUserEmail');
                     }
+                    localStorage.setItem('savedRole', role);
                     this.router.navigate(['/']);
                 },
                 error: (error) => {

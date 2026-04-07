@@ -72,7 +72,7 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
 docker compose --env-file .env -f traefik/compose.yaml --profile production up --build -d \
 && docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
 && docker compose --env-file .env -f frontend/compose.yaml --profile production up --build -d \
-&& cd ai && docker compose up --build -d && cd ..
+&& cd ai && docker compose --env-file ../.env up --build -d && cd ..
 
 # Parar
 docker compose -f traefik/compose.yaml --profile production stop \
