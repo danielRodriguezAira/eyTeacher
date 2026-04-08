@@ -40,10 +40,19 @@ npm run build                                # Production build
 
 ### Docker (full stack, run from `eyTeacher/`)
 ```bash
-docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/ai/docker-compose.yml --profile production up --build -d
-docker compose -f backend/compose.yaml -f frontend/compose.yaml -f ai/ai/docker-compose.yml --profile production stop
+# Start
+docker compose --env-file .env -f traefik/compose.yaml --profile production up --build -d \
+&& docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
+&& docker compose --env-file .env -f frontend/compose.yaml --profile production up --build -d \
+&& cd ai && docker compose up --build -d && cd ..
+
+# Stop
+docker compose -f traefik/compose.yaml --profile production stop \
+&& docker compose -f backend/compose.yaml --profile production stop \
+&& docker compose -f frontend/compose.yaml --profile production stop \
+&& cd ai && docker compose stop && cd ..
 ```
-Requires an external Docker network named `eyteacher-network` to be created first.
+Requires an external Docker network (`docker network create eyteacher-network`) and a `.env` file at the project root.
 
 ## Architecture
 
