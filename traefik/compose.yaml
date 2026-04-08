@@ -1,6 +1,7 @@
 services:
   traefik:
     image: traefik:v3.3
+    platform: linux/arm64
     container_name: traefik
     restart: unless-stopped
     profiles:

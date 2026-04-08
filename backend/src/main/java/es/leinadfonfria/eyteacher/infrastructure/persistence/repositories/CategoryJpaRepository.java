@@ -33,6 +33,4 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryJpaEntity, 
      */
     @Query("SELECT DISTINCT c FROM CategoryJpaEntity c JOIN c.topicList t JOIN t.studentList s WHERE s.id = :studentId ORDER BY c.createdAt DESC")
     Optional<List<CategoryJpaEntity>> findByStudentIdOrderByCreatedAtDesc(@Param("studentId") UUID studentId);
-
-    int countTopicListById(Long categoryId);
 }

@@ -30,6 +30,10 @@ public class Topic {
         this.taskList = taskList != null ? taskList : Collections.emptyList();
     }
 
+    public static Topic create(Long id) {
+        return new Topic(id, null, null, null, null, null);
+    }
+
     /**
      * Creates a new Topic instance (for creation).
      *
@@ -49,12 +53,13 @@ public class Topic {
      * @param id          The unique identifier of the topic.
      * @param name        The topic firstName.
      * @param description The topic description.
-     * @param category    The category this topic belongs to.
-     * @param studentList The list of students subscribed to this topic.
-     * @param taskList    The list of tasks in this topic.
      * @return Topic A new topic domain entity.
      */
-    public static Topic edit(Long id, Name name, String description, Category category, List<User> studentList, List<Task> taskList) {
-        return new Topic(id, name, description, category, studentList, taskList);
+    public static Topic edit(Long id, Name name, String description) {
+        return new Topic(id, name, description, null, null, null);
+    }
+
+    public static Topic editStudentList(Long id, List<User> studentList) {
+        return new Topic(id, null, null, null, studentList, null);
     }
 }

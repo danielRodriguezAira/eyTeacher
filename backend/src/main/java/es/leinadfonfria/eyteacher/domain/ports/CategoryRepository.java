@@ -14,7 +14,17 @@ public interface CategoryRepository<C extends Category> {
     C findById(Long id);
 
     C save(C category);
+
+    /**
+     * Updates an existing category's own fields (name and description).
+     * Retrieves the persisted entity and applies only the provided values,
+     * leaving relationships and audit fields untouched.
+     *
+     * @param category The domain entity carrying the updated values. Must have a non-null id.
+     * @return The updated domain entity.
+     */
+    C update(C category);
+
     boolean existsById(Long id);
-    int countTopicList(Long id);
     void delete(Long id);
 }

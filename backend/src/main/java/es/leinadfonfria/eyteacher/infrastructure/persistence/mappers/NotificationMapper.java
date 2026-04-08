@@ -1,11 +1,12 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.mappers;
 
+import es.leinadfonfria.eyteacher.application.shared.ValueObjectMapper;
 import es.leinadfonfria.eyteacher.domain.entities.Notification;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.NotificationJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, ValueObjectMapper.class})
 public interface NotificationMapper {
     Notification toDomain(NotificationJpaEntity entity);
 

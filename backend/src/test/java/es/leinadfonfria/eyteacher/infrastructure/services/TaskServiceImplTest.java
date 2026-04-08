@@ -79,9 +79,20 @@ class TaskServiceImplTest {
                 false
         );
 
-        Category categoryDomain = Category.edit(1L, new Name("Math"), "Math category", ownerDomain);
+        Category categoryDomain = Category.builder()
+                .id(1L)
+                .name(new Name("Math"))
+                .description("Math category")
+                .owner(ownerDomain)
+                .build();
 
-        topicDomain = Topic.edit(topicId, new Name("Algebra"), "Basic algebra", categoryDomain, List.of(), List.of());
+        topicDomain = Topic.builder()
+                .id(topicId)
+                .name(new Name("Algebra"))
+                .description("Basic algebra")
+                .category(categoryDomain)
+                .studentList(List.of())
+                .build();
 
         taskDomain = Task.edit(taskId, "Solve equations");
     }
@@ -99,13 +110,13 @@ class TaskServiceImplTest {
                 authUtils.when(AuthenticationUtils::isTeacher).thenReturn(true);
                 authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
                 when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
-                when(taskRepositoryAdapter.save(any(Task.class), eq(topicId))).thenReturn(taskDomain);
+                when(taskRepositoryAdapter.save(any(Task.class))).thenReturn(taskDomain);
 
                 Result<Long, Integer> result = taskService.saveTask(request);
 
                 assertTrue(result.isSuccess());
                 assertEquals(taskId, result.getValue());
-                verify(taskRepositoryAdapter).save(any(Task.class), eq(topicId));
+                verify(taskRepositoryAdapter).save(any(Task.class));
             }
         }
 
@@ -119,13 +130,13 @@ class TaskServiceImplTest {
                 authUtils.when(AuthenticationUtils::getUserId).thenReturn(ownerUuid);
                 when(topicRepositoryAdapter.findById(topicId)).thenReturn(topicDomain);
                 when(taskRepositoryAdapter.existsById(taskId)).thenReturn(true);
-                when(taskRepositoryAdapter.save(any(Task.class), eq(topicId))).thenReturn(taskDomain);
+                when(taskRepositoryAdapter.update(any(Task.class))).thenReturn(taskDomain);
 
                 Result<Long, Integer> result = taskService.saveTask(request);
 
                 assertTrue(result.isSuccess());
                 assertEquals(taskId, result.getValue());
-                verify(taskRepositoryAdapter).save(any(Task.class), eq(topicId));
+                verify(taskRepositoryAdapter).update(any(Task.class));
             }
         }
 

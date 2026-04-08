@@ -27,16 +27,24 @@ public class Task {
         this.createdAt = createdAt;
     }
 
+    public static Task create(Long id) {
+        return new Task(id, null, null, null, null);
+    }
+
     public static Task create(String description) {
-        return new Task(null, description, null, Collections.emptyList(), null);
+        return new Task(null, description, null, null, null);
     }
 
     public static Task create(String description, Topic topic) {
-        return new Task(null, description, topic, Collections.emptyList(), null);
+        return new Task(null, description, topic, null, null);
     }
 
     public static Task create(Long id, String description, Topic topic, List<Solution> solutionList) {
         return new Task(id, description, topic, solutionList, null);
+    }
+
+    public static Task create(Long id, String description, Topic topic, LocalDateTime createdAt) {
+        return new Task(id, description, topic, null, createdAt);
     }
 
     public static Task create(Long id, String description, Topic topic, List<Solution> solutionList, LocalDateTime createdAt) {
@@ -44,6 +52,6 @@ public class Task {
     }
 
     public static Task edit(Long id, String description) {
-        return new Task(id, description, null, Collections.emptyList(), null);
+        return new Task(id, description, null, null, null);
     }
 }

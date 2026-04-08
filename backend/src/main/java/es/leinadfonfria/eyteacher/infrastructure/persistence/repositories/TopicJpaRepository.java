@@ -25,4 +25,6 @@ public interface TopicJpaRepository extends JpaRepository<TopicJpaEntity, Long> 
 
     @Query("SELECT t FROM TopicJpaEntity t JOIN t.studentList s WHERE s.id = :userId and t.category.id = :categoryId")
     List<TopicJpaEntity> findTopicByCategoryIdAndStudentId(Long categoryId, UUID userId);
+
+    boolean existsByCategoryId(Long categoryId);
 }

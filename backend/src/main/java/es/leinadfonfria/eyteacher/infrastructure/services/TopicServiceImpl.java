@@ -58,36 +58,34 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
                 throw new AuthException("Topic category owner is not a TEACHER", ErrorCode.TOPIC_OWNER_NOT_TEACHER);
             }
 
-            Category category = categoryRepository.findById(request.categoryId());
-
             Topic topic;
+            Topic topicSaved;
             if (request.id() == null) {
                 topic = Topic.create(
                         new Name(request.name()),
                         request.description(),
-                        category,
+                        Category.create(request.categoryId()),
                         List.of()
                 );
+                topicSaved = topicRepository.save(topic);
             } else {
-                Topic existingTopic = topicRepository.findById(request.id());
                 topic = Topic.edit(
                         request.id(),
                         new Name(request.name()),
-                        request.description(),
-                        category,
-                        existingTopic.getStudentList(),
-                        existingTopic.getTaskList()
+                        request.description()
                 );
+                topicSaved = topicRepository.update(topic);
             }
-
-            Topic saved = topicRepository.save(topic);
-            return Result.ok(saved.getId());
+            return Result.ok(topicSaved.getId());
         } catch (AuthException e) {
             log.error("Authentication error", e);
             return Result.fail(e.getCode());
         } catch (NotFoundException e) {
             log.error("Not found error", e);
             return Result.fail(e.getCode());
+        } catch (IllegalArgumentException e) {
+            log.error("Topic invalid data error", e);
+            return Result.fail(ErrorCode.TOPIC_INVALID_DATA);
         } catch (Exception e) {
             log.error("Unexpected error during topic creation/update", e);
             return Result.fail(ErrorCode.UNKNOWN_ERROR);
@@ -103,8 +101,7 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
     public Result<TopicResponse, Integer> getTopic(Long id) {
         try {
             Topic topic = topicRepository.findById(id);
-            List<Task> taskList = taskRepository.findByTopicId(id);
-            return Result.ok(topicResponseMapper.toTopicResponse(topic, taskList));
+            return Result.ok(topicResponseMapper.toTopicResponse(topic));
         } catch (NotFoundException e) {
             log.error("Not found error", e);
             return Result.fail(e.getCode());
@@ -154,6 +151,9 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
             if (!topicRepository.existsById(id)) {
                 throw new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND);
             }
+            if (taskRepository.existsByTopicId(id)) {
+                throw new NotFoundException("Topic has tasks, cannot be deleted", ErrorCode.TOPIC_HAS_TASKS);
+            }
             topicRepository.delete(id);
             return Result.ok(null);
         } catch (AuthException e) {
@@ -197,16 +197,12 @@ public class TopicServiceImpl implements SaveTopicUseCase, GetTopicUseCase, GetT
                 }
             }
 
-            Topic updatedTopic = Topic.edit(
+            Topic editedTopic = Topic.editStudentList(
                     topic.getId(),
-                    topic.getName(),
-                    topic.getDescription(),
-                    topic.getCategory(),
-                    currentStudents,
-                    topic.getTaskList()
+                    currentStudents
             );
 
-            topicRepository.save(updatedTopic);
+            topicRepository.updateStudents(editedTopic);
             List<java.util.UUID> studentIds = newStudents.stream()
                     .map(s -> s.getId().value())
                     .toList();

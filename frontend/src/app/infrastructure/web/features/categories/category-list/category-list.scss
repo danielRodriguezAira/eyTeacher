@@ -26,6 +26,16 @@ h1 {
     overflow: hidden;
 }
 
+.description {
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    ::ng-deep p, ::ng-deep ul, ::ng-deep ol {
+        margin: 0;
+    }
+}
+
 .category-card:hover {
     transform: translateY(-4px);
 }

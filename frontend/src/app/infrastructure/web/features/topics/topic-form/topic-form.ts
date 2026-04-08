@@ -1,5 +1,4 @@
 import {ChangeDetectorRef, Component, inject, OnInit, signal} from '@angular/core';
-import {Title} from '@angular/platform-browser';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
@@ -13,6 +12,7 @@ import {Topic} from '../../../../../domain/entities/topic';
 import {NotificationService} from '../../../services/notification.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
+import {getErrorMessage} from '../../../../../domain/errors/error-codes';
 
 @Component({
     selector: 'app-topic-form',
@@ -31,7 +31,6 @@ import {UserRole} from '../../../../../domain/entities/auth-user';
 })
 export class TopicForm implements OnInit {
     private fb = inject(NonNullableFormBuilder);
-    private titleService = inject(Title);
     private topicService = inject(TopicService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
@@ -64,19 +63,21 @@ export class TopicForm implements OnInit {
 
         if (this.topicId) {
             this.isEditMode.set(true);
-            this.titleService.setTitle('Editar Tema');
-            this.topicService.getTopicById(this.topicId).subscribe(topic => {
-                if (topic) {
-                    this.topicForm.patchValue({
-                        name: topic.name,
-                        description: topic.description
-                    });
-                    this.categoryId = topic.categoryId;
-                    this.cdr.detectChanges();
+            this.topicService.getTopicById(this.topicId).subscribe({
+                next: (topic) => {
+                    if (topic) {
+                        this.topicForm.patchValue({
+                            name: topic.name,
+                            description: topic.description
+                        });
+                        this.categoryId = topic.categoryId;
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    this.notificationService.openSnackBar(getErrorMessage(err.error, 'Error al cargar el tema'));
                 }
             });
-        } else {
-            this.titleService.setTitle('Nuevo Tema');
         }
     }
 
@@ -99,7 +100,7 @@ export class TopicForm implements OnInit {
                 this.router.navigate(['/category-detail', this.categoryId]);
             },
             error: (error) => {
-                this.notificationService.openSnackBar(error.error || 'Error al guardar el tema');
+                this.notificationService.openSnackBar(getErrorMessage(error.error, 'Error al guardar el tema'));
             }
         });
     }

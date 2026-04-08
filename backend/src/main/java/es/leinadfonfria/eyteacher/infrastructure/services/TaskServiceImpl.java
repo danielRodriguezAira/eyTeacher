@@ -57,14 +57,16 @@ public class TaskServiceImpl implements SaveTaskUseCase, GetTaskUseCase, GetTask
 
             Task task;
             if (request.id() == null) {
-                task = Task.create(request.description());
+                task = Task.create(request.description(), topic);
             } else if (taskRepository.existsById(request.id())) {
                 task = Task.edit(request.id(), request.description());
             } else {
                 throw new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND);
             }
 
-            Task saved = taskRepository.save(task, request.topicId());
+            Task saved = request.id() == null
+                    ? taskRepository.save(task)
+                    : taskRepository.update(task);
             List<UUID> studentIds = topic.getStudentList().stream()
                     .map(s -> s.getId().value())
                     .toList();

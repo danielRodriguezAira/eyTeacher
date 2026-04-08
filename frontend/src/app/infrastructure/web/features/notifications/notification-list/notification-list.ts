@@ -37,17 +37,21 @@ export class NotificationList implements OnInit {
   }
 
   loadNotifications() {
-    this.notificationService.getNotificationsByOwner(this.ownerId, this.currentPage, PAGE_SIZE).subscribe(page => {
-      this.notifications.update(existing => [...existing, ...page.content]);
-      this.hasMore.set(page.hasNext);
-      this.currentPage++;
+    this.notificationService.getNotificationsByOwner(this.ownerId, this.currentPage, PAGE_SIZE).subscribe({
+      next: (page) => {
+        this.notifications.update(existing => [...existing, ...page.content]);
+        this.hasMore.set(page.hasNext);
+        this.currentPage++;
+      },
+      error: () => this.notificationService.openSnackBar('Error al cargar las notificaciones')
     });
   }
 
   onNotificationClick(notification: Notification) {
     if (!notification.read) {
-      this.notificationService.markAsRead(notification.id).subscribe(() => {
-        this.updateNotificationInList(notification.id, true);
+      this.notificationService.markAsRead(notification.id).subscribe({
+        next: () => this.updateNotificationInList(notification.id, true),
+        error: () => this.notificationService.openSnackBar('Error al marcar la notificación como leída')
       });
     }
     this.navigateTo(notification);

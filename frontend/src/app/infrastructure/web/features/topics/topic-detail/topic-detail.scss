@@ -16,6 +16,9 @@ h1 {
     font-size: 1.2rem;
     line-height: 1.6;
     margin-top: 20px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
 }
 
 mat-card-actions {
@@ -51,6 +54,16 @@ mat-card-actions {
     cursor: pointer;
     transition: transform 0.2s, background-color 0.2s;
     overflow: hidden;
+}
+
+.task-description {
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    ::ng-deep p, ::ng-deep ul, ::ng-deep ol {
+        margin: 0;
+    }
 }
 
 .task-card:hover {

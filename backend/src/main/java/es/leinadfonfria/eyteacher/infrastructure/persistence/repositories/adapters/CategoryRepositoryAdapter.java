@@ -5,6 +5,7 @@ import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.CategoryRepository;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
+import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.CategoryJpaEntity;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.CategoryMapper;
 import es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.CategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,13 +49,17 @@ public class CategoryRepositoryAdapter implements CategoryRepository<Category> {
     }
 
     @Override
-    public boolean existsById(Long id) {
-        return categoryRepository.existsById(id);
+    public Category update(Category category) {
+        CategoryJpaEntity existing = categoryRepository.findById(category.getId())
+                .orElseThrow(() -> new NotFoundException("Category not found", ErrorCode.CATEGORY_NOT_FOUND));
+        existing.setName(category.getName().value());
+        existing.setDescription(category.getDescription());
+        return categoryMapper.toDomain(categoryRepository.save(existing));
     }
 
     @Override
-    public int countTopicList(Long id) {
-        return categoryRepository.countTopicListById(id);
+    public boolean existsById(Long id) {
+        return categoryRepository.existsById(id);
     }
 
     @Override

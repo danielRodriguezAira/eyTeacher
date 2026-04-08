@@ -4,6 +4,7 @@ import es.leinadfonfria.eyteacher.application.dtos.auth.*;
 import es.leinadfonfria.eyteacher.application.services.auth.*;
 import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
+import es.leinadfonfria.eyteacher.application.shared.ValueObjectMapper;
 import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.entities.User;
 import es.leinadfonfria.eyteacher.domain.errors.AuthException;
@@ -13,7 +14,6 @@ import es.leinadfonfria.eyteacher.domain.valueobjects.Email;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Name;
 import es.leinadfonfria.eyteacher.domain.valueobjects.Password;
 import es.leinadfonfria.eyteacher.domain.valueobjects.UserId;
-import es.leinadfonfria.eyteacher.infrastructure.persistence.mappers.UserMapper;
 import es.leinadfonfria.eyteacher.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,7 +38,7 @@ import static es.leinadfonfria.eyteacher.domain.errors.ErrorCode.UNKNOWN_ERROR;
 public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, UpdateUserProfileUseCase, UpdatePasswordUseCase, GetStudentsByOwnerIdUseCase {
 
     private final UserRepository<User> userRepository;
-    private final UserMapper userMapper;
+    private final ValueObjectMapper valueObjectMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserResponseMapper userResponseMapper;
@@ -140,9 +140,9 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
             try {
                 userUpdated = User.update(
                         new UserId(userUuid),
-                        userMapper.toEmail(request.email()),
-                        userMapper.toName(request.firstName()),
-                        userMapper.toName(request.lastName()));
+                        valueObjectMapper.toEmail(request.email()),
+                        valueObjectMapper.toName(request.firstName()),
+                        valueObjectMapper.toName(request.lastName()));
             } catch (IllegalArgumentException e) {
                 throw new AuthException("Error updating user profile", e, ErrorCode.INVALID_USER_DATA);
             }
@@ -166,7 +166,7 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
                     existing.isAdmin()
             );
 
-            userRepository.save(updated);
+            userRepository.update(updated);
             return Result.ok(null);
         } catch (AuthException e) {
             return Result.fail(e.getCode());
@@ -239,7 +239,7 @@ public class UserProfileServiceImpl implements LoginUseCase, RegisterUseCase, Up
                     existing.isAdmin()
             );
 
-            userRepository.save(updated);
+            userRepository.update(updated);
             return Result.ok(null);
         } catch (AuthException e) {
             return Result.fail(e.getCode());

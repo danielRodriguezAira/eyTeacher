@@ -1,5 +1,4 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
-import {Title} from '@angular/platform-browser';
 import {NonNullableFormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -36,7 +35,6 @@ export class AccountPage implements OnInit {
     hideConfirmPassword = signal(true);
 
     private fb = inject(NonNullableFormBuilder);
-    private titleService = inject(Title);
     private authService = inject(AuthenticationService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
@@ -55,7 +53,6 @@ export class AccountPage implements OnInit {
     });
 
     ngOnInit() {
-        this.titleService.setTitle('Account');
         const currentUser = this.authService.getCurrentUser();
         this.isLoggedIn.set(!!currentUser);
 

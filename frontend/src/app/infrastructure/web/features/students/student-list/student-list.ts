@@ -8,6 +8,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {StudentService} from '../../../services/student.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {Student} from '../../../../../domain/entities/student';
+import {NotificationService} from '../../../services/notification.service';
 
 const PAGE_SIZE = 10;
 
@@ -22,6 +23,7 @@ export class StudentList implements OnInit {
     private readonly studentService = inject(StudentService);
     private readonly authService = inject(AuthenticationService);
     private readonly router = inject(Router);
+    private readonly notificationService = inject(NotificationService);
 
     displayedColumns = ['name', 'email'];
     students = signal<Student[]>([]);
@@ -38,10 +40,13 @@ export class StudentList implements OnInit {
     }
 
     loadStudents(): void {
-        this.studentService.getStudentsByOwner(this.ownerId, this.currentPage, PAGE_SIZE).subscribe(page => {
-            this.students.update(existing => [...existing, ...page.content]);
-            this.hasMore.set(page.hasNext);
-            this.currentPage++;
+        this.studentService.getStudentsByOwner(this.ownerId, this.currentPage, PAGE_SIZE).subscribe({
+            next: (page) => {
+                this.students.update(existing => [...existing, ...page.content]);
+                this.hasMore.set(page.hasNext);
+                this.currentPage++;
+            },
+            error: () => this.notificationService.openSnackBar('Error al cargar los alumnos')
         });
     }
 

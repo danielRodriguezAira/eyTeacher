@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatListModule} from '@angular/material/list';
@@ -12,25 +12,35 @@ import {CategoryService} from '../../../services/category.service';
 import {AuthenticationService} from '../../../services/auth.service';
 import {UserRole} from '../../../../../domain/entities/auth-user';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {SafeHtmlPipe} from "../../../../../shared/pipes/safe-html.pipe";
+import {NotificationService} from '../../../services/notification.service';
 
 @Component({
     selector: 'app-category-list',
     standalone: true,
-    imports: [CommonModule, RouterLink, MatCardModule, MatListModule, MatIconModule, MatButtonModule, MatMenuModule],
+    imports: [CommonModule, RouterLink, MatCardModule, MatListModule, MatIconModule, MatButtonModule, MatMenuModule, SafeHtmlPipe],
     templateUrl: './category-list.html',
     styleUrl: './category-list.scss'
 })
-export class CategoryList {
+export class CategoryList implements OnInit {
     private categoryService = inject(CategoryService);
     private authService = inject(AuthenticationService);
     private router = inject(Router);
+    private notificationService = inject(NotificationService);
 
-    categories = toSignal(this.categoryService.getCategories(), {initialValue: []});
+    categories = signal<Category[]>([]);
     userRole = toSignal(this.authService.getCurrentUserObservable().pipe(
         map(user => user?.role ?? null)
     ), {initialValue: null});
 
     UserRole = UserRole;
+
+    ngOnInit(): void {
+        this.categoryService.getCategories().subscribe({
+            next: (cats) => this.categories.set(cats),
+            error: () => this.notificationService.openSnackBar('Error al cargar las categorías')
+        });
+    }
 
     viewCategory(category: Category) {
         this.router.navigate(['/category-detail', category.id]);
