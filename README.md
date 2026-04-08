@@ -41,7 +41,6 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
 | Componente | Tecnología |
 |---|---|
 | Contenedores | Docker + Docker Compose |
-| Reverse proxy / TLS | Traefik (Let's Encrypt) |
 | Broker de mensajes | RabbitMQ 3 |
 
 ---
@@ -56,7 +55,6 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
   ```
 - Fichero `.env` en la raíz del proyecto con las siguientes variables:
   ```env
-  DOMAIN=tu.dominio.com
   JWT_SECRET=<secreto_jwt_mínimo_64_chars>
   MYSQL_USER=eyteacher
   MYSQL_PASSWORD=<contraseña>
@@ -64,22 +62,23 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
   RABBITMQ_USER=eyteacher
   RABBITMQ_PASSWORD=<contraseña>
   OPENAI_API_KEY=<api_key_openai>
+  DOCKER_PLATFORM=linux/arm64
   ```
 
 ### Ejecución en producción (stack completo)
 ```bash
 # Arrancar
-docker compose --env-file .env -f traefik/compose.yaml --profile production up --build -d \
-&& docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
+docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
 && docker compose --env-file .env -f frontend/compose.yaml --profile production up --build -d \
-&& cd ai && docker compose --env-file ../.env up --build -d && cd ..
+&& cd ai && docker compose up --build -d && cd ..
 
 # Parar
-docker compose -f traefik/compose.yaml --profile production stop \
-&& docker compose -f backend/compose.yaml --profile production stop \
+docker compose -f backend/compose.yaml --profile production stop \
 && docker compose -f frontend/compose.yaml --profile production stop \
 && cd ai && docker compose stop && cd ..
 ```
+
+El túnel de Cloudflare (`cloudflared tunnel --url http://localhost:8082`) actúa como punto de entrada único. El nginx del frontend enruta `/api/` al backend y `/ai-api/` al servicio IA.
 
 ### Ejecución en desarrollo (módulos por separado)
 
@@ -154,7 +153,6 @@ eyTeacher/
 ├── ai/                             # Servicio de asistencia IA
 │   └── src/main/java/              # Endpoints de generación de ejercicios y pistas
 │
-├── traefik/                        # Configuración de Traefik (reverse proxy + TLS)
 ├── docs/                           # Documentación del proyecto (requisitos, visión)
 ├── CLAUDE.md                       # Guía de arquitectura para Claude Code
 └── README.md

@@ -10,10 +10,9 @@ eyTeacher is a full-stack web application for teacher-student communication focu
 
 ```
 eyTeacher/
-├── backend/       # Java 21 + Spring Boot 4.0.2 REST API
-├── frontend/      # Angular 21 standalone components
-├── ai/         # Spring Boot 4.0.4 + Spring AI 2.0.0-M3 (Ollama)
-└── compose.yaml   # Docker orchestration (root)
+├── backend/   # Java 21 + Spring Boot 4.0.2 REST API
+├── frontend/  # Angular 21 standalone components
+└── ai/        # Spring Boot 4.0.4 + Spring AI 2.0.0-M3 (OpenAI)
 ```
 
 ## Commands
@@ -41,18 +40,16 @@ npm run build                                # Production build
 ### Docker (full stack, run from `eyTeacher/`)
 ```bash
 # Start
-docker compose --env-file .env -f traefik/compose.yaml --profile production up --build -d \
-&& docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
+docker compose --env-file .env -f backend/compose.yaml --profile production up --build -d \
 && docker compose --env-file .env -f frontend/compose.yaml --profile production up --build -d \
 && cd ai && docker compose up --build -d && cd ..
 
 # Stop
-docker compose -f traefik/compose.yaml --profile production stop \
-&& docker compose -f backend/compose.yaml --profile production stop \
+docker compose -f backend/compose.yaml --profile production stop \
 && docker compose -f frontend/compose.yaml --profile production stop \
 && cd ai && docker compose stop && cd ..
 ```
-Requires an external Docker network (`docker network create eyteacher-network`) and a `.env` file at the project root.
+Requires an external Docker network (`docker network create eyteacher-network`) and a `.env` file at the project root. Entry point is `http://localhost:8082` (nginx proxies `/api/` → backend, `/ai-api/` → AI service). Use `cloudflared tunnel --url http://localhost:8082` for external access.
 
 ## Architecture
 
@@ -103,5 +100,5 @@ Dependencies flow strictly **inward**: `infrastructure → application → domai
 
 - **Database**: MySQL 8.4 (Docker) / H2 in test (`application-test.properties`). Migrations via Flyway in `src/main/resources/db/migration/`.
 - **Auth**: JWT (JJWT 0.12.6, HS512). Roles: `ROLE_TEACHER`, `ROLE_STUDENT`.
-- **AI service**: Ollama on `:11434`, Qwen 3.5 9B model, exposed on `:8081`.
+- **AI service**: OpenAI API (gpt-4o-mini) via Spring AI, exposed on `:8081`.
 - **OpenAPI/Swagger**: available at `http://localhost:8080/swagger-ui.html` when running locally.
