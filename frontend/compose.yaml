@@ -1,6 +1,6 @@
 services:
   eyteacher-frontend-app:
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     build:
       context: ../frontend
       dockerfile: Dockerfile

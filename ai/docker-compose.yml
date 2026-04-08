@@ -1,6 +1,6 @@
 services:
   eyteacher-ai-app:
-    platform: linux/arm64
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: Dockerfile

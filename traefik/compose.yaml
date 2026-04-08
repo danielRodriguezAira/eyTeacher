@@ -1,5 +1,6 @@
 services:
   traefik:
+    platform: ${DOCKER_PLATFORM}
     image: traefik:v3.3
     platform: linux/arm64
     container_name: traefik
