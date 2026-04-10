@@ -16,7 +16,9 @@ h1 {
     font-size: 1.2rem;
     line-height: 1.6;
     margin-top: 20px;
-    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
 }
 
 mat-card-actions {
