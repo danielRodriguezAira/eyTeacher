@@ -1,7 +1,6 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories;
 
 import es.leinadfonfria.eyteacher.infrastructure.persistence.entities.NotificationJpaEntity;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,17 +13,16 @@ import java.util.UUID;
 public interface NotificationJpaRepository extends JpaRepository<NotificationJpaEntity, Long> {
     List<NotificationJpaEntity> findByOwnerIdOrderByReadAscCreatedAtDesc(UUID ownerId);
 
-    List<NotificationJpaEntity> findByOwnerIdOrderByReadAscCreatedAtDesc(UUID ownerId, Pageable pageable);
-
     /**
-     * Retrieves a page of notifications for the given owner using explicit LIMIT/OFFSET,
-     * ordered so that unread notifications appear before read ones.
+     * Retrieves a page of notifications for the given owner filtered by entity type,
+     * using explicit LIMIT/OFFSET and ordered so that unread notifications appear first.
      *
      * @param ownerId The owner's UUID.
+     * @param types   Allowed entity type names (e.g. {@code ["TASK", "CORRECTION", "TOPIC"]}).
      * @param offset  Number of rows to skip (= {@code page * size}).
      * @param limit   Maximum rows to fetch (= {@code size + 1} to detect next page).
      * @return List of notification entities ordered by read status asc, creation date desc.
      */
-    @Query(value = "SELECT * FROM notifications WHERE owner_id = :ownerId ORDER BY is_read ASC, created_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
-    List<NotificationJpaEntity> findPageByOwnerId(@Param("ownerId") UUID ownerId, @Param("offset") int offset, @Param("limit") int limit);
+    @Query(value = "SELECT * FROM notifications WHERE owner_id = :ownerId AND entity_type IN (:types) ORDER BY is_read ASC, created_at DESC LIMIT :limit OFFSET :offset", nativeQuery = true)
+    List<NotificationJpaEntity> findPageByOwnerIdAndEntityTypes(@Param("ownerId") UUID ownerId, @Param("types") List<String> types, @Param("offset") int offset, @Param("limit") int limit);
 }

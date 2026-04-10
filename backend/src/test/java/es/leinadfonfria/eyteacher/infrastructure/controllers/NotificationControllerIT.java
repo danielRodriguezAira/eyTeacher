@@ -98,9 +98,9 @@ class NotificationControllerIT {
         @Test
         @DisplayName("Debe devolver las notificaciones no leídas antes que las leídas")
         void getNotifications_Mixed_ReturnsUnreadFirst() throws Exception {
-            // Insertamos una notificación leída y una no leída
-            insertNotification(owner, "Notif leída", true);
-            insertNotification(owner, "Notif no leída", false);
+            // El token es de TEACHER, que solo ve SOLUTION
+            insertNotification(owner, "Notif leída", NotificationEntityType.SOLUTION, true);
+            insertNotification(owner, "Notif no leída", NotificationEntityType.SOLUTION, false);
             entityManager.flush();
             entityManager.clear();
 
@@ -110,7 +110,6 @@ class NotificationControllerIT {
                             .header("Authorization", "Bearer " + ownerToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(2)))
-                    // La primera notificación del resultado debe ser la no leída
                     .andExpect(jsonPath("$.content[0].read", is(false)))
                     .andExpect(jsonPath("$.content[1].read", is(true)));
         }
@@ -118,13 +117,13 @@ class NotificationControllerIT {
         @Test
         @DisplayName("Debe respetar el tamaño de página y señalar hasNext correctamente")
         void getNotifications_MoreThanPageSize_ReturnsHasNextTrue() throws Exception {
+            // El token es de TEACHER, que solo ve SOLUTION
             for (int i = 1; i <= 4; i++) {
-                insertNotification(owner, "Notificación " + i, false);
+                insertNotification(owner, "Notificación " + i, NotificationEntityType.SOLUTION, false);
             }
             entityManager.flush();
             entityManager.clear();
 
-            // Pedimos páginas de 2: debe indicar que hay más
             mockMvc.perform(get("/api/v1/notifications/owner/{ownerId}", owner.getId())
                             .param("page", "0")
                             .param("size", "2")
@@ -133,7 +132,6 @@ class NotificationControllerIT {
                     .andExpect(jsonPath("$.content", hasSize(2)))
                     .andExpect(jsonPath("$.hasNext", is(true)));
 
-            // La última página no debe tener más elementos
             mockMvc.perform(get("/api/v1/notifications/owner/{ownerId}", owner.getId())
                             .param("page", "1")
                             .param("size", "2")
@@ -141,6 +139,45 @@ class NotificationControllerIT {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(2)))
                     .andExpect(jsonPath("$.hasNext", is(false)));
+        }
+
+        @Test
+        @DisplayName("Un TEACHER solo debe ver notificaciones de tipo SOLUTION")
+        void getNotifications_Teacher_SeesOnlySolution() throws Exception {
+            insertNotification(owner, "Nueva solución", NotificationEntityType.SOLUTION, false);
+            insertNotification(owner, "Nueva tarea", NotificationEntityType.TASK, false);
+            insertNotification(owner, "Nueva corrección", NotificationEntityType.CORRECTION, false);
+            insertNotification(owner, "Nuevo tema", NotificationEntityType.TOPIC, false);
+            entityManager.flush();
+            entityManager.clear();
+
+            mockMvc.perform(get("/api/v1/notifications/owner/{ownerId}", owner.getId())
+                            .param("page", "0")
+                            .param("size", "10")
+                            .header("Authorization", "Bearer " + ownerToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)))
+                    .andExpect(jsonPath("$.content[0].entityType", is("SOLUTION")));
+        }
+
+        @Test
+        @DisplayName("Un STUDENT solo debe ver notificaciones de tipo TASK, CORRECTION y TOPIC")
+        void getNotifications_Student_DoesNotSeeSolution() throws Exception {
+            String studentToken = generateToken(owner, Role.STUDENT);
+
+            insertNotification(owner, "Nueva solución", NotificationEntityType.SOLUTION, false);
+            insertNotification(owner, "Nueva tarea", NotificationEntityType.TASK, false);
+            insertNotification(owner, "Nueva corrección", NotificationEntityType.CORRECTION, false);
+            insertNotification(owner, "Nuevo tema", NotificationEntityType.TOPIC, false);
+            entityManager.flush();
+            entityManager.clear();
+
+            mockMvc.perform(get("/api/v1/notifications/owner/{ownerId}", owner.getId())
+                            .param("page", "0")
+                            .param("size", "10")
+                            .header("Authorization", "Bearer " + studentToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(3)));
         }
     }
 
@@ -153,7 +190,7 @@ class NotificationControllerIT {
         @Test
         @DisplayName("Debe marcar la notificación como leída y devolver 200")
         void markAsRead_ExistingNotification_Returns200() throws Exception {
-            NotificationJpaEntity notif = insertNotification(owner, "Nueva tarea disponible", false);
+            NotificationJpaEntity notif = insertNotification(owner, "Nueva tarea disponible", NotificationEntityType.SOLUTION, false);
             entityManager.flush();
 
             mockMvc.perform(get("/api/v1/notifications/mark-as-read/{id}", notif.getId())
@@ -179,18 +216,19 @@ class NotificationControllerIT {
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Inserta una notificación directamente en BD y devuelve la entidad con el ID generado.
+     * Inserts a notification directly into the database and returns the persisted entity.
      *
-     * @param owner   Propietario de la notificación.
-     * @param message Mensaje de la notificación.
-     * @param read    Si está leída o no.
-     * @return La entidad persistida.
+     * @param owner      Notification owner.
+     * @param message    Notification message.
+     * @param entityType The entity type of the notification.
+     * @param read       Whether the notification is already read.
+     * @return The persisted entity.
      */
-    private NotificationJpaEntity insertNotification(UserJpaEntity owner, String message, boolean read) {
+    private NotificationJpaEntity insertNotification(UserJpaEntity owner, String message, NotificationEntityType entityType, boolean read) {
         NotificationJpaEntity notif = NotificationJpaEntity.builder()
                 .owner(owner)
                 .message(message)
-                .entityType(NotificationEntityType.TASK)
+                .entityType(entityType)
                 .entityId(1L)
                 .read(read)
                 .build();
