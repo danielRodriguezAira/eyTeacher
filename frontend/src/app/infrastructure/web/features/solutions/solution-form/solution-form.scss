@@ -9,6 +9,12 @@
   width: 100%;
 }
 
+.description {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow: hidden;
+}
+
 .full-width {
   width: 100%;
 }

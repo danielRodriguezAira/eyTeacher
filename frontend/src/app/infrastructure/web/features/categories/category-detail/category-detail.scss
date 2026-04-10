@@ -68,6 +68,13 @@ mat-card-actions {
     cursor: pointer;
     transition: transform 0.2s, background-color 0.2s;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.topic-card mat-card-content {
+    flex: 1;
+    overflow: hidden;
 }
 
 .topic-description {

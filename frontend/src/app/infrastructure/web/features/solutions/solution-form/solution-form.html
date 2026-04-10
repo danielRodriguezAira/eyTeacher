@@ -9,7 +9,7 @@
             @if (taskDescription()) {
                 <div class="task-description">
                     <h3>Tarea</h3>
-                    <div [innerHTML]="taskDescription() | safeHtml"></div>
+                    <div class="description" [innerHTML]="taskDescription() | safeHtml"></div>
                 </div>
                 
                 @if (hintRequested() && !hint()) {
