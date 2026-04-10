@@ -4,6 +4,18 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
 
 ---
 
+## Presentación del proyecto
+
+/docs/Presentación EyTeacher.odp
+
+---
+
+## URL Publicación 
+
+[EyTeacher](https://eyteacher.dpdns.org/)
+
+---
+
 ## Stack tecnológico
 
 ### Backend (`backend/`)
