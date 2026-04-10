@@ -1,6 +1,7 @@
 package es.leinadfonfria.eyteacher.infrastructure.persistence.repositories.adapters;
 
 import es.leinadfonfria.eyteacher.domain.entities.Notification;
+import es.leinadfonfria.eyteacher.domain.entities.NotificationEntityType;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.NotificationRepository;
@@ -40,11 +41,12 @@ public class NotificationRepositoryAdapter implements NotificationRepository<Not
     }
 
     @Override
-    public PageResult<Notification> findByOwnerId(UUID ownerId, int page, int size) {
+    public PageResult<Notification> findByOwnerId(UUID ownerId, List<NotificationEntityType> allowedTypes, int page, int size) {
         userJpaRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
+        List<String> typeNames = allowedTypes.stream().map(Enum::name).toList();
         List<NotificationJpaEntity> raw = notificationJpaRepository
-                .findPageByOwnerId(ownerId, page * size, size + 1);
+                .findPageByOwnerIdAndEntityTypes(ownerId, typeNames, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Notification> content = (hasNext ? raw.subList(0, size) : raw).stream()
                 .map(notificationMapper::toDomain)

@@ -6,6 +6,8 @@ import es.leinadfonfria.eyteacher.application.services.notification.*;
 import es.leinadfonfria.eyteacher.application.shared.PageResponse;
 import es.leinadfonfria.eyteacher.application.shared.Result;
 import es.leinadfonfria.eyteacher.domain.entities.Notification;
+import es.leinadfonfria.eyteacher.domain.entities.NotificationEntityType;
+import es.leinadfonfria.eyteacher.domain.entities.Role;
 import es.leinadfonfria.eyteacher.domain.errors.ErrorCode;
 import es.leinadfonfria.eyteacher.domain.errors.NotFoundException;
 import es.leinadfonfria.eyteacher.domain.ports.NotificationRepository;
@@ -55,9 +57,10 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
     }
 
     @Override
-    public Result<PageResponse<NotificationResponse>, Integer> getNotificationsByOwner(UUID ownerId, int page, int size) {
+    public Result<PageResponse<NotificationResponse>, Integer> getNotificationsByOwner(UUID ownerId, Role role, int page, int size) {
         try {
-            var pageResult = notificationRepository.findByOwnerId(ownerId, page, size);
+            var allowedTypes = NotificationEntityType.allowedFor(role);
+            var pageResult = notificationRepository.findByOwnerId(ownerId, allowedTypes, page, size);
             var content = notificationResponseMapper.toNotificationResponseList(pageResult.content());
             return Result.ok(new PageResponse<>(content, page, size, pageResult.hasNext()));
         } catch (NotFoundException e) {
