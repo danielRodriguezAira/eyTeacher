@@ -42,6 +42,7 @@ Aplicación web full-stack para la comunicación entre profesores y alumnos, ori
 |---|---|
 | Contenedores | Docker + Docker Compose |
 | Broker de mensajes | RabbitMQ 3 |
+| Calidad de código | SonarQube LTS Community + PostgreSQL 16 |
 
 ---
 
@@ -124,6 +125,42 @@ npm run build           # Build de producción
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Servicio IA | http://localhost:8081 |
 | RabbitMQ Management | http://localhost:15672 |
+| SonarQube | http://localhost:9000 |
+
+---
+
+## Análisis de calidad de código (SonarQube)
+
+El proyecto incluye análisis estático con SonarQube para backend (Java) y frontend (TypeScript/Angular), cubriendo bugs, vulnerabilidades, code smells y cobertura de tests.
+
+### Arrancar SonarQube
+
+```bash
+cd sonar
+docker compose up -d
+```
+
+Esperar a que el servidor esté disponible en http://localhost:9000 (puede tardar ~1 minuto la primera vez).
+
+### Ejecutar el análisis
+
+**Backend** (desde `backend/`):
+```bash
+./mvnw verify sonar:sonar -Dsonar.login=<token>
+```
+Ejecuta los 192 tests (unitarios + integración), genera el informe de cobertura JaCoCo y envía los resultados a SonarQube.
+
+**Frontend** (desde `frontend/`):
+```bash
+npm run sonar
+```
+Ejecuta los 103 tests de Vitest con cobertura LCOV y lanza el análisis.
+
+### Dashboards
+| Módulo | URL |
+|---|---|
+| Backend | http://localhost:9000/dashboard?id=eyteacher-backend |
+| Frontend | http://localhost:9000/dashboard?id=eyteacher-frontend |
 
 ---
 
