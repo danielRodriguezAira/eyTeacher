@@ -29,6 +29,9 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# SonarQube scanner
+.scannerwork/
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
