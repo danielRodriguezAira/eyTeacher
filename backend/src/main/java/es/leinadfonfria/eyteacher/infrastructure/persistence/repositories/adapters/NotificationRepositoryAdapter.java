@@ -42,8 +42,9 @@ public class NotificationRepositoryAdapter implements NotificationRepository<Not
 
     @Override
     public PageResult<Notification> findByOwnerId(UUID ownerId, List<NotificationEntityType> allowedTypes, int page, int size) {
-        userJpaRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND));
+        if (!userJpaRepository.existsById(ownerId)) {
+            throw new NotFoundException("User not found", ErrorCode.USER_NOT_FOUND);
+        }
         List<String> typeNames = allowedTypes.stream().map(Enum::name).toList();
         List<NotificationJpaEntity> raw = notificationJpaRepository
                 .findPageByOwnerIdAndEntityTypes(ownerId, typeNames, page * size, size + 1);

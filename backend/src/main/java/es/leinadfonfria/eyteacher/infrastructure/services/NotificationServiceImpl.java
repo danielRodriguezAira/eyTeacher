@@ -95,8 +95,9 @@ public class NotificationServiceImpl implements AddNotificationUseCase, GetNotif
     @Override
     public Result<Void, Integer> markNotificationAsRead(Long id) {
         try {
-            notificationRepository.markAsRead(id)
-                    .orElseThrow(() -> new NotFoundException("Notification not found", ErrorCode.NOTIFICATION_NOT_FOUND));
+            if (notificationRepository.markAsRead(id).isEmpty()) {
+                throw new NotFoundException("Notification not found", ErrorCode.NOTIFICATION_NOT_FOUND);
+            }
             return Result.ok(null);
         } catch (NotFoundException e) {
             log.error("Not found error during notification mark as read", e);
