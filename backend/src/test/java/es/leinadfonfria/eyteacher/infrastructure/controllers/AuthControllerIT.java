@@ -24,6 +24,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,9 +63,8 @@ class AuthControllerIT {
     @Autowired
     private MockMvc mockMvc;
 
-    /** ObjectMapper convierte objetos Java a JSON y viceversa en los tests. */
-    @Autowired
-    private ObjectMapper objectMapper;
+    /** ObjectMapper convierte objetos Java a JSON en los tests. */
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** EntityManager permite insertar datos directamente en la base de datos H2
      *  de prueba sin pasar por la capa de servicio. */
@@ -85,7 +85,7 @@ class AuthControllerIT {
         void register_NewUser_Returns200() throws Exception {
             // perform() lanza la petición HTTP simulada.
             // contentType + content definen el cuerpo JSON.
-            mockMvc.perform(post("/api/v1/auth/register")
+            mockMvc.perform(put("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of(
                                     "email", "nuevo@example.com",
@@ -103,7 +103,7 @@ class AuthControllerIT {
             // Insertamos un usuario con ese email antes de la llamada
             persistTeacher("duplicado@example.com");
 
-            mockMvc.perform(post("/api/v1/auth/register")
+            mockMvc.perform(put("/api/v1/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of(
                                     "email", "duplicado@example.com",

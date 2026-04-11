@@ -13,6 +13,7 @@
                 <p class="empty-message">No tienes alumnos asignados.</p>
             } @else {
                 <table mat-table [dataSource]="students()" class="student-table">
+                    <caption class="cdk-visually-hidden">Lista de alumnos</caption>
                     <ng-container matColumnDef="name">
                         <th mat-header-cell *matHeaderCellDef>Nombre</th>
                         <td mat-cell *matCellDef="let student">{{ student.firstName }} {{ student.lastName }}</td>

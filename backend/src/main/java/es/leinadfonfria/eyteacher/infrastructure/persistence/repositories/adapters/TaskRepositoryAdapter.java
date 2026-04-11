@@ -47,8 +47,9 @@ public class TaskRepositoryAdapter implements TaskRepository<Task> {
 
     @Override
     public PageResult<Task> findByTopicId(Long topicId, int page, int size) {
-        topicJpaRepository.findById(topicId)
-                .orElseThrow(() -> new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND));
+        if (!topicJpaRepository.existsById(topicId)) {
+            throw new NotFoundException("Topic not found", ErrorCode.TOPIC_NOT_FOUND);
+        }
         List<TaskJpaEntity> raw = taskJpaRepository.findPageByTopicId(topicId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Task> content = taskMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);

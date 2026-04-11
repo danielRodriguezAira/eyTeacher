@@ -33,8 +33,9 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
 
     @Override
     public PageResult<Solution> findByTaskId(Long taskId, int page, int size) {
-        taskJpaRepository.findById(taskId)
-                .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
+        if (!taskJpaRepository.existsById(taskId)) {
+            throw new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND);
+        }
         List<SolutionJpaEntity> raw = solutionJpaRepository.findPageByTaskId(taskId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
@@ -52,8 +53,9 @@ public class SolutionRepositoryAdapter implements SolutionRepository<Solution> {
 
     @Override
     public PageResult<Solution> findByTaskIdAndStudentId(Long taskId, UUID studentId, int page, int size) {
-        taskJpaRepository.findById(taskId)
-                .orElseThrow(() -> new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND));
+        if (!taskJpaRepository.existsById(taskId)) {
+            throw new NotFoundException("Task not found", ErrorCode.TASK_NOT_FOUND);
+        }
         List<SolutionJpaEntity> raw = solutionJpaRepository.findPageByTaskIdAndStudentId(taskId, studentId, page * size, size + 1);
         boolean hasNext = raw.size() > size;
         List<Solution> content = solutionMapper.toDomainList(hasNext ? raw.subList(0, size) : raw);
