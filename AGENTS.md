@@ -1,7 +1,36 @@
 # AGENTS.md
 
 ## Project Overview
-This project is a full-stack web application for communication between teachers and students focused on micro-learning. It consists of a backend built with Java Spring Boot and a frontend built with Angular.
+This project is a full-stack web application for communication between teachers and students focused on micro-learning.
+### Backend
+- **Project**: eyTeacher
+- **Framework**: Spring Boot 4.0.2
+- **Language**: Java 21
+- **Build Tool**: Maven 3.9.11
+- **Database**: MySQL
+- **Key Libraries**: 
+  - Spring Data JPA, MapStruct 1.6.3, Lombok
+  - JUnit 5, Testcontainers, Flyway
+  - Spring Security (password encoder with BCrypt, stateless JWT authentication)
+  - Thymeleaf, WebFlux, JWT
+- **Architecture**: Clean Architecture with layers: Domain, Application, Infrastructure, Persistence
+- **REST API Structure**:
+  - `/api/v1/auth/login` - Login endpoint with JWT
+  - `/api/v1/auth/register` - User registration
+  - `/api/v1/categories` - Category CRUD operations
+  - `/api/v1/students` - Student management
+- **Error Handling**: Domain-error classes → @RestControllerAdvice
+- **Project Location**: `/run/media/dani/Data/eyTeacher`
+
+### Frontend
+- **Framework**: Angular 21 (standalone components)
+- **Language**: TypeScript ES2022
+- **Build Tool**: npm/nx
+- **SCSS**: Yes
+- **Key Features**: Categories, Students, Courses modules
+- **Architecture**:
+  - Layered: domain (entities, value objects, errors, events), application (use cases, dtos, services), infrastructure (features, services)
+  - Shared design system (components, directives, pipes, layout, styles, utils) It consists of a backend built with Java Spring Boot and a frontend built with Angular.
 
 ## Build Commands
 - Backend (Maven): `./mvnw clean install` or `./mvnw package`
